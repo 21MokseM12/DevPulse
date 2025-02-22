@@ -2,7 +2,6 @@ package backend.academy.bot.config;
 
 import backend.academy.bot.model.commands.Command;
 import com.pengrad.telegrambot.TelegramBot;
-import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.BotCommand;
 import com.pengrad.telegrambot.request.SetMyCommands;
 import java.util.List;
@@ -17,9 +16,8 @@ public class BotConfig {
     private List<Command> commands;
 
     @Bean
-    public TelegramBot telegramBot(ApplicationConfig applicationConfig, UpdatesListener updatesListener) {
+    public TelegramBot telegramBot(ApplicationConfig applicationConfig) {
         TelegramBot bot = new TelegramBot(applicationConfig.telegramToken());
-        bot.setUpdatesListener(updatesListener);
         createMenu(bot);
         return bot;
     }
