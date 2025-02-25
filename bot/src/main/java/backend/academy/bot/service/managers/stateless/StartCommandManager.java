@@ -1,0 +1,32 @@
+package backend.academy.bot.service.managers.stateless;
+
+import backend.academy.bot.enums.Messages;
+import backend.academy.bot.model.commands.Command;
+import backend.academy.bot.service.ScrapperConnectionService;
+import com.pengrad.telegrambot.model.Update;
+import com.pengrad.telegrambot.request.SendMessage;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
+@Component
+public class StartCommandManager implements StatelessCommandManager {
+
+    @Autowired
+    private ScrapperConnectionService scrapperConnectionService;
+
+    @Autowired
+    @Qualifier("startCommand")
+    private Command startCommand;
+
+    @Override
+    public SendMessage createReply(Update update) {
+        scrapperConnectionService.registerChat(update.message().chat().id());
+        return new SendMessage(update.message().chat().id(), Messages.WELCOME_MESSAGE.toString());
+    }
+
+    @Override
+    public Command getCommand() {
+        return startCommand;
+    }
+}
