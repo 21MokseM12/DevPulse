@@ -2,10 +2,12 @@ package backend.academy.bot.service;
 
 import backend.academy.bot.factory.StatefulCommandManagerFactory;
 import backend.academy.bot.factory.StatelessCommandManagerFactory;
-import backend.academy.bot.model.commands.InvalidCommandException;
+import backend.academy.bot.exceptions.InvalidCommandException;
 import backend.academy.bot.service.managers.stateful.StatefulCommandManager;
 import backend.academy.bot.service.managers.stateless.StatelessCommandManager;
 import com.pengrad.telegrambot.model.Message;
+import com.pengrad.telegrambot.model.Update;
+import com.pengrad.telegrambot.request.SendMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
@@ -13,14 +15,14 @@ import java.util.Optional;
 
 @Service
 @Primary
-public class MessageProcessor {
+public class UpdateProcessor {
 
     private final StatefulCommandManagerFactory statefulCommandFactory;
 
     private final StatelessCommandManagerFactory statelessCommandFactory;
 
     @Autowired
-    public MessageProcessor(
+    public UpdateProcessor(
         StatefulCommandManagerFactory statefulCommandFactory,
         StatelessCommandManagerFactory statelessCommandFactory
     ) {
@@ -28,15 +30,15 @@ public class MessageProcessor {
         this.statelessCommandFactory = statelessCommandFactory;
     }
 
-    public String createReply(Message message) throws InvalidCommandException {
-        Optional<StatefulCommandManager> statefulCommandManagerOptional = statefulCommandFactory.get(message);
+    public SendMessage createReply(Update update) throws InvalidCommandException {
+        Optional<StatefulCommandManager> statefulCommandManagerOptional = statefulCommandFactory.get(update.message());
         if (statefulCommandManagerOptional.isPresent()) {
-            return statefulCommandManagerOptional.get().createReply(message);
+            return statefulCommandManagerOptional.get().createReply(update);
         }
-        Optional<StatelessCommandManager> statelessCommandManagerOptional = statelessCommandFactory.get(message);
+        Optional<StatelessCommandManager> statelessCommandManagerOptional = statelessCommandFactory.get(update.message());
         if (statelessCommandManagerOptional.isPresent()) {
-            return statelessCommandManagerOptional.get().createReply(message);
+            return statelessCommandManagerOptional.get().createReply(update);
         }
-        throw new InvalidCommandException("Invalid command: " + message.text());
+        throw new InvalidCommandException("Invalid command: " + update.message().text());
     }
 }
