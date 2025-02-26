@@ -16,18 +16,11 @@ public class ApplicationConfig {
     @NotEmpty
     private String scrapperUrl;
 
-    @NotEmpty
-    private int timeout;
-
     public void setTelegramToken(String telegramToken) {
         this.telegramToken = telegramToken;
     }
 
     public void setScrapperUrl(String scrapperUrl) {
         this.scrapperUrl = scrapperUrl;
-    }
-
-    public void setTimeout(int timeout) {
-        this.timeout = timeout;
     }
 }
