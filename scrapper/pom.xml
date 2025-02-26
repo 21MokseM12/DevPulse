@@ -140,6 +140,13 @@
         <!--            <artifactId>spring-kafka-test</artifactId>-->
         <!--            <scope>test</scope>-->
         <!--        </dependency>-->
+
+        <!--Classes for connect to bot-->
+        <dependency>
+            <groupId>backend.academy</groupId>
+            <artifactId>scrapper-bot-connectivity</artifactId>
+            <version>1.0</version>
+        </dependency>
     </dependencies>
 
     <build>

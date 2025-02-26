@@ -1,7 +1,7 @@
-package backend.academy.bot.exceptions;
+package scrapper.bot.connectivity.exceptions;
 
 public class BadRequestException extends RuntimeException {
-
     public BadRequestException(String message) {
+        super(message);
     }
 }
