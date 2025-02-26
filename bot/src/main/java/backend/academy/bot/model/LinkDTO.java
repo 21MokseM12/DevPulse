@@ -1,10 +1,10 @@
 package backend.academy.bot.model;
 
 import backend.academy.bot.enums.TrackCommandStates;
+import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import java.util.List;
 
 @Getter
 @Setter
@@ -13,7 +13,7 @@ public class LinkDTO {
 
     private TrackCommandStates state;
 
-    private String link;
+    private String uri;
 
     private List<String> tags;
 
