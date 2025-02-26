@@ -8,6 +8,7 @@ import com.pengrad.telegrambot.request.SendMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import scrapper.bot.connectivity.exceptions.BadRequestException;
 
 @Component
 public class StartCommandManager implements StatelessCommandManager {
@@ -21,8 +22,12 @@ public class StartCommandManager implements StatelessCommandManager {
 
     @Override
     public SendMessage createReply(Update update) {
-        scrapperConnectionService.registerChat(update.message().chat().id());
-        return new SendMessage(update.message().chat().id(), Messages.WELCOME_MESSAGE.toString());
+        try {
+            scrapperConnectionService.registerChat(update.message().chat().id());
+            return new SendMessage(update.message().chat().id(), Messages.WELCOME_MESSAGE.toString());
+        } catch (BadRequestException e) {
+            return new SendMessage(update.message().chat().id(), e.getMessage());
+        }
     }
 
     @Override
