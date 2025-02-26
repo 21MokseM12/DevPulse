@@ -1,8 +1,5 @@
 package backend.academy.bot.service.managers.stateless;
 
-import backend.academy.bot.exceptions.BadRequestException;
-import backend.academy.bot.exceptions.RequestSendException;
-import backend.academy.bot.model.Link;
 import backend.academy.bot.model.commands.Command;
 import backend.academy.bot.service.ScrapperConnectionService;
 import com.pengrad.telegrambot.model.Update;
@@ -11,6 +8,8 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import scrapper.bot.connectivity.exceptions.BadRequestException;
+import scrapper.bot.connectivity.model.Link;
 
 @Component
 public class ListCommandManager implements StatelessCommandManager {
@@ -29,9 +28,9 @@ public class ListCommandManager implements StatelessCommandManager {
         try {
             StringBuilder reply = new StringBuilder(HEADER_MESSAGE);
             List<Link> links = scrapperConnectionService.getAllLinks(update.message().chat().id());
-            links.forEach(link -> reply.append(link.link()).append("\n"));
+            links.forEach(link -> reply.append(link.uri()).append("\n"));
             return new SendMessage(update.message().chat().id(), reply.toString());
-        } catch (BadRequestException | RequestSendException e) {
+        } catch (BadRequestException e) {
             return new SendMessage(update.message().chat().id(), e.getMessage());
         }
     }

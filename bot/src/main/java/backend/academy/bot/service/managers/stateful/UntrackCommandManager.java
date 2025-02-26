@@ -1,7 +1,6 @@
 package backend.academy.bot.service.managers.stateful;
 
 import backend.academy.bot.enums.Messages;
-import backend.academy.bot.model.Link;
 import backend.academy.bot.model.commands.Command;
 import backend.academy.bot.service.ScrapperConnectionService;
 import com.pengrad.telegrambot.model.Update;
@@ -15,6 +14,7 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import scrapper.bot.connectivity.model.Link;
 
 @Component
 public class UntrackCommandManager implements StatefulCommandManager {
@@ -34,13 +34,13 @@ public class UntrackCommandManager implements StatefulCommandManager {
 
     @Override
     public SendMessage createReply(Update update) {
+        List<Link> subscribedLinks = scrapperConnectionService.getAllLinks(update.message().chat().id());
         if (!STATES.contains(update.message().chat().id())) {
             STATES.add(update.message().chat().id());
             SendMessage reply = new SendMessage(
                 update.message().chat().id(),
                 Messages.SEND_LINK_MESSAGE_UNTRACK.toString()
             );
-            List<Link> subscribedLinks = scrapperConnectionService.getAllLinks(update.message().chat().id());
             reply.replyMarkup(generateKeyboard(subscribedLinks));
             return reply;
         } else {
@@ -50,6 +50,7 @@ public class UntrackCommandManager implements StatefulCommandManager {
             String callbackData = update.callbackQuery().data();
             if (!scrapperConnectionService.unsubscribeLink(
                 update.message().chat().id(),
+                subscribedLinks,
                 Integer.parseInt(callbackData)
             )) {
                 return new SendMessage(update.message().chat().id(), Messages.ERROR.toString());
@@ -63,11 +64,11 @@ public class UntrackCommandManager implements StatefulCommandManager {
         InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
         for (int i = 0; i < links.size(); i+=2) {
             var first = new InlineKeyboardButton();
-            first.setText(links.get(i).link());
+            first.setText(links.get(i).uri());
             first.callbackData(String.valueOf(links.get(i).id()));
 
             var second = new InlineKeyboardButton();
-            second.setText(links.get(i+1).link());
+            second.setText(links.get(i+1).uri());
             second.callbackData(String.valueOf(links.get(i+1).id()));
 
             keyboard.addRow(first, second);

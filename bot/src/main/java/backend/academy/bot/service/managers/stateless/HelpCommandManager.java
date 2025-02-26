@@ -1,13 +1,12 @@
 package backend.academy.bot.service.managers.stateless;
 
 import backend.academy.bot.model.commands.Command;
-import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import java.util.List;
 
 @Component
 public class HelpCommandManager implements StatelessCommandManager {
