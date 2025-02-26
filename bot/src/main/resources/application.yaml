@@ -1,7 +1,6 @@
 app:
   telegram-token: ${TELEGRAM_TOKEN} # env variable
   scrapper-url: http://localhost:8081
-  timeout: 500
 
 spring:
   application:
