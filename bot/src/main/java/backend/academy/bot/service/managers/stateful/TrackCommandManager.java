@@ -2,6 +2,7 @@ package backend.academy.bot.service.managers.stateful;
 
 import backend.academy.bot.enums.Messages;
 import backend.academy.bot.enums.TrackCommandStates;
+import backend.academy.bot.exceptions.InvalidCommandException;
 import backend.academy.bot.model.LinkDTO;
 import backend.academy.bot.model.commands.Command;
 import backend.academy.bot.service.ScrapperConnectionService;
@@ -14,6 +15,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import scrapper.bot.connectivity.exceptions.BadRequestException;
 
 @Component
 public class TrackCommandManager implements StatefulCommandManager {
@@ -56,7 +58,7 @@ public class TrackCommandManager implements StatefulCommandManager {
                         );
                     }
                     linkDTO.state(TrackCommandStates.TAGS);
-                    linkDTO.link(update.message().text());
+                    linkDTO.uri(update.message().text());
                     return new SendMessage(
                         update.message().chat().id(),
                         linkDTO.state().successMessage()
@@ -69,14 +71,18 @@ public class TrackCommandManager implements StatefulCommandManager {
                         linkDTO.state().successMessage()
                     );
                 case FILTERS:
-                    linkDTO.filters(LinkSettingsParser.parseSettings(update.message().text()));
-                    scrapperConnectionService.subscribeLink(linkDTO);
-                    states.remove(update.message().chat().id());
-                    return new SendMessage(
-                        update.message().chat().id(),
-                        Messages.SUCCESS_SUBSCRIBE_LINK.toString()
-                    );
-                default: throw new IllegalCallerException(Messages.ERROR.toString());
+                    try {
+                        linkDTO.filters(LinkSettingsParser.parseSettings(update.message().text()));
+                        scrapperConnectionService.subscribeLink(update.message().chat().id(), linkDTO);
+                        states.remove(update.message().chat().id());
+                        return new SendMessage(
+                            update.message().chat().id(),
+                            Messages.SUCCESS_SUBSCRIBE_LINK.toString()
+                        );
+                    } catch (BadRequestException e) {
+                        return new SendMessage(update.message().chat().id(), e.getMessage());
+                    }
+                default: throw new InvalidCommandException(Messages.ERROR.toString());
             }
         }
     }
