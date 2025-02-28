@@ -9,12 +9,13 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.Arrays;
 import java.util.List;
 import scrapper.bot.connectivity.exceptions.BadRequestException;
+import scrapper.bot.connectivity.model.ScrapperResponse;
 
 @RestControllerAdvice
 public class GlobalExceptionControllerHandler {
 
     @ExceptionHandler(BadRequestException.class)
-    public ResponseEntity<ApiErrorResponse> badRequestException(final BadRequestException e) {
+    public ResponseEntity<ScrapperResponse> badRequestException(final BadRequestException e) {
         List<String> stacktrace = Arrays.stream(e.getStackTrace())
             .map(StackTraceElement::toString)
             .toList();
@@ -27,11 +28,11 @@ public class GlobalExceptionControllerHandler {
             stacktrace
         );
 
-        return new ResponseEntity<>(apiErrorResponse, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(new ScrapperResponse(apiErrorResponse), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ApiErrorResponse> resourceNotFoundException(final ResourceNotFoundException e) {
+    public ResponseEntity<ScrapperResponse> resourceNotFoundException(final ResourceNotFoundException e) {
         List<String> stacktrace = Arrays.stream(e.getStackTrace())
             .map(StackTraceElement::toString)
             .toList();
@@ -44,6 +45,6 @@ public class GlobalExceptionControllerHandler {
             stacktrace
         );
 
-        return new ResponseEntity<>(apiErrorResponse, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(new ScrapperResponse(apiErrorResponse), HttpStatus.NOT_FOUND);
     }
 }
