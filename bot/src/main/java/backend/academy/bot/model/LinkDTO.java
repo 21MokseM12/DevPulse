@@ -22,4 +22,8 @@ public class LinkDTO {
     public LinkDTO(TrackCommandStates state) {
         this.state = state;
     }
+
+    public LinkDTO(String uri) {
+        this.uri = uri;
+    }
 }

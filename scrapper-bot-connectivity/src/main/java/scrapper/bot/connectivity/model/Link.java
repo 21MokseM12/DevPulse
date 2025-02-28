@@ -21,4 +21,9 @@ public class Link {
     private List<String> tags;
 
     private List<String> filters;
+
+    public Link(Integer id, String uri) {
+        this.id = id;
+        this.uri = uri;
+    }
 }
