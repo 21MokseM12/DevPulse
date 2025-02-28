@@ -1,4 +1,4 @@
-package backend.academy.scrapper.controller.handlers;
+package backend.academy.scrapper.controller.exception_handlers;
 
 import backend.academy.scrapper.exceptions.ResourceNotFoundException;
 import scrapper.bot.connectivity.model.ApiErrorResponse;
