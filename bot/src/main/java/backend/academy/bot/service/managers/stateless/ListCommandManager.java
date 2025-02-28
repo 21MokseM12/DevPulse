@@ -16,6 +16,8 @@ public class ListCommandManager implements StatelessCommandManager {
 
     private static final String HEADER_MESSAGE = "Список отслеживаемых ссылок:\n";
 
+    private static final String EMPTY_LINK_LIST = "У вас еще нет отслеживаемых ссылок";
+
     @Autowired
     @Qualifier("listCommand")
     private Command listCommand;
@@ -26,8 +28,11 @@ public class ListCommandManager implements StatelessCommandManager {
     @Override
     public SendMessage createReply(Update update) {
         try {
-            StringBuilder reply = new StringBuilder(HEADER_MESSAGE);
             List<Link> links = scrapperConnectionService.getAllLinks(update.message().chat().id());
+            if (links.isEmpty()) {
+                return new SendMessage(update.message().chat().id(), EMPTY_LINK_LIST);
+            }
+            StringBuilder reply = new StringBuilder(HEADER_MESSAGE);
             links.forEach(link -> reply.append(link.uri()).append("\n"));
             return new SendMessage(update.message().chat().id(), reply.toString());
         } catch (BadRequestException e) {
