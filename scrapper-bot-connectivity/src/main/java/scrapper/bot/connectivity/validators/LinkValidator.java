@@ -6,7 +6,7 @@ import lombok.experimental.UtilityClass;
 public class LinkValidator {
 
     private static final String LINK_PATTERN =
-            "^(https?:\\/\\/)?(([a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,})(:\\d{1,5})?(\\/\\S*)?$";
+            "^(https?://)?(([a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,})(:\\d{1,5})?(/\\S*)?$";
 
     public boolean isValid(String link) {
         if (link == null) {
