@@ -6,7 +6,6 @@ import backend.academy.bot.exceptions.InvalidCommandException;
 import backend.academy.bot.model.LinkDTO;
 import backend.academy.bot.model.commands.Command;
 import backend.academy.bot.service.ScrapperConnectionService;
-import backend.academy.bot.service.validators.LinkValidator;
 import backend.academy.bot.utils.LinkSettingsParser;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
@@ -16,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import scrapper.bot.connectivity.exceptions.BadRequestException;
+import scrapper.bot.connectivity.validators.LinkValidator;
 
 @Component
 public class TrackCommandManager implements StatefulCommandManager {
@@ -28,9 +28,6 @@ public class TrackCommandManager implements StatefulCommandManager {
 
     @Autowired
     private ScrapperConnectionService scrapperConnectionService;
-
-    @Autowired
-    private LinkValidator linkValidator;
 
     static {
         states = new HashMap<>();
@@ -51,7 +48,7 @@ public class TrackCommandManager implements StatefulCommandManager {
             LinkDTO linkDTO = states.get(update.message().chat().id());
             switch (linkDTO.state()) {
                 case LINK:
-                    if (!linkValidator.validLink(update.message().text())) {
+                    if (!LinkValidator.isValid(update.message().text())) {
                         return new SendMessage(
                             update.message().chat().id(),
                             linkDTO.state().errorMessage()
