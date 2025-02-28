@@ -20,7 +20,7 @@ import scrapper.bot.connectivity.validators.LinkValidator;
 @Component
 public class TrackCommandManager implements StatefulCommandManager {
 
-    private static final Map<Long, LinkDTO> states;
+    private static final Map<Long, LinkDTO> STATES;
 
     @Autowired
     @Qualifier("trackCommand")
@@ -30,13 +30,13 @@ public class TrackCommandManager implements StatefulCommandManager {
     private ScrapperConnectionService scrapperConnectionService;
 
     static {
-        states = new HashMap<>();
+        STATES = new HashMap<>();
     }
 
     @Override
     public SendMessage createReply(Update update) {
-        if (!states.containsKey(update.message().chat().id())) {
-            states.put(
+        if (!STATES.containsKey(update.message().chat().id())) {
+            STATES.put(
                 update.message().chat().id(),
                 new LinkDTO(TrackCommandStates.LINK)
             );
@@ -45,7 +45,7 @@ public class TrackCommandManager implements StatefulCommandManager {
                 TrackCommandStates.LINK.successMessage()
             );
         } else {
-            LinkDTO linkDTO = states.get(update.message().chat().id());
+            LinkDTO linkDTO = STATES.get(update.message().chat().id());
             switch (linkDTO.state()) {
                 case LINK:
                     if (!LinkValidator.isValid(update.message().text())) {
@@ -71,7 +71,7 @@ public class TrackCommandManager implements StatefulCommandManager {
                     try {
                         linkDTO.filters(LinkSettingsParser.parseSettings(update.message().text()));
                         scrapperConnectionService.subscribeLink(update.message().chat().id(), linkDTO);
-                        states.remove(update.message().chat().id());
+                        STATES.remove(update.message().chat().id());
                         return new SendMessage(
                             update.message().chat().id(),
                             Messages.SUCCESS_SUBSCRIBE_LINK.toString()
@@ -86,7 +86,7 @@ public class TrackCommandManager implements StatefulCommandManager {
 
     @Override
     public boolean hasState(long chatId) {
-        return states.containsKey(chatId);
+        return STATES.containsKey(chatId);
     }
 
     @Override
