@@ -19,4 +19,8 @@ public class LinkRequest {
     private List<String> tags;
 
     private List<String> filters;
+
+    public LinkRequest(String uri) {
+        this.uri = uri;
+    }
 }

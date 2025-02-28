@@ -24,4 +24,8 @@ public class ApiErrorResponse implements Serializable {
     private String exceptionMessage;
 
     private List<String> stackTrace;
+
+    public ApiErrorResponse(String description) {
+        this.description = description;
+    }
 }

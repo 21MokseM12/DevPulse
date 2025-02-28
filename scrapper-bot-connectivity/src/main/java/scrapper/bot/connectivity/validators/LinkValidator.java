@@ -1,14 +1,14 @@
-package backend.academy.bot.service.validators;
+package scrapper.bot.connectivity.validators;
 
-import org.springframework.stereotype.Component;
+import lombok.experimental.UtilityClass;
 
-@Component
+@UtilityClass
 public class LinkValidator {
 
     private static final String LINK_PATTERN =
             "^(https?:\\/\\/)?(([a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,})(:\\d{1,5})?(\\/\\S*)?$";
 
-    public boolean validLink(String link) {
+    public boolean isValid(String link) {
         if (link == null) {
             return false;
         } else if (link.isBlank()) {
