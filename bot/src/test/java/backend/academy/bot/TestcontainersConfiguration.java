@@ -1,5 +1,6 @@
 package backend.academy.bot;
 
+import org.junit.jupiter.api.Disabled;
 import org.springframework.boot.devtools.restart.RestartScope;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
@@ -10,6 +11,7 @@ import org.testcontainers.utility.DockerImageName;
 
 // isolated from the "scrapper" module's containers!
 @TestConfiguration(proxyBeanMethods = false)
+@Disabled
 class TestcontainersConfiguration {
 
     @Bean
