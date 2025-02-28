@@ -62,16 +62,12 @@ public class UntrackCommandManager implements StatefulCommandManager {
 
     private Keyboard generateKeyboard(List<Link> links) {
         InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
-        for (int i = 0; i < links.size(); i+=2) {
-            var first = new InlineKeyboardButton();
-            first.setText(links.get(i).uri());
-            first.callbackData(String.valueOf(links.get(i).id()));
+        for (Link link : links) {
+            var button = new InlineKeyboardButton();
+            button.setText(link.uri());
+            button.callbackData(String.valueOf(link.id()));
 
-            var second = new InlineKeyboardButton();
-            second.setText(links.get(i+1).uri());
-            second.callbackData(String.valueOf(links.get(i+1).id()));
-
-            keyboard.addRow(first, second);
+            keyboard.addRow(button);
         }
         return keyboard;
     }
