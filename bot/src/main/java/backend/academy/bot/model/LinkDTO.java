@@ -2,13 +2,17 @@ package backend.academy.bot.model;
 
 import backend.academy.bot.enums.TrackCommandStates;
 import java.util.List;
+import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
 @EqualsAndHashCode
+@AllArgsConstructor
+@NoArgsConstructor
 public class LinkDTO {
 
     private TrackCommandStates state;
@@ -21,9 +25,5 @@ public class LinkDTO {
 
     public LinkDTO(TrackCommandStates state) {
         this.state = state;
-    }
-
-    public LinkDTO(String uri) {
-        this.uri = uri;
     }
 }
