@@ -126,10 +126,6 @@ class TrackCommandManagerTest {
         Update update = mockUpdate(chatId);
         when(message.text()).thenReturn("filter1 filter2");
 
-        doNothing()
-            .when(scrapperConnectionService).subscribeLink(anyLong(), any());
-
-
         SendMessage reply = trackCommandManager.createReply(update);
         assertEquals(Messages.SUCCESS_SUBSCRIBE_LINK.toString(),
             reply.getParameters().get("text"));

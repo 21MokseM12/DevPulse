@@ -10,7 +10,10 @@ import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.request.SendMessage;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -27,6 +30,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class UntrackCommandManagerTest {
 
     @Mock
@@ -37,7 +41,7 @@ class UntrackCommandManagerTest {
 
     private Update update;
 
-    private Chat chat = mock(Chat.class);
+    private final Chat chat = mock(Chat.class);
 
     @BeforeEach
     void setUp() {
@@ -80,17 +84,18 @@ class UntrackCommandManagerTest {
     }
 
     @Test
-    void createReply_ShouldReturnErrorIfNoCallbackQuery() {
+    void createReply_ShouldReturnEmptyUntrackLinkListMessageIfNoCallbackQuery() {
         when(chat.id()).thenReturn(3L);
 
         untrackCommandManager.createReply(update); // Первый вызов добавляет в состояние
 
         SendMessage response = untrackCommandManager.createReply(update);
 
-        assertEquals(Messages.ERROR.toString(), response.getParameters().get("text"));
+        assertEquals(Messages.EMPTY_LINK_LIST.toString(), response.getParameters().get("text"));
     }
 
     @Test
+    @Order(2)
     void createReply_ShouldUnsubscribeSuccessfully() {
         when(chat.id()).thenReturn(4L);
 
@@ -100,33 +105,21 @@ class UntrackCommandManagerTest {
             .thenReturn(List.of(new LinkResponse(1L, "https://example.com", List.of("tag1"), List.of("filter1"))));
         when(scrapperConnectionService.unsubscribeLink(eq(4L), anyList(), eq(1))).thenReturn(true);
 
-        untrackCommandManager.createReply(update); // Первый вызов добавляет в состояние
         SendMessage response = untrackCommandManager.createReply(update);
 
         assertEquals(Messages.DELETE_SUBSCRIBE_MESSAGE.toString(), response.getParameters().get("text"));
+        assertFalse(untrackCommandManager.hasState(4L));
     }
 
     @Test
+    @Order(1)
     void hasState_ShouldReturnTrueAfterFirstCall() {
         when(chat.id()).thenReturn(4L);
-        untrackCommandManager.createReply(update);
-        assertTrue(untrackCommandManager.hasState(4L));
-    }
-
-    @Test
-    void hasState_ShouldReturnFalseAfterSuccessfulUnsubscribe() {
-        when(chat.id()).thenReturn(4L);
-
-        when(update.callbackQuery()).thenReturn(mock(CallbackQuery.class));
-        when(update.callbackQuery().data()).thenReturn("4_1");
         when(scrapperConnectionService.getAllLinks(4L))
             .thenReturn(List.of(new LinkResponse(1L, "https://example.com", List.of("tag1"), List.of("filter1"))));
-        when(scrapperConnectionService.unsubscribeLink(eq(4L), anyList(), eq(1))).thenReturn(true);
 
         untrackCommandManager.createReply(update);
-        untrackCommandManager.createReply(update);
-
-        assertFalse(untrackCommandManager.hasState(123L));
+        assertTrue(untrackCommandManager.hasState(4L));
     }
 
     @Test

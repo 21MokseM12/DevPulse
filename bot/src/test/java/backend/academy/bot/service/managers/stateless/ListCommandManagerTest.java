@@ -1,5 +1,6 @@
 package backend.academy.bot.service.managers.stateless;
 
+import backend.academy.bot.enums.Messages;
 import backend.academy.bot.service.ScrapperConnectionService;
 import com.pengrad.telegrambot.model.Chat;
 import com.pengrad.telegrambot.model.Message;
@@ -63,7 +64,7 @@ public class ListCommandManagerTest {
         SendMessage reply = listCommandManager.createReply(update);
         verify(scrapperConnectionService, times(1)).getAllLinks(update.message().chat().id());
         assertEquals(123L, reply.getParameters().get("chat_id"));
-        assertEquals("У вас еще нет отслеживаемых ссылок", reply.getParameters().get("text"));
+        assertEquals(Messages.EMPTY_LINK_LIST.toString(), reply.getParameters().get("text"));
     }
 
     @Test
