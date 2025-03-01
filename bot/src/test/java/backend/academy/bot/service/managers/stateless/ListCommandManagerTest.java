@@ -13,7 +13,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import scrapper.bot.connectivity.exceptions.BadRequestException;
-import scrapper.bot.connectivity.model.connectivity.LinkResponse;
+import scrapper.bot.connectivity.model.response.LinkResponse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;

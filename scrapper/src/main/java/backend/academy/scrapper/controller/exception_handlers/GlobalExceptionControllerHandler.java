@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import scrapper.bot.connectivity.exceptions.BadRequestException;
-import scrapper.bot.connectivity.model.connectivity.ApiErrorResponse;
+import scrapper.bot.connectivity.model.response.ApiErrorResponse;
 
 @RestControllerAdvice
 public class GlobalExceptionControllerHandler {

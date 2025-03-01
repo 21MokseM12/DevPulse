@@ -13,11 +13,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import scrapper.bot.connectivity.exceptions.BadRequestException;
-import scrapper.bot.connectivity.model.connectivity.AddLinkRequest;
-import scrapper.bot.connectivity.model.connectivity.ApiErrorResponse;
-import scrapper.bot.connectivity.model.connectivity.LinkResponse;
-import scrapper.bot.connectivity.model.connectivity.ListLinkResponse;
-import scrapper.bot.connectivity.model.connectivity.RemoveLinkRequest;
+import scrapper.bot.connectivity.model.request.AddLinkRequest;
+import scrapper.bot.connectivity.model.response.ApiErrorResponse;
+import scrapper.bot.connectivity.model.response.LinkResponse;
+import scrapper.bot.connectivity.model.response.ListLinkResponse;
+import scrapper.bot.connectivity.model.request.RemoveLinkRequest;
 
 @Service
 @Slf4j

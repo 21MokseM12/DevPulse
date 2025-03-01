@@ -1,8 +1,8 @@
 package backend.academy.scrapper.utils;
 
 import lombok.experimental.UtilityClass;
-import scrapper.bot.connectivity.model.Link;
-import scrapper.bot.connectivity.model.connectivity.LinkResponse;
+import backend.academy.scrapper.model.Link;
+import scrapper.bot.connectivity.model.response.LinkResponse;
 
 @UtilityClass
 public class LinkLinkResponseConverter {

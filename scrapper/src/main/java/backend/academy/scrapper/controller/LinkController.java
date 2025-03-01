@@ -14,10 +14,10 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import scrapper.bot.connectivity.exceptions.BadRequestException;
-import scrapper.bot.connectivity.model.connectivity.AddLinkRequest;
-import scrapper.bot.connectivity.model.connectivity.LinkResponse;
-import scrapper.bot.connectivity.model.connectivity.ListLinkResponse;
-import scrapper.bot.connectivity.model.connectivity.RemoveLinkRequest;
+import scrapper.bot.connectivity.model.request.AddLinkRequest;
+import scrapper.bot.connectivity.model.response.LinkResponse;
+import scrapper.bot.connectivity.model.response.ListLinkResponse;
+import scrapper.bot.connectivity.model.request.RemoveLinkRequest;
 import scrapper.bot.connectivity.validators.LinkValidator;
 
 @RestController

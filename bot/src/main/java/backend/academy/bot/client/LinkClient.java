@@ -7,8 +7,8 @@ import org.springframework.web.service.annotation.DeleteExchange;
 import org.springframework.web.service.annotation.GetExchange;
 import org.springframework.web.service.annotation.HttpExchange;
 import org.springframework.web.service.annotation.PostExchange;
-import scrapper.bot.connectivity.model.connectivity.AddLinkRequest;
-import scrapper.bot.connectivity.model.connectivity.RemoveLinkRequest;
+import scrapper.bot.connectivity.model.request.AddLinkRequest;
+import scrapper.bot.connectivity.model.request.RemoveLinkRequest;
 
 @HttpExchange("/links")
 public interface LinkClient {
