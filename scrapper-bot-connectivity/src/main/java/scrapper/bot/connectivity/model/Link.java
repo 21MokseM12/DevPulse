@@ -1,5 +1,6 @@
 package scrapper.bot.connectivity.model;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
@@ -14,16 +15,18 @@ import lombok.Setter;
 @NoArgsConstructor
 public class Link {
 
-    private Integer id;
+    private Long id;
 
-    private String uri;
+    private String url;
 
     private List<String> tags;
 
     private List<String> filters;
 
-    public Link(Integer id, String uri) {
+    private OffsetDateTime createdAt;
+
+    public Link(Long id, String url) {
         this.id = id;
-        this.uri = uri;
+        this.url = url;
     }
 }

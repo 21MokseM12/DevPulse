@@ -1,21 +1,20 @@
 package backend.academy.scrapper.controller.exception_handlers;
 
 import backend.academy.scrapper.exceptions.ResourceNotFoundException;
-import scrapper.bot.connectivity.model.ApiErrorResponse;
+import java.util.Arrays;
+import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import java.util.Arrays;
-import java.util.List;
 import scrapper.bot.connectivity.exceptions.BadRequestException;
-import scrapper.bot.connectivity.model.ScrapperResponse;
+import scrapper.bot.connectivity.model.connectivity.ApiErrorResponse;
 
 @RestControllerAdvice
 public class GlobalExceptionControllerHandler {
 
     @ExceptionHandler(BadRequestException.class)
-    public ResponseEntity<ScrapperResponse> badRequestException(final BadRequestException e) {
+    public ResponseEntity<ApiErrorResponse> badRequestException(final BadRequestException e) {
         List<String> stacktrace = Arrays.stream(e.getStackTrace())
             .map(StackTraceElement::toString)
             .toList();
@@ -28,11 +27,11 @@ public class GlobalExceptionControllerHandler {
             stacktrace
         );
 
-        return new ResponseEntity<>(new ScrapperResponse(apiErrorResponse), HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(apiErrorResponse, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ScrapperResponse> resourceNotFoundException(final ResourceNotFoundException e) {
+    public ResponseEntity<ApiErrorResponse> resourceNotFoundException(final ResourceNotFoundException e) {
         List<String> stacktrace = Arrays.stream(e.getStackTrace())
             .map(StackTraceElement::toString)
             .toList();
@@ -45,6 +44,6 @@ public class GlobalExceptionControllerHandler {
             stacktrace
         );
 
-        return new ResponseEntity<>(new ScrapperResponse(apiErrorResponse), HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(apiErrorResponse, HttpStatus.NOT_FOUND);
     }
 }
