@@ -30,7 +30,7 @@ public class UpdateProcessor {
     }
 
     public SendMessage createReply(Update update) throws InvalidCommandException {
-        Optional<StatefulCommandManager> statefulCommandManagerOptional = statefulCommandFactory.get(update.message());
+        Optional<StatefulCommandManager> statefulCommandManagerOptional = statefulCommandFactory.get(update);
         if (statefulCommandManagerOptional.isPresent()) {
             return statefulCommandManagerOptional.get().createReply(update);
         }
