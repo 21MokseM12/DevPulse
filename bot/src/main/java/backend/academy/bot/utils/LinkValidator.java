@@ -1,4 +1,4 @@
-package scrapper.bot.connectivity.validators;
+package backend.academy.bot.utils;
 
 import lombok.experimental.UtilityClass;
 

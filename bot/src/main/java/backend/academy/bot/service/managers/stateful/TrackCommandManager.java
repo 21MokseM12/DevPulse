@@ -15,7 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import scrapper.bot.connectivity.exceptions.BadRequestException;
-import scrapper.bot.connectivity.validators.LinkValidator;
+import backend.academy.bot.utils.LinkValidator;
 
 @Component
 public class TrackCommandManager implements StatefulCommandManager {
