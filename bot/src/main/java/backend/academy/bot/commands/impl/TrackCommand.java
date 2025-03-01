@@ -1,6 +1,6 @@
-package backend.academy.bot.model.commands.impl;
+package backend.academy.bot.commands.impl;
 
-import backend.academy.bot.model.commands.Command;
+import backend.academy.bot.commands.Command;
 import org.springframework.stereotype.Component;
 
 @Component

@@ -4,7 +4,7 @@ import backend.academy.bot.enums.Messages;
 import backend.academy.bot.enums.TrackCommandStates;
 import backend.academy.bot.exceptions.InvalidCommandException;
 import backend.academy.bot.model.LinkDTO;
-import backend.academy.bot.model.commands.Command;
+import backend.academy.bot.commands.Command;
 import backend.academy.bot.service.ScrapperConnectionService;
 import backend.academy.bot.utils.LinkSettingsParser;
 import com.pengrad.telegrambot.model.Update;

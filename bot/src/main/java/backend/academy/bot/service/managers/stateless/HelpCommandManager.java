@@ -1,6 +1,6 @@
 package backend.academy.bot.service.managers.stateless;
 
-import backend.academy.bot.model.commands.Command;
+import backend.academy.bot.commands.Command;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
 import java.util.List;
