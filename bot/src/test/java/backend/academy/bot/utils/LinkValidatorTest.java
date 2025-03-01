@@ -1,7 +1,6 @@
-package backend.academy.validators;
+package backend.academy.bot.utils;
 
 import org.junit.jupiter.api.Test;
-import scrapper.bot.connectivity.validators.LinkValidator;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
