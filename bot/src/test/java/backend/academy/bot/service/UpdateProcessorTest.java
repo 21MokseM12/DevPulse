@@ -49,14 +49,14 @@ public class UpdateProcessorTest {
     @Test
     public void testStatefulCommandManagerCreateReply() {
         StatefulCommandManager statefulCommandManager = mock(StatefulCommandManager.class);
-        when(statefulCommandManagerFactory.get(message)).thenReturn(Optional.of(statefulCommandManager));
+        when(statefulCommandManagerFactory.get(update)).thenReturn(Optional.of(statefulCommandManager));
         when(statefulCommandManager.createReply(update)).thenReturn(message1);
 
         SendMessage reply = updateProcessor.createReply(update);
 
         assertThat(reply).isNotNull();
         assertEquals(message1, reply);
-        verify(statefulCommandManagerFactory, times(1)).get(message);
+        verify(statefulCommandManagerFactory, times(1)).get(update);
         verify(statefulCommandManager, times(1)).createReply(update);
     }
 
@@ -76,7 +76,7 @@ public class UpdateProcessorTest {
 
     @Test
     public void testThrowsInvalidCommandException() {
-        when(statefulCommandManagerFactory.get(message)).thenReturn(Optional.empty());
+        when(statefulCommandManagerFactory.get(update)).thenReturn(Optional.empty());
         when(statelessCommandManagerFactory.get(message)).thenReturn(Optional.empty());
 
         InvalidCommandException exception = assertThrows(InvalidCommandException.class,
@@ -84,6 +84,6 @@ public class UpdateProcessorTest {
 
         assertEquals("Invalid command: Simple message text", exception.getMessage());
         verify(statelessCommandManagerFactory, times(1)).get(message);
-        verify(statefulCommandManagerFactory, times(1)).get(message);
+        verify(statefulCommandManagerFactory, times(1)).get(update);
     }
 }

@@ -13,7 +13,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import scrapper.bot.connectivity.exceptions.BadRequestException;
-import scrapper.bot.connectivity.model.Link;
+import scrapper.bot.connectivity.model.connectivity.LinkResponse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -42,7 +42,7 @@ public class ListCommandManagerTest {
 
     @Test
     public void testFullListCommandSuccess() {
-        Link link = new Link(1, "link");
+        LinkResponse link = new LinkResponse(1L, "link", List.of("tag"), List.of("filter"));
         when(scrapperConnectionService.getAllLinks(update.message().chat().id()))
             .thenReturn(List.of(link));
 

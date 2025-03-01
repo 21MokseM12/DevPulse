@@ -15,10 +15,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import scrapper.bot.connectivity.model.Link;
+import scrapper.bot.connectivity.model.connectivity.LinkResponse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.anyList;
 import static org.mockito.Mockito.eq;
@@ -52,9 +53,9 @@ class UntrackCommandManagerTest {
         when(chat.id()).thenReturn(1L);
 
         when(scrapperConnectionService.getAllLinks(1L)).thenReturn(List.of(
-            new Link(1, "https://example.com"),
-            new Link(2, "https://example.ru"),
-            new Link(3, "https://example.en")
+            new LinkResponse(1L, "https://example.com", List.of("tag1"), List.of("filter1")),
+            new LinkResponse(2L, "https://example.ru", List.of("tag2"), List.of("filter2")),
+            new LinkResponse(3L, "https://example.en", List.of("tag3"), List.of("filter3"))
         ));
 
         SendMessage response = untrackCommandManager.createReply(update);
@@ -68,8 +69,8 @@ class UntrackCommandManagerTest {
         when(chat.id()).thenReturn(2L);
 
         when(scrapperConnectionService.getAllLinks(2L)).thenReturn(List.of(
-            new Link(1, "https://example.com"),
-            new Link(2, "https://example.ru")
+            new LinkResponse(1L, "https://example.com", List.of("tag1"), List.of("filter1")),
+            new LinkResponse(2L, "https://example.ru", List.of("tag2"), List.of("filter2"))
         ));
 
         SendMessage response = untrackCommandManager.createReply(update);
@@ -94,8 +95,9 @@ class UntrackCommandManagerTest {
         when(chat.id()).thenReturn(4L);
 
         when(update.callbackQuery()).thenReturn(mock(CallbackQuery.class));
-        when(update.callbackQuery().data()).thenReturn("1");
-        when(scrapperConnectionService.getAllLinks(4L)).thenReturn(List.of(new Link(1, "https://example.com")));
+        when(update.callbackQuery().data()).thenReturn("4_1");
+        when(scrapperConnectionService.getAllLinks(4L))
+            .thenReturn(List.of(new LinkResponse(1L, "https://example.com", List.of("tag1"), List.of("filter1"))));
         when(scrapperConnectionService.unsubscribeLink(eq(4L), anyList(), eq(1))).thenReturn(true);
 
         untrackCommandManager.createReply(update); // Первый вызов добавляет в состояние
@@ -116,14 +118,26 @@ class UntrackCommandManagerTest {
         when(chat.id()).thenReturn(4L);
 
         when(update.callbackQuery()).thenReturn(mock(CallbackQuery.class));
-        when(update.callbackQuery().data()).thenReturn("1");
-        when(scrapperConnectionService.getAllLinks(4L)).thenReturn(List.of(new Link(1, "https://example.com")));
+        when(update.callbackQuery().data()).thenReturn("4_1");
+        when(scrapperConnectionService.getAllLinks(4L))
+            .thenReturn(List.of(new LinkResponse(1L, "https://example.com", List.of("tag1"), List.of("filter1"))));
         when(scrapperConnectionService.unsubscribeLink(eq(4L), anyList(), eq(1))).thenReturn(true);
 
         untrackCommandManager.createReply(update);
         untrackCommandManager.createReply(update);
 
         assertFalse(untrackCommandManager.hasState(123L));
+    }
+
+    @Test
+    public void createReply_ShouldReturnEmptyLinkListToUntrackMessage() {
+        when(chat.id()).thenReturn(5L);
+        when(scrapperConnectionService.getAllLinks(5L)).thenReturn(List.of());
+
+        SendMessage reply = untrackCommandManager.createReply(update);
+
+        assertEquals(Messages.EMPTY_LINK_LIST.toString(), reply.getParameters().get("text"));
+        assertNull(reply.getParameters().get("reply_markup"));
     }
 }
 
