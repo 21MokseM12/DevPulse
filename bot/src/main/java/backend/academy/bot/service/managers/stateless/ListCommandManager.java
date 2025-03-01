@@ -1,6 +1,7 @@
 package backend.academy.bot.service.managers.stateless;
 
-import backend.academy.bot.model.commands.Command;
+import backend.academy.bot.commands.Command;
+import backend.academy.bot.enums.Messages;
 import backend.academy.bot.service.ScrapperConnectionService;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
@@ -9,14 +10,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import scrapper.bot.connectivity.exceptions.BadRequestException;
-import scrapper.bot.connectivity.model.Link;
+import scrapper.bot.connectivity.model.connectivity.LinkResponse;
 
 @Component
 public class ListCommandManager implements StatelessCommandManager {
 
     private static final String HEADER_MESSAGE = "Список отслеживаемых ссылок:\n";
-
-    private static final String EMPTY_LINK_LIST = "У вас еще нет отслеживаемых ссылок";
 
     @Autowired
     @Qualifier("listCommand")
@@ -28,12 +27,12 @@ public class ListCommandManager implements StatelessCommandManager {
     @Override
     public SendMessage createReply(Update update) {
         try {
-            List<Link> links = scrapperConnectionService.getAllLinks(update.message().chat().id());
+            List<LinkResponse> links = scrapperConnectionService.getAllLinks(update.message().chat().id());
             if (links.isEmpty()) {
-                return new SendMessage(update.message().chat().id(), EMPTY_LINK_LIST);
+                return new SendMessage(update.message().chat().id(), Messages.EMPTY_LINK_LIST.toString());
             }
             StringBuilder reply = new StringBuilder(HEADER_MESSAGE);
-            links.forEach(link -> reply.append(link.uri()).append("\n"));
+            links.forEach(link -> reply.append(link.url()).append("\n"));
             return new SendMessage(update.message().chat().id(), reply.toString());
         } catch (BadRequestException e) {
             return new SendMessage(update.message().chat().id(), e.getMessage());
