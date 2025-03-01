@@ -8,6 +8,8 @@ public enum Messages {
 
     SEND_LINK_MESSAGE_UNTRACK("Выберите ссылку, которую не хотите больше отслеживать\n"),
 
+    EMPTY_LINK_LIST("У вас нет отслеживаемых ссылок"),
+
     DELETE_SUBSCRIBE_MESSAGE("Ссылка больше не отслеживается"),
 
     WELCOME_MESSAGE("""
