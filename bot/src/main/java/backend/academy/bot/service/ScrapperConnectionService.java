@@ -82,7 +82,7 @@ public class ScrapperConnectionService {
         return List.of();
     }
 
-    public void subscribeLink(Long chatId, LinkDTO linkDTO) throws BadRequestException {
+    public LinkResponse subscribeLink(Long chatId, LinkDTO linkDTO) throws BadRequestException {
         ResponseEntity<?> response = linkClient.subscribeLink(
             chatId,
             new AddLinkRequest(
@@ -95,15 +95,14 @@ public class ScrapperConnectionService {
             case 200:
                 LinkResponse linkResponse = MAPPER.convertValue(response.getBody(), LinkResponse.class);
                 String message = "Link was subscribed: "
-                    .concat(
-                        Objects.requireNonNull(linkResponse).url()
-                    );
+                    .concat(Objects.requireNonNull(linkResponse).url());
                 log.info(message);
-                break;
+                return linkResponse;
             case 400:
                 ApiErrorResponse error = MAPPER.convertValue(response.getBody(), ApiErrorResponse.class);
                 log.error("Error occur via subscribeLink: {}", error);
                 throw new BadRequestException(Messages.INVALID_MESSAGE.toString());
+            default: throw new BadRequestException(Messages.ERROR.toString());
         }
     }
 
