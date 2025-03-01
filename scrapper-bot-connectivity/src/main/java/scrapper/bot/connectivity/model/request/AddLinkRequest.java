@@ -1,4 +1,4 @@
-package scrapper.bot.connectivity.model.connectivity;
+package scrapper.bot.connectivity.model.request;
 
 import java.util.List;
 

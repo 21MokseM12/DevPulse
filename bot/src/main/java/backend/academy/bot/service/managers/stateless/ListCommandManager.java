@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import scrapper.bot.connectivity.exceptions.BadRequestException;
-import scrapper.bot.connectivity.model.connectivity.LinkResponse;
+import scrapper.bot.connectivity.model.response.LinkResponse;
 
 @Component
 public class ListCommandManager implements StatelessCommandManager {

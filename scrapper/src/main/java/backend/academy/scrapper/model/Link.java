@@ -1,4 +1,4 @@
-package scrapper.bot.connectivity.model;
+package backend.academy.scrapper.model;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -24,9 +24,4 @@ public class Link {
     private List<String> filters;
 
     private OffsetDateTime createdAt;
-
-    public Link(Long id, String url) {
-        this.id = id;
-        this.url = url;
-    }
 }
