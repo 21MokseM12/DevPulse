@@ -1,6 +1,6 @@
 package backend.academy.bot.config;
 
-import backend.academy.bot.model.commands.Command;
+import backend.academy.bot.commands.Command;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.BotCommand;
 import com.pengrad.telegrambot.request.SetMyCommands;
