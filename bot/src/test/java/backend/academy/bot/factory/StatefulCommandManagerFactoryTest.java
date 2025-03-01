@@ -1,9 +1,11 @@
 package backend.academy.bot.factory;
 
-import backend.academy.bot.model.commands.Command;
+import backend.academy.bot.commands.Command;
 import backend.academy.bot.service.managers.stateful.StatefulCommandManager;
+import com.pengrad.telegrambot.model.CallbackQuery;
 import com.pengrad.telegrambot.model.Chat;
 import com.pengrad.telegrambot.model.Message;
+import com.pengrad.telegrambot.model.Update;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import java.util.Arrays;
@@ -14,6 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class StatefulCommandManagerFactoryTest {
@@ -25,6 +28,8 @@ public class StatefulCommandManagerFactoryTest {
     private StatefulCommandManager manager2;
 
     private Message message;
+
+    private Update update;
 
     @BeforeEach
     void setUp() {
@@ -57,12 +62,15 @@ public class StatefulCommandManagerFactoryTest {
 
         when(message.chat()).thenReturn(chat);
         when(chat.id()).thenReturn(123L);
+
+        update = mock(Update.class);
+        when(update.message()).thenReturn(message);
     }
 
     @Test
     void testGetReturnsCorrectManagerWhenStateIsPresent() {
         // Проверяем, что будет выбран manager1, так как он имеет состояние для чата 123L
-        Optional<StatefulCommandManager> result = factory.get(message);
+        Optional<StatefulCommandManager> result = factory.get(update);
         assertTrue(result.isPresent());
         assertEquals(manager1, result.get());
     }
@@ -72,7 +80,7 @@ public class StatefulCommandManagerFactoryTest {
         // Ожидаем, что вернется пустое значение, так как оба менеджера не имеют состояния для chat id 123L
         when(manager1.hasState(123L)).thenReturn(false);
         when(manager2.hasState(123L)).thenReturn(false);
-        Optional<StatefulCommandManager> result = factory.get(message);
+        Optional<StatefulCommandManager> result = factory.get(update);
         assertFalse(result.isPresent());
     }
 
@@ -83,7 +91,7 @@ public class StatefulCommandManagerFactoryTest {
         when(manager1.hasState(123L)).thenReturn(false);
         when(manager2.hasState(123L)).thenReturn(false);
 
-        Optional<StatefulCommandManager> result = factory.get(message);
+        Optional<StatefulCommandManager> result = factory.get(update);
         assertTrue(result.isPresent());
         assertEquals(manager1, result.get());
     }
@@ -95,7 +103,18 @@ public class StatefulCommandManagerFactoryTest {
         when(manager1.hasState(123L)).thenReturn(false);
         when(manager2.hasState(123L)).thenReturn(false);
 
-        Optional<StatefulCommandManager> result = factory.get(message);
+        Optional<StatefulCommandManager> result = factory.get(update);
         assertFalse(result.isPresent());
+    }
+
+    @Test
+    public void testGetReturnsManagerByCallbackQuery() {
+        CallbackQuery callbackQuery = mock(CallbackQuery.class);
+        when(update.message()).thenReturn(null);
+        when(update.callbackQuery()).thenReturn(callbackQuery);
+        when(callbackQuery.data()).thenReturn("123_1");
+
+        Optional<StatefulCommandManager> result = factory.get(update);
+        assertTrue(result.isPresent());
     }
 }
