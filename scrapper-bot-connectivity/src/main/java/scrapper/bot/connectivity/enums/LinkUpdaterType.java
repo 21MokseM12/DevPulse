@@ -1,4 +1,4 @@
-package backend.academy.scrapper.enums;
+package scrapper.bot.connectivity.enums;
 
 import lombok.Getter;
 

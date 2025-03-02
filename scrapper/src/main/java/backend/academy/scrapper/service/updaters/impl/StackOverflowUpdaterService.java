@@ -1,7 +1,6 @@
 package backend.academy.scrapper.service.updaters.impl;
 
 import backend.academy.scrapper.client.StackOverflowClient;
-import backend.academy.scrapper.enums.LinkUpdaterType;
 import backend.academy.scrapper.model.LinkUpdateDTO;
 import backend.academy.scrapper.model.StackOverflowResponseDTO;
 import backend.academy.scrapper.service.parsers.StackOverflowLinkParser;
@@ -13,6 +12,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import scrapper.bot.connectivity.enums.LinkUpdaterType;
 
 @Service
 public class StackOverflowUpdaterService implements LinkUpdater {

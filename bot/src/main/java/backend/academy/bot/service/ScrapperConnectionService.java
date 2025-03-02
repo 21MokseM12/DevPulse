@@ -86,9 +86,9 @@ public class ScrapperConnectionService {
         switch (response.getStatusCode().value()) {
             case 200:
                 LinkResponse linkResponse = MAPPER.convertValue(response.getBody(), LinkResponse.class);
-                String message = "Link was subscribed: "
-                        .concat(Objects.requireNonNull(linkResponse).url().toString());
-                log.info(message);
+                log.info(
+                        "Link was subscribed: {}",
+                        Objects.requireNonNull(linkResponse).url().toString());
                 return linkResponse;
             case 400:
                 ApiErrorResponse error = MAPPER.convertValue(response.getBody(), ApiErrorResponse.class);
@@ -109,9 +109,9 @@ public class ScrapperConnectionService {
         switch (response.getStatusCode().value()) {
             case 200:
                 LinkResponse linkResponse = MAPPER.convertValue(response.getBody(), LinkResponse.class);
-                String message = "Link was unsubscribed: "
-                        .concat(Objects.requireNonNull(linkResponse).url().toString());
-                log.info(message);
+                log.info(
+                        "Link was unsubscribed: {}",
+                        Objects.requireNonNull(linkResponse).url().toString());
                 return true;
             case 400:
                 ApiErrorResponse error400 = MAPPER.convertValue(response.getBody(), ApiErrorResponse.class);
