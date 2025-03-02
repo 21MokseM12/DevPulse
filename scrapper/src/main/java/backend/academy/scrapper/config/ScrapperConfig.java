@@ -16,9 +16,19 @@ public record ScrapperConfig(
     @NotNull @Bean SchedulerCredentials scheduler
 ) {
 
-    public record SchedulerCredentials(@NotEmpty Duration interval, @NotEmpty Duration forceCheckDelay) {}
+    public record SchedulerCredentials(
+        @NotEmpty Duration interval,
+        @NotEmpty Duration forceCheckDelay
+    ) {}
 
-    public record GitHubCredentials(@NotEmpty String token, @NotEmpty String url) {}
+    public record GitHubCredentials(
+        @NotEmpty String token,
+        @NotEmpty String url
+    ) {}
 
-    public record StackOverflowCredentials(@NotEmpty String key, @NotEmpty String accessToken) {}
+    public record StackOverflowCredentials(
+        @NotEmpty String url,
+        @NotEmpty String key,
+        @NotEmpty String accessToken
+    ) {}
 }

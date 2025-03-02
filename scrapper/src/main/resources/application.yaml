@@ -6,6 +6,7 @@ app:
     token: ${GITHUB_TOKEN} # env variable
     url: https://api.github.com
   stackoverflow:
+    url: https://api.stackexchange.com/2.3
     key: ${SO_TOKEN_KEY}
     access-token: ${SO_ACCESS_TOKEN}
   bot-url: http://localhost:8080
