@@ -32,7 +32,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 @SpringBootTest
 @RunWith(SpringRunner.class)
 @ActiveProfiles("test")
-class LinkUpdateScheduledListenerTest {
+public class LinkUpdateScheduledListenerTest {
 
     @Autowired
     private ScrapperConfig scrapperConfig;
