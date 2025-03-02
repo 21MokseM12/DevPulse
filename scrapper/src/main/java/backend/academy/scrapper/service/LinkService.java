@@ -35,12 +35,12 @@ public class LinkService {
 
     public Optional<LinkResponse> subscribe(Long chatId, AddLinkRequest linkRequest) {
         Link link = clientRepository.subscribeLink(chatId, linkRequest);
-        log.info("Subscribed to link {}", link);
+        log.info("Subscribed to link {}", link.url().toString());
         return Optional.of(LinkLinkResponseConverter.convert(link));
     }
 
     public Optional<LinkResponse> unsubscribe(Long chatId, RemoveLinkRequest uri) {
-        log.info("Unsubscribed link {}", uri);
+        log.info("Unsubscribed link {}", uri.link().toString());
         return Optional.of(
             LinkLinkResponseConverter.convert(
                 clientRepository.unsubscribeLink(chatId, uri)
