@@ -103,7 +103,7 @@ public class ScrapperConnectionService {
         URI uri = subscribedLinks.stream()
                 .filter(l -> Objects.equals(l.id(), (long) linkId))
                 .findFirst()
-                .get()
+                .orElseThrow()
                 .url();
         ResponseEntity<?> response = linkClient.unsubscribeLink(chatId, new RemoveLinkRequest(uri));
         switch (response.getStatusCode().value()) {
