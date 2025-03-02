@@ -33,7 +33,8 @@ public class ChatController {
     }
 
     @DeleteMapping
-    public ResponseEntity<Void> unregisterChat(@PathVariable Long id) throws BadRequestException {
+    public ResponseEntity<Void> unregisterChat(@PathVariable Long id)
+        throws BadRequestException, ResourceNotFoundException {
         if (id == null || id < 0) {
             throw new BadRequestException("Некорректные параметры запроса");
         }
