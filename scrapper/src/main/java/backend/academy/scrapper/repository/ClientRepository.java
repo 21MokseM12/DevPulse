@@ -39,16 +39,18 @@ public class ClientRepository {
 
     public Link subscribeLink(Long chatId, AddLinkRequest link) {
         Link entity = new Link(
-                (long) clients.get(chatId).size() + 1, link.link(), link.tags(), link.filters(), OffsetDateTime.now());
-        clients.get(chatId).add(entity);
+            (long) clients.get(chatId).size() + 1, link.link(), link.tags(), link.filters(), OffsetDateTime.now());
+        if (!clients.get(chatId).contains(entity)) {
+            clients.get(chatId).add(entity);
+        }
         return entity;
     }
 
     public Link unsubscribeLink(Long chatId, RemoveLinkRequest uri) {
         Link unsubscribedLink = clients.get(chatId).stream()
-                .filter(link -> link.url().equals(uri.link()))
-                .findFirst()
-                .orElseThrow();
+            .filter(link -> link.url().equals(uri.link()))
+            .findFirst()
+            .orElseThrow();
         clients.get(chatId).remove(unsubscribedLink);
         return unsubscribedLink;
     }
@@ -58,11 +60,11 @@ public class ClientRepository {
         for (Map.Entry<Long, List<Link>> entry : clients.entrySet()) {
             List<Link> clientLinksUpdate = new ArrayList<>();
             entry.getValue().stream()
-                    .filter(link -> !OffsetDateTime.now().minus(duration).isBefore(link.createdAt()))
-                    .forEach(link -> {
-                        link.createdAt(OffsetDateTime.now());
-                        clientLinksUpdate.add(link);
-                    });
+                .filter(link -> !OffsetDateTime.now().minus(duration).isBefore(link.createdAt()))
+                .forEach(link -> {
+                    link.createdAt(OffsetDateTime.now());
+                    clientLinksUpdate.add(link);
+                });
             neededUpdatesClients.put(entry.getKey(), new ArrayList<>(clientLinksUpdate));
         }
         return neededUpdatesClients;
