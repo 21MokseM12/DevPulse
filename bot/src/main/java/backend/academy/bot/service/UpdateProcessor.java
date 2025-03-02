@@ -31,12 +31,16 @@ public class UpdateProcessor {
     public SendMessage createReply(Update update) throws InvalidCommandException {
         Optional<StatefulCommandManager> statefulCommandManagerOptional = statefulCommandFactory.get(update);
         if (statefulCommandManagerOptional.isPresent()) {
-            return statefulCommandManagerOptional.get().createReply(update);
+            return statefulCommandManagerOptional
+                .orElseThrow(() -> new InvalidCommandException("Invalid command: " + update))
+                .createReply(update);
         }
         Optional<StatelessCommandManager> statelessCommandManagerOptional =
                 statelessCommandFactory.get(update.message());
         if (statelessCommandManagerOptional.isPresent()) {
-            return statelessCommandManagerOptional.get().createReply(update);
+            return statelessCommandManagerOptional
+                .orElseThrow(() -> new InvalidCommandException("Invalid command: " + update.message().text()))
+                .createReply(update);
         }
         throw new InvalidCommandException("Invalid command: " + update.message().text());
     }

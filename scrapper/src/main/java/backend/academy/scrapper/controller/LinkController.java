@@ -36,10 +36,11 @@ public class LinkController {
 
     @GetMapping
     public ResponseEntity<ListLinkResponse> findAll(@RequestHeader(name = "Tg-Chat-Id") Long chatId)
-            throws ResourceNotFoundException, BadRequestException {
+            throws BadRequestException {
         Optional<List<LinkResponse>> optionalLinks = linkService.findAllByChatId(chatId);
         if (optionalLinks.isPresent()) {
-            List<LinkResponse> links = optionalLinks.get();
+            List<LinkResponse> links = optionalLinks
+                .orElseThrow(() -> new BadRequestException("Некорректные параметры запроса"));
             return ResponseEntity.ok(new ListLinkResponse(links, links.size()));
         } else {
             throw new BadRequestException("Некорректные параметры запроса");
@@ -55,7 +56,9 @@ public class LinkController {
         }
         Optional<LinkResponse> optionalLink = linkService.subscribe(chatId, link);
         if (optionalLink.isPresent()) {
-            return ResponseEntity.ok(optionalLink.get());
+            return ResponseEntity.ok(
+                optionalLink.orElseThrow(() -> new BadRequestException("Некорректные параметры запроса"))
+            );
         } else {
             throw new BadRequestException("Некорректные параметры запроса");
         }
@@ -72,6 +75,8 @@ public class LinkController {
         if (optionalLink.isEmpty()) {
             throw new ResourceNotFoundException("Ссылка не найдена");
         }
-        return ResponseEntity.ok(optionalLink.get());
+        return ResponseEntity.ok(
+            optionalLink.orElseThrow(() -> new ResourceNotFoundException("Ссылка не найдена"))
+        );
     }
 }
