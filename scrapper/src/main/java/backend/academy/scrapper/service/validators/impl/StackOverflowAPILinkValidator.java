@@ -9,6 +9,12 @@ public class StackOverflowAPILinkValidator implements APILinkValidator {
 
     @Override
     public boolean isValidLink(String link) {
+        if (link == null) {
+            return false;
+        }
+        if (link.isBlank()) {
+            return false;
+        }
         link = link.replace("//", "/");
         String[] splitLink = link.split("/");
         if (splitLink.length != 5) {
@@ -17,6 +23,6 @@ public class StackOverflowAPILinkValidator implements APILinkValidator {
         return splitLink[0].equals("https:")
                 && splitLink[1].equals("stackoverflow.com")
                 && splitLink[2].equals("questions")
-                && splitLink[3].matches("\\d");
+                && splitLink[3].matches("\\d+");
     }
 }
