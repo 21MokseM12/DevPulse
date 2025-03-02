@@ -42,8 +42,9 @@ public class ClientConfig {
                         scrapperConfig.stackOverflow().url() == null
                                 ? BASE_STACKOVERFLOW_URL
                                 : scrapperConfig.stackOverflow().url())
-                .defaultHeader(
-                        "Authorization", "token " + scrapperConfig.github().token())
+                .defaultHeader("order", "desc")
+                .defaultHeader("sort", "activity")
+                .defaultHeader("site", "stackoverflow")
                 .build();
         return HttpServiceProxyFactory.builderFor(RestClientAdapter.create(restClient))
                 .build()
