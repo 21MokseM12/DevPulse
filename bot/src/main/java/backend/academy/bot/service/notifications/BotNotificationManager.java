@@ -13,12 +13,9 @@ public class BotNotificationManager {
     private TelegramBot bot;
 
     public void notify(LinkUpdate update) {
-        update.tgChatIds()
-            .forEach(id -> {
-                bot.execute(new SendMessage(
-                    id,
-                    "Произошли обновления по ссылке: ".concat(update.url().toString())
-                ));
-            });
+        update.tgChatIds().forEach(id -> {
+            bot.execute(new SendMessage(
+                    id, "Произошли обновления по ссылке: ".concat(update.url().toString())));
+        });
     }
 }

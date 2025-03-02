@@ -23,9 +23,9 @@ public class HelpCommandManager implements StatelessCommandManager {
         StringBuilder reply = new StringBuilder();
         for (Command command : commands) {
             reply.append(command.apiCommand())
-                .append(" - ")
-                .append(command.description())
-                .append("\n");
+                    .append(" - ")
+                    .append(command.description())
+                    .append("\n");
         }
         return new SendMessage(update.message().chat().id(), reply.toString());
     }

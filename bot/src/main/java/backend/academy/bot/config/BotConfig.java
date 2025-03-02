@@ -23,10 +23,7 @@ public class BotConfig {
     }
 
     private void createMenu(TelegramBot bot) {
-        bot.execute(new SetMyCommands(
-            commands.stream()
-                .map(Command::toApiCommand)
-                .toArray(BotCommand[]::new)
-        ));
+        bot.execute(
+                new SetMyCommands(commands.stream().map(Command::toApiCommand).toArray(BotCommand[]::new)));
     }
 }

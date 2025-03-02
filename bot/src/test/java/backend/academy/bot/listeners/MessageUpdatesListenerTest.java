@@ -1,5 +1,11 @@
 package backend.academy.bot.listeners;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import backend.academy.bot.enums.Messages;
 import backend.academy.bot.exceptions.InvalidCommandException;
 import backend.academy.bot.service.UpdateProcessor;
@@ -8,18 +14,13 @@ import com.pengrad.telegrambot.model.Chat;
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import java.util.List;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class MessageUpdatesListenerTest {
@@ -65,6 +66,8 @@ public class MessageUpdatesListenerTest {
 
         SendMessage capturedMessage = captor.getValue();
         assertEquals(123L, capturedMessage.getParameters().get("chat_id"));
-        assertEquals(Messages.INVALID_MESSAGE.toString(), capturedMessage.getParameters().get("text"));
+        assertEquals(
+                Messages.INVALID_MESSAGE.toString(),
+                capturedMessage.getParameters().get("text"));
     }
 }

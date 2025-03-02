@@ -10,5 +10,5 @@ import scrapper.bot.connectivity.model.LinkUpdate;
 public interface BotClient {
 
     @PostExchange
-    ResponseEntity<?> sendUpdates( @RequestBody LinkUpdate linkUpdate);
+    ResponseEntity<?> sendUpdates(@RequestBody LinkUpdate linkUpdate);
 }

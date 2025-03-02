@@ -4,7 +4,9 @@ import lombok.Getter;
 
 @Getter
 public enum LinkUpdaterType {
-    GITHUB("github.com"), STACK_OVERFLOW("stackoverflow.com"), NONE("none");
+    GITHUB("github.com"),
+    STACK_OVERFLOW("stackoverflow.com"),
+    NONE("none");
 
     private final String domain;
 

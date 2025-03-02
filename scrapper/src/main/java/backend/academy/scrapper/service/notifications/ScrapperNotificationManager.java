@@ -1,10 +1,10 @@
 package backend.academy.scrapper.service.notifications;
 
 import backend.academy.scrapper.client.BotClient;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -24,11 +24,10 @@ public class ScrapperNotificationManager {
     public void notify(Map<URI, List<Long>> notificationsMap) {
         for (Map.Entry<URI, List<Long>> entry : notificationsMap.entrySet()) {
             ResponseEntity<?> response = botClient.sendUpdates(new LinkUpdate(
-                updateId++,
-                entry.getKey(),
-                "Url ".concat(entry.getKey().toString()).concat("was updated"),
-                entry.getValue()
-            ));
+                    updateId++,
+                    entry.getKey(),
+                    "Url ".concat(entry.getKey().toString()).concat("was updated"),
+                    entry.getValue()));
             if (!response.getStatusCode().is2xxSuccessful()) {
                 ObjectMapper mapper = new ObjectMapper();
                 ApiErrorResponse errorResponse = mapper.convertValue(response.getBody(), ApiErrorResponse.class);

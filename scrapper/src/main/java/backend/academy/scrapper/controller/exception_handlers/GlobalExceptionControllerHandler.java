@@ -16,16 +16,11 @@ public class GlobalExceptionControllerHandler {
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ApiErrorResponse> badRequestException(BadRequestException e) {
         List<String> stacktrace = Arrays.stream(e.getStackTrace())
-            .map(StackTraceElement::toString)
-            .toList();
+                .map(StackTraceElement::toString)
+                .toList();
 
-        ApiErrorResponse apiErrorResponse = new ApiErrorResponse(
-            "Bad request",
-            "400",
-            e.getClass().getSimpleName(),
-            e.getMessage(),
-            stacktrace
-        );
+        ApiErrorResponse apiErrorResponse =
+                new ApiErrorResponse("Bad request", "400", e.getClass().getSimpleName(), e.getMessage(), stacktrace);
 
         return new ResponseEntity<>(apiErrorResponse, HttpStatus.BAD_REQUEST);
     }
@@ -33,16 +28,11 @@ public class GlobalExceptionControllerHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiErrorResponse> resourceNotFoundException(ResourceNotFoundException e) {
         List<String> stacktrace = Arrays.stream(e.getStackTrace())
-            .map(StackTraceElement::toString)
-            .toList();
+                .map(StackTraceElement::toString)
+                .toList();
 
         ApiErrorResponse apiErrorResponse = new ApiErrorResponse(
-            "Resource not found",
-            "404",
-            e.getClass().getSimpleName(),
-            e.getMessage(),
-            stacktrace
-        );
+                "Resource not found", "404", e.getClass().getSimpleName(), e.getMessage(), stacktrace);
 
         return new ResponseEntity<>(apiErrorResponse, HttpStatus.NOT_FOUND);
     }

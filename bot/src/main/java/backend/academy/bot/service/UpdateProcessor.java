@@ -22,9 +22,8 @@ public class UpdateProcessor {
 
     @Autowired
     public UpdateProcessor(
-        StatefulCommandManagerFactory statefulCommandFactory,
-        StatelessCommandManagerFactory statelessCommandFactory
-    ) {
+            StatefulCommandManagerFactory statefulCommandFactory,
+            StatelessCommandManagerFactory statelessCommandFactory) {
         this.statefulCommandFactory = statefulCommandFactory;
         this.statelessCommandFactory = statelessCommandFactory;
     }
@@ -34,7 +33,8 @@ public class UpdateProcessor {
         if (statefulCommandManagerOptional.isPresent()) {
             return statefulCommandManagerOptional.get().createReply(update);
         }
-        Optional<StatelessCommandManager> statelessCommandManagerOptional = statelessCommandFactory.get(update.message());
+        Optional<StatelessCommandManager> statelessCommandManagerOptional =
+                statelessCommandFactory.get(update.message());
         if (statelessCommandManagerOptional.isPresent()) {
             return statelessCommandManagerOptional.get().createReply(update);
         }
