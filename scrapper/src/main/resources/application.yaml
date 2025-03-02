@@ -1,4 +1,7 @@
 app:
+  scheduler:
+    interval: 15s
+    force-check-delay: 30s
   github:
     token: ${GITHUB_TOKEN} # env variable
     url: https://api.github.com
