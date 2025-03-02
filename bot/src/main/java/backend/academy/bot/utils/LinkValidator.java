@@ -20,7 +20,7 @@ public class LinkValidator {
             return false;
         }
         for (LinkUpdaterType type : LinkUpdaterType.values()) {
-            if (splitLink[1].equals(type.toString())) {
+            if (splitLink[1].equals(type.domain())) {
                 return true;
             }
         }
