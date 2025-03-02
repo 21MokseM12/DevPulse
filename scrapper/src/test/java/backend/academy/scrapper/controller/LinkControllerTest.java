@@ -1,8 +1,21 @@
 package backend.academy.scrapper.controller;
 
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import backend.academy.scrapper.service.LinkService;
 import backend.academy.scrapper.service.validators.LinkValidatorManager;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.net.URI;
+import java.util.List;
+import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,19 +28,6 @@ import scrapper.bot.connectivity.model.request.AddLinkRequest;
 import scrapper.bot.connectivity.model.request.RemoveLinkRequest;
 import scrapper.bot.connectivity.model.response.LinkResponse;
 import scrapper.bot.connectivity.model.response.ListLinkResponse;
-
-import java.net.URI;
-import java.util.List;
-import java.util.Optional;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = LinkController.class)
 @RunWith(SpringRunner.class)
@@ -48,16 +48,16 @@ public class LinkControllerTest {
     public void testFindAllLinksSuccessfully() throws Exception {
         Long id = 123L;
 
-        List<LinkResponse> links = List.of(new LinkResponse(1L, URI.create("simple-uri"), List.of("tag"), List.of("filter")));
+        List<LinkResponse> links =
+                List.of(new LinkResponse(1L, URI.create("simple-uri"), List.of("tag"), List.of("filter")));
         ListLinkResponse expected = new ListLinkResponse(links, 1);
 
-        when(linkService.findAllByChatId(id))
-            .thenReturn(Optional.of(links));
+        when(linkService.findAllByChatId(id)).thenReturn(Optional.of(links));
 
         mockMvc.perform(get("/links").header("Tg-Chat-Id", id))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.size").value(expected.size()))
-            .andExpect(content().json(mapper.writeValueAsString(expected)));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size").value(expected.size()))
+                .andExpect(content().json(mapper.writeValueAsString(expected)));
 
         verify(linkService, times(1)).findAllByChatId(id);
     }
@@ -66,11 +66,9 @@ public class LinkControllerTest {
     public void testFindAllLinksBadRequestException() throws Exception {
         Long id = 123L;
 
-        when(linkService.findAllByChatId(id))
-            .thenReturn(Optional.empty());
+        when(linkService.findAllByChatId(id)).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/links").header("Tg-Chat-Id", id))
-            .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/links").header("Tg-Chat-Id", id)).andExpect(status().isBadRequest());
 
         verify(linkService, times(1)).findAllByChatId(id);
     }
@@ -82,17 +80,14 @@ public class LinkControllerTest {
         AddLinkRequest linkRequest = new AddLinkRequest(URI.create("uri"), List.of("tag"), List.of("filter"));
 
         when(linkValidatorManager.isValidLink(linkRequest.link().toString())).thenReturn(true);
-        when(linkService.subscribe(id, linkRequest))
-            .thenReturn(Optional.of(response));
+        when(linkService.subscribe(id, linkRequest)).thenReturn(Optional.of(response));
 
-        mockMvc.perform(
-            post("/links")
-                .header("Tg-Chat-Id", id)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(mapper.writeValueAsString(linkRequest))
-            )
-            .andExpect(status().isOk())
-            .andExpect(content().json(mapper.writeValueAsString(response)));
+        mockMvc.perform(post("/links")
+                        .header("Tg-Chat-Id", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(linkRequest)))
+                .andExpect(status().isOk())
+                .andExpect(content().json(mapper.writeValueAsString(response)));
 
         verify(linkService, times(1)).subscribe(id, linkRequest);
         verify(linkValidatorManager, times(1)).isValidLink(linkRequest.link().toString());
@@ -105,13 +100,11 @@ public class LinkControllerTest {
 
         when(linkValidatorManager.isValidLink(linkRequest.link().toString())).thenReturn(false);
 
-        mockMvc.perform(
-                post("/links")
-                    .header("Tg-Chat-Id", id)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(mapper.writeValueAsString(linkRequest))
-            )
-            .andExpect(status().isBadRequest());
+        mockMvc.perform(post("/links")
+                        .header("Tg-Chat-Id", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(linkRequest)))
+                .andExpect(status().isBadRequest());
 
         verify(linkService, times(0)).subscribe(id, linkRequest);
         verify(linkValidatorManager, times(1)).isValidLink(linkRequest.link().toString());
@@ -123,16 +116,13 @@ public class LinkControllerTest {
         AddLinkRequest linkRequest = new AddLinkRequest(URI.create("uri"), List.of("tag"), List.of("filter"));
 
         when(linkValidatorManager.isValidLink(linkRequest.link().toString())).thenReturn(true);
-        when(linkService.subscribe(id, linkRequest))
-            .thenReturn(Optional.empty());
+        when(linkService.subscribe(id, linkRequest)).thenReturn(Optional.empty());
 
-        mockMvc.perform(
-                post("/links")
-                    .header("Tg-Chat-Id", id)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(mapper.writeValueAsString(linkRequest))
-            )
-            .andExpect(status().isBadRequest());
+        mockMvc.perform(post("/links")
+                        .header("Tg-Chat-Id", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(linkRequest)))
+                .andExpect(status().isBadRequest());
 
         verify(linkService, times(1)).subscribe(id, linkRequest);
         verify(linkValidatorManager, times(1)).isValidLink(linkRequest.link().toString());
@@ -144,19 +134,20 @@ public class LinkControllerTest {
         RemoveLinkRequest removeLinkRequest = new RemoveLinkRequest(URI.create("uri"));
         LinkResponse response = new LinkResponse(1L, URI.create("uri"), List.of("tag"), List.of("filter"));
 
-        when(linkValidatorManager.isValidLink(removeLinkRequest.link().toString())).thenReturn(true);
-        when(linkService.unsubscribe(id, removeLinkRequest))
-            .thenReturn(Optional.of(response));
+        when(linkValidatorManager.isValidLink(removeLinkRequest.link().toString()))
+                .thenReturn(true);
+        when(linkService.unsubscribe(id, removeLinkRequest)).thenReturn(Optional.of(response));
 
         mockMvc.perform(delete("/links")
-            .header("Tg-Chat-Id", id)
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(mapper.writeValueAsString(removeLinkRequest)))
-            .andExpect(status().isOk())
-            .andExpect(content().json(mapper.writeValueAsString(response)));
+                        .header("Tg-Chat-Id", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(removeLinkRequest)))
+                .andExpect(status().isOk())
+                .andExpect(content().json(mapper.writeValueAsString(response)));
 
         verify(linkService, times(1)).unsubscribe(id, removeLinkRequest);
-        verify(linkValidatorManager, times(1)).isValidLink(removeLinkRequest.link().toString());
+        verify(linkValidatorManager, times(1))
+                .isValidLink(removeLinkRequest.link().toString());
     }
 
     @Test
@@ -164,16 +155,18 @@ public class LinkControllerTest {
         Long id = 123L;
         RemoveLinkRequest removeLinkRequest = new RemoveLinkRequest(URI.create("uri"));
 
-        when(linkValidatorManager.isValidLink(removeLinkRequest.link().toString())).thenReturn(false);
+        when(linkValidatorManager.isValidLink(removeLinkRequest.link().toString()))
+                .thenReturn(false);
 
         mockMvc.perform(delete("/links")
-                .header("Tg-Chat-Id", id)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(mapper.writeValueAsString(removeLinkRequest)))
-            .andExpect(status().isBadRequest());
+                        .header("Tg-Chat-Id", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(removeLinkRequest)))
+                .andExpect(status().isBadRequest());
 
         verify(linkService, times(0)).unsubscribe(id, removeLinkRequest);
-        verify(linkValidatorManager, times(1)).isValidLink(removeLinkRequest.link().toString());
+        verify(linkValidatorManager, times(1))
+                .isValidLink(removeLinkRequest.link().toString());
     }
 
     @Test
@@ -181,17 +174,18 @@ public class LinkControllerTest {
         Long id = 123L;
         RemoveLinkRequest removeLinkRequest = new RemoveLinkRequest(URI.create("uri"));
 
-        when(linkValidatorManager.isValidLink(removeLinkRequest.link().toString())).thenReturn(true);
-        when(linkService.unsubscribe(id, removeLinkRequest))
-            .thenReturn(Optional.empty());
+        when(linkValidatorManager.isValidLink(removeLinkRequest.link().toString()))
+                .thenReturn(true);
+        when(linkService.unsubscribe(id, removeLinkRequest)).thenReturn(Optional.empty());
 
         mockMvc.perform(delete("/links")
-                .header("Tg-Chat-Id", id)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(mapper.writeValueAsString(removeLinkRequest)))
-            .andExpect(status().isNotFound());
+                        .header("Tg-Chat-Id", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(removeLinkRequest)))
+                .andExpect(status().isNotFound());
 
         verify(linkService, times(1)).unsubscribe(id, removeLinkRequest);
-        verify(linkValidatorManager, times(1)).isValidLink(removeLinkRequest.link().toString());
+        verify(linkValidatorManager, times(1))
+                .isValidLink(removeLinkRequest.link().toString());
     }
 }

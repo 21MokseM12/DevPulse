@@ -1,5 +1,9 @@
 package backend.academy.scrapper.service;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import backend.academy.scrapper.model.Link;
 import backend.academy.scrapper.repository.ClientRepository;
 import java.net.URI;
@@ -15,9 +19,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import scrapper.bot.connectivity.model.request.AddLinkRequest;
 import scrapper.bot.connectivity.model.request.RemoveLinkRequest;
 import scrapper.bot.connectivity.model.response.LinkResponse;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class LinkServiceTest {
@@ -36,11 +37,12 @@ public class LinkServiceTest {
     @Test
     public void testGetAllLinksSuccess() {
         Long id = 1L;
-        List<Link> links = List.of(new Link(1L, URI.create("uri"), List.of("tag"), List.of("filter"), OffsetDateTime.now()));
-        List<LinkResponse> response = List.of(new LinkResponse(1L, URI.create("uri"), List.of("tag"), List.of("filter")));
+        List<Link> links =
+                List.of(new Link(1L, URI.create("uri"), List.of("tag"), List.of("filter"), OffsetDateTime.now()));
+        List<LinkResponse> response =
+                List.of(new LinkResponse(1L, URI.create("uri"), List.of("tag"), List.of("filter")));
 
-        when(clientRepository.findAllLinks(id))
-            .thenReturn(links);
+        when(clientRepository.findAllLinks(id)).thenReturn(links);
         Optional<List<LinkResponse>> byChatId = linkService.findAllByChatId(id);
 
         assertThat(byChatId.isPresent()).isTrue();
@@ -53,8 +55,7 @@ public class LinkServiceTest {
     public void testGetAllLinksFailure() {
         Long id = 1L;
 
-        when(clientRepository.findAllLinks(id))
-            .thenReturn(List.of());
+        when(clientRepository.findAllLinks(id)).thenReturn(List.of());
         Optional<List<LinkResponse>> byChatId = linkService.findAllByChatId(id);
 
         assertThat(byChatId.isPresent()).isTrue();
@@ -69,8 +70,7 @@ public class LinkServiceTest {
         Link link = new Link(1L, URI.create("uri"), List.of(), List.of(), OffsetDateTime.now());
         LinkResponse linkResponse = new LinkResponse(1L, URI.create("uri"), List.of(), List.of());
 
-        when(clientRepository.subscribeLink(id, addLinkRequest))
-            .thenReturn(link);
+        when(clientRepository.subscribeLink(id, addLinkRequest)).thenReturn(link);
         Optional<LinkResponse> response = linkService.subscribe(id, addLinkRequest);
 
         assertThat(response.isPresent()).isTrue();
@@ -85,8 +85,7 @@ public class LinkServiceTest {
         Link link = new Link(1L, URI.create("uri"), List.of(), List.of(), OffsetDateTime.now());
         LinkResponse linkResponse = new LinkResponse(1L, URI.create("uri"), List.of(), List.of());
 
-        when(clientRepository.unsubscribeLink(id, removeLinkRequest))
-            .thenReturn(link);
+        when(clientRepository.unsubscribeLink(id, removeLinkRequest)).thenReturn(link);
         Optional<LinkResponse> response = linkService.unsubscribe(id, removeLinkRequest);
 
         assertThat(response.isPresent()).isTrue();
