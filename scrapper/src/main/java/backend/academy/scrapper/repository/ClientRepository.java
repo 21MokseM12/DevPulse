@@ -48,7 +48,7 @@ public class ClientRepository {
         Link unsubscribedLink = clients.get(chatId).stream()
                 .filter(link -> link.url().equals(uri.link()))
                 .findFirst()
-                .get();
+                .orElseThrow();
         clients.get(chatId).remove(unsubscribedLink);
         return unsubscribedLink;
     }
