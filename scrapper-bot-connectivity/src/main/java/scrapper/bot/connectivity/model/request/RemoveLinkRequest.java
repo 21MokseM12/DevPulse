@@ -1,4 +1,6 @@
 package scrapper.bot.connectivity.model.request;
 
-public record RemoveLinkRequest(String link) {
+import java.net.URI;
+
+public record RemoveLinkRequest(URI link) {
 }

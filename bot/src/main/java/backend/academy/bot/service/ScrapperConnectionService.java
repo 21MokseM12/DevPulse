@@ -5,6 +5,7 @@ import backend.academy.bot.client.LinkClient;
 import backend.academy.bot.enums.Messages;
 import backend.academy.bot.exceptions.ChatNotFoundException;
 import backend.academy.bot.model.LinkDTO;
+import java.net.URI;
 import java.util.List;
 import java.util.Objects;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -86,7 +87,7 @@ public class ScrapperConnectionService {
         ResponseEntity<?> response = linkClient.subscribeLink(
             chatId,
             new AddLinkRequest(
-                linkDTO.uri(),
+                URI.create(linkDTO.uri()),
                 linkDTO.tags(),
                 linkDTO.filters()
             )
@@ -95,7 +96,7 @@ public class ScrapperConnectionService {
             case 200:
                 LinkResponse linkResponse = MAPPER.convertValue(response.getBody(), LinkResponse.class);
                 String message = "Link was subscribed: "
-                    .concat(Objects.requireNonNull(linkResponse).url());
+                    .concat(Objects.requireNonNull(linkResponse).url().toString());
                 log.info(message);
                 return linkResponse;
             case 400:
@@ -107,7 +108,7 @@ public class ScrapperConnectionService {
     }
 
     public boolean unsubscribeLink(Long chatId, List<LinkResponse> subscribedLinks, Integer linkId) {
-        String uri = subscribedLinks.stream()
+        URI uri = subscribedLinks.stream()
             .filter(l -> Objects.equals(l.id(), (long) linkId))
             .findFirst()
             .get()
@@ -117,7 +118,7 @@ public class ScrapperConnectionService {
             case 200:
                 LinkResponse linkResponse = MAPPER.convertValue(response.getBody(), LinkResponse.class);
                 String message = "Link was unsubscribed: "
-                    .concat(Objects.requireNonNull(linkResponse).url());
+                    .concat(Objects.requireNonNull(linkResponse).url().toString());
                 log.info(message);
                 return true;
             case 400:

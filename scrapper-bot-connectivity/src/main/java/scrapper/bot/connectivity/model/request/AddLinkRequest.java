@@ -1,9 +1,10 @@
 package scrapper.bot.connectivity.model.request;
 
+import java.net.URI;
 import java.util.List;
 
 public record AddLinkRequest(
-    String link,
+    URI link,
     List<String> tags,
     List<String> filters
 ) {
