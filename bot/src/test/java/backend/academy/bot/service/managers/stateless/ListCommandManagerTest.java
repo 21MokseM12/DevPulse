@@ -6,6 +6,7 @@ import com.pengrad.telegrambot.model.Chat;
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
+import java.net.URI;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,7 +44,7 @@ public class ListCommandManagerTest {
 
     @Test
     public void testFullListCommandSuccess() {
-        LinkResponse link = new LinkResponse(1L, "link", List.of("tag"), List.of("filter"));
+        LinkResponse link = new LinkResponse(1L, URI.create("link"), List.of("tag"), List.of("filter"));
         when(scrapperConnectionService.getAllLinks(update.message().chat().id()))
             .thenReturn(List.of(link));
 
