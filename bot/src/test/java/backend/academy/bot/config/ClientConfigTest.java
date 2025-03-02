@@ -24,12 +24,6 @@ public class ClientConfigTest {
     @MockitoBean
     private HttpServiceProxyFactory httpServiceProxyFactory;
 
-    @MockitoBean
-    private LinkClient linkClient;
-
-    @MockitoBean
-    private ChatClient chatClient;
-
     @Test
     public void testChatClientBean() {
         ChatClient client = clientConfig.chatClient(httpServiceProxyFactory);
