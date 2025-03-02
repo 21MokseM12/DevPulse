@@ -6,6 +6,7 @@ import backend.academy.bot.enums.Messages;
 import backend.academy.bot.enums.TrackCommandStates;
 import backend.academy.bot.exceptions.ChatNotFoundException;
 import backend.academy.bot.model.LinkDTO;
+import java.net.URI;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -128,7 +129,7 @@ public class ScrapperConnectionServiceTest {
     @Test
     void getAllLinks_Success() throws BadRequestException {
         ListLinkResponse listLinkResponse = new ListLinkResponse(
-            List.of(new LinkResponse(1L, "https://example.com", List.of(), List.of())),
+            List.of(new LinkResponse(1L, URI.create("https://example.com"), List.of(), List.of())),
             1
         );
         doReturn(ResponseEntity.ok().body(listLinkResponse))
@@ -220,12 +221,12 @@ public class ScrapperConnectionServiceTest {
     void unsubscribeLink_Success() {
         LinkResponse linkResponse = new LinkResponse(
             1L,
-            "https://example.com",
+            URI.create("https://example.com"),
             List.of(),
             List.of()
         );
         List<LinkResponse> subscribedLinks = List.of(linkResponse);
-        RemoveLinkRequest removeLinkRequest = new RemoveLinkRequest("https://example.com");
+        RemoveLinkRequest removeLinkRequest = new RemoveLinkRequest(URI.create("https://example.com"));
 
         doReturn(ResponseEntity.ok(linkResponse))
             .when(linkClient).unsubscribeLink(chatId, removeLinkRequest);
@@ -240,7 +241,7 @@ public class ScrapperConnectionServiceTest {
     void unsubscribeLink_BadRequestException() {
         LinkResponse linkResponse = new LinkResponse(
             1L,
-            "https://example.com",
+            URI.create("https://example.com"),
             List.of(),
             List.of()
         );
@@ -252,7 +253,7 @@ public class ScrapperConnectionServiceTest {
             "Bad request",
             List.of()
         );
-        RemoveLinkRequest removeLinkRequest = new RemoveLinkRequest("https://example.com");
+        RemoveLinkRequest removeLinkRequest = new RemoveLinkRequest(URI.create("https://example.com"));
 
         doReturn(ResponseEntity.badRequest().body(errorResponse))
             .when(linkClient).unsubscribeLink(chatId, removeLinkRequest);
@@ -267,7 +268,7 @@ public class ScrapperConnectionServiceTest {
     void unsubscribeLink_LinkNotFound() {
         LinkResponse linkResponse = new LinkResponse(
             1L,
-            "https://example.com",
+            URI.create("https://example.com"),
             List.of(),
             List.of()
         );
@@ -279,7 +280,7 @@ public class ScrapperConnectionServiceTest {
             "Not found",
             List.of()
         );
-        RemoveLinkRequest removeLinkRequest = new RemoveLinkRequest("https://example.com");
+        RemoveLinkRequest removeLinkRequest = new RemoveLinkRequest(URI.create("https://example.com"));
 
         doReturn(ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse))
             .when(linkClient).unsubscribeLink(chatId, removeLinkRequest);

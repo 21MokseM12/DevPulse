@@ -75,7 +75,7 @@ public class UntrackCommandManager implements StatefulCommandManager {
         InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
         for (LinkResponse link : links) {
             var button = new InlineKeyboardButton();
-            button.setText(link.url());
+            button.setText(link.url().toString());
             button.callbackData(
                 String.valueOf(chatId)
                     .concat("_")
