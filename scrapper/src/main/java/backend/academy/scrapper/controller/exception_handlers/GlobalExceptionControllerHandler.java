@@ -14,7 +14,7 @@ import scrapper.bot.connectivity.model.response.ApiErrorResponse;
 public class GlobalExceptionControllerHandler {
 
     @ExceptionHandler(BadRequestException.class)
-    public ResponseEntity<ApiErrorResponse> badRequestException(final BadRequestException e) {
+    public ResponseEntity<ApiErrorResponse> badRequestException(BadRequestException e) {
         List<String> stacktrace = Arrays.stream(e.getStackTrace())
             .map(StackTraceElement::toString)
             .toList();
@@ -31,7 +31,7 @@ public class GlobalExceptionControllerHandler {
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ApiErrorResponse> resourceNotFoundException(final ResourceNotFoundException e) {
+    public ResponseEntity<ApiErrorResponse> resourceNotFoundException(ResourceNotFoundException e) {
         List<String> stacktrace = Arrays.stream(e.getStackTrace())
             .map(StackTraceElement::toString)
             .toList();
