@@ -1,21 +1,21 @@
 package backend.academy.scrapper.repository;
 
+import backend.academy.scrapper.model.Link;
+import jakarta.validation.constraints.NotEmpty;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import jakarta.validation.constraints.NotEmpty;
 import org.springframework.stereotype.Repository;
-import backend.academy.scrapper.model.Link;
 import scrapper.bot.connectivity.model.request.AddLinkRequest;
 import scrapper.bot.connectivity.model.request.RemoveLinkRequest;
 
 @Repository
 public class ClientRepository {
 
-    private final static Map<Long, List<Link>> clients;
+    private static final Map<Long, List<Link>> clients;
 
     static {
         clients = new HashMap<>();
@@ -39,20 +39,16 @@ public class ClientRepository {
 
     public Link subscribeLink(Long chatId, AddLinkRequest link) {
         Link entity = new Link(
-            (long) clients.get(chatId).size() + 1,
-            link.link(),
-            link.tags(),
-            link.filters(),
-            OffsetDateTime.now()
-        );
+                (long) clients.get(chatId).size() + 1, link.link(), link.tags(), link.filters(), OffsetDateTime.now());
         clients.get(chatId).add(entity);
         return entity;
     }
 
     public Link unsubscribeLink(Long chatId, RemoveLinkRequest uri) {
         Link unsubscribedLink = clients.get(chatId).stream()
-            .filter(link -> link.url().equals(uri.link()))
-            .findFirst().get();
+                .filter(link -> link.url().equals(uri.link()))
+                .findFirst()
+                .get();
         clients.get(chatId).remove(unsubscribedLink);
         return unsubscribedLink;
     }
@@ -62,11 +58,11 @@ public class ClientRepository {
         for (Map.Entry<Long, List<Link>> entry : clients.entrySet()) {
             List<Link> clientLinksUpdate = new ArrayList<>();
             entry.getValue().stream()
-                .filter(link -> !OffsetDateTime.now().minus(duration).isBefore(link.createdAt()))
-                .forEach(link -> {
-                    link.createdAt(OffsetDateTime.now());
-                    clientLinksUpdate.add(link);
-                });
+                    .filter(link -> !OffsetDateTime.now().minus(duration).isBefore(link.createdAt()))
+                    .forEach(link -> {
+                        link.createdAt(OffsetDateTime.now());
+                        clientLinksUpdate.add(link);
+                    });
             neededUpdatesClients.put(entry.getKey(), new ArrayList<>(clientLinksUpdate));
         }
         return neededUpdatesClients;

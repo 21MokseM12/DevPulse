@@ -1,5 +1,6 @@
 package backend.academy.scrapper.service;
 
+import backend.academy.scrapper.model.Link;
 import backend.academy.scrapper.repository.ClientRepository;
 import backend.academy.scrapper.utils.LinkLinkResponseConverter;
 import java.util.ArrayList;
@@ -8,10 +9,9 @@ import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import backend.academy.scrapper.model.Link;
 import scrapper.bot.connectivity.model.request.AddLinkRequest;
-import scrapper.bot.connectivity.model.response.LinkResponse;
 import scrapper.bot.connectivity.model.request.RemoveLinkRequest;
+import scrapper.bot.connectivity.model.response.LinkResponse;
 
 @Service
 @Slf4j
@@ -41,10 +41,6 @@ public class LinkService {
 
     public Optional<LinkResponse> unsubscribe(Long chatId, RemoveLinkRequest uri) {
         log.info("Unsubscribed link {}", uri.link().toString());
-        return Optional.of(
-            LinkLinkResponseConverter.convert(
-                clientRepository.unsubscribeLink(chatId, uri)
-            )
-        );
+        return Optional.of(LinkLinkResponseConverter.convert(clientRepository.unsubscribeLink(chatId, uri)));
     }
 }

@@ -30,20 +30,15 @@ public class GithubUpdaterService implements LinkUpdater {
     @Override
     public Optional<List<LinkUpdateDTO>> getUpdates(URI link) {
         ResponseEntity<List<GithubResponse>> events = githubClient.getEvents(
-            linkParser.parseUsername(link.toString()),
-            linkParser.parseRepo(link.toString())
-        );
+                linkParser.parseUsername(link.toString()), linkParser.parseRepo(link.toString()));
         if (events.getStatusCode().is2xxSuccessful()
-            && !Objects.requireNonNull(events.getBody()).isEmpty()) {
+                && !Objects.requireNonNull(events.getBody()).isEmpty()) {
             return Optional.of(Objects.requireNonNull(events.getBody()).stream()
-                .map(response ->
-                    new LinkUpdateDTO(
-                        updateId++,
-                        link,
-                        "Обновление в ".concat(response.create().toString())
-                    )
-                )
-                .toList());
+                    .map(response -> new LinkUpdateDTO(
+                            updateId++,
+                            link,
+                            "Обновление в ".concat(response.create().toString())))
+                    .toList());
         } else {
             return Optional.empty();
         }

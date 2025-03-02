@@ -38,10 +38,10 @@
         </dependency>
 
         <!-- Redis -->
-<!--        <dependency>-->
-<!--            <groupId>org.springframework.boot</groupId>-->
-<!--            <artifactId>spring-boot-starter-data-redis</artifactId>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>org.springframework.boot</groupId>-->
+        <!--            <artifactId>spring-boot-starter-data-redis</artifactId>-->
+        <!--        </dependency>-->
 
         <!-- Kafka -->
         <!--        <dependency>-->
@@ -117,7 +117,7 @@
         <!--            <artifactId>spring-kafka-test</artifactId>-->
         <!--            <scope>test</scope>-->
         <!--        </dependency>-->
-        
+
         <!--Classes for connect to scrapper service-->
         <dependency>
             <groupId>backend.academy</groupId>

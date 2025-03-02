@@ -1,16 +1,5 @@
 package backend.academy.bot.service;
 
-import backend.academy.bot.exceptions.InvalidCommandException;
-import backend.academy.bot.factory.StatefulCommandManagerFactory;
-import backend.academy.bot.factory.StatelessCommandManagerFactory;
-import backend.academy.bot.service.managers.stateful.StatefulCommandManager;
-import backend.academy.bot.service.managers.stateless.StatelessCommandManager;
-import com.pengrad.telegrambot.model.Message;
-import com.pengrad.telegrambot.model.Update;
-import com.pengrad.telegrambot.request.SendMessage;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import java.util.Optional;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -19,13 +8,27 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import backend.academy.bot.exceptions.InvalidCommandException;
+import backend.academy.bot.factory.StatefulCommandManagerFactory;
+import backend.academy.bot.factory.StatelessCommandManagerFactory;
+import backend.academy.bot.service.managers.stateful.StatefulCommandManager;
+import backend.academy.bot.service.managers.stateless.StatelessCommandManager;
+import com.pengrad.telegrambot.model.Message;
+import com.pengrad.telegrambot.model.Update;
+import com.pengrad.telegrambot.request.SendMessage;
+import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 public class UpdateProcessorTest {
 
     private UpdateProcessor updateProcessor;
 
-    private final StatelessCommandManagerFactory statelessCommandManagerFactory = mock(StatelessCommandManagerFactory.class);
+    private final StatelessCommandManagerFactory statelessCommandManagerFactory =
+            mock(StatelessCommandManagerFactory.class);
 
-    private final StatefulCommandManagerFactory statefulCommandManagerFactory = mock(StatefulCommandManagerFactory.class);
+    private final StatefulCommandManagerFactory statefulCommandManagerFactory =
+            mock(StatefulCommandManagerFactory.class);
 
     private final Message message = mock(Message.class);
 
@@ -40,10 +43,7 @@ public class UpdateProcessorTest {
         when(update.message()).thenReturn(message);
         when(message.text()).thenReturn("Simple message text");
 
-        updateProcessor = new UpdateProcessor(
-            statefulCommandManagerFactory,
-            statelessCommandManagerFactory
-        );
+        updateProcessor = new UpdateProcessor(statefulCommandManagerFactory, statelessCommandManagerFactory);
     }
 
     @Test
@@ -79,8 +79,8 @@ public class UpdateProcessorTest {
         when(statefulCommandManagerFactory.get(update)).thenReturn(Optional.empty());
         when(statelessCommandManagerFactory.get(message)).thenReturn(Optional.empty());
 
-        InvalidCommandException exception = assertThrows(InvalidCommandException.class,
-            () -> updateProcessor.createReply(update));
+        InvalidCommandException exception =
+                assertThrows(InvalidCommandException.class, () -> updateProcessor.createReply(update));
 
         assertEquals("Invalid command: Simple message text", exception.getMessage());
         verify(statelessCommandManagerFactory, times(1)).get(message);
