@@ -32,15 +32,16 @@ public class UpdateProcessor {
         Optional<StatefulCommandManager> statefulCommandManagerOptional = statefulCommandFactory.get(update);
         if (statefulCommandManagerOptional.isPresent()) {
             return statefulCommandManagerOptional
-                .orElseThrow(() -> new InvalidCommandException("Invalid command: " + update))
-                .createReply(update);
+                    .orElseThrow(() -> new InvalidCommandException("Invalid command: " + update))
+                    .createReply(update);
         }
         Optional<StatelessCommandManager> statelessCommandManagerOptional =
                 statelessCommandFactory.get(update.message());
         if (statelessCommandManagerOptional.isPresent()) {
             return statelessCommandManagerOptional
-                .orElseThrow(() -> new InvalidCommandException("Invalid command: " + update.message().text()))
-                .createReply(update);
+                    .orElseThrow(() -> new InvalidCommandException(
+                            "Invalid command: " + update.message().text()))
+                    .createReply(update);
         }
         throw new InvalidCommandException("Invalid command: " + update.message().text());
     }
