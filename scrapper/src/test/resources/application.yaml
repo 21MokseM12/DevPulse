@@ -1,0 +1,12 @@
+app:
+  scheduler:
+    interval: 15s
+    force-check-delay: 30s
+  github:
+    token: github-token
+    url: https://example.ru
+  stackoverflow:
+    url: https://example.com
+    key: stackoverflow-key
+    access-token: stackoverflow-access-token
+  bot-url: https://example.eu
