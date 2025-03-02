@@ -16,7 +16,7 @@ public enum LinkUpdaterType {
 
     public static LinkUpdaterType fromLink(String link) {
         String domain = link.replace("//", "/").split("/")[1];
-        for (LinkUpdaterType type : LinkUpdaterType.values()) {
+        for (LinkUpdaterType type : values()) {
             if (type.domain.equals(domain)) {
                 return type;
             }

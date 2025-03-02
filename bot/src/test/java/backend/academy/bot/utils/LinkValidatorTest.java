@@ -13,8 +13,12 @@ public class LinkValidatorTest {
         assertTrue(LinkValidator.isValid("https://github.com/21MokseM12/Balls_Group_Web_Site"));
         assertTrue(LinkValidator.isValid("https://github.com/21MokseM12/Log-analyzer-Tbank-project"));
         assertTrue(LinkValidator.isValid("https://github.com/21MokseM12/Labirinth-Tbank-project"));
-        assertTrue(LinkValidator.isValid("https://stackoverflow.com/questions/79479386/bable-ignores-config-file-and-fails-in-react-native-npx-react-native-run-ios"));
-        assertTrue(LinkValidator.isValid("https://stackoverflow.com/questions/79479385/inconsistency-in-the-constructors-of-stdtuple-when-using-stdany-elements"));
+        assertTrue(
+                LinkValidator.isValid(
+                        "https://stackoverflow.com/questions/79479386/bable-ignores-config-file-and-fails-in-react-native-npx-react-native-run-ios"));
+        assertTrue(
+                LinkValidator.isValid(
+                        "https://stackoverflow.com/questions/79479385/inconsistency-in-the-constructors-of-stdtuple-when-using-stdany-elements"));
     }
 
     @Test
