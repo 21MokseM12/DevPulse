@@ -54,7 +54,7 @@ public class LinkController {
         @RequestHeader(name = "Tg-Chat-Id") Long chatId,
         @RequestBody AddLinkRequest link
     ) throws BadRequestException {
-        if (!linkValidatorManager.isValidLink(link.link())) {
+        if (!linkValidatorManager.isValidLink(link.link().toString())) {
             throw new BadRequestException("Некорректные параметры запроса");
         }
         Optional<LinkResponse> optionalLink = linkService.subscribe(chatId, link);
@@ -70,7 +70,7 @@ public class LinkController {
         @RequestHeader(name = "Tg-Chat-Id") Long chatId,
         @RequestBody RemoveLinkRequest uri
     ) throws ResourceNotFoundException, BadRequestException {
-        if (!linkValidatorManager.isValidLink(uri.link())) {
+        if (!linkValidatorManager.isValidLink(uri.link().toString())) {
             throw new BadRequestException("Некорректные параметры запроса");
         }
         Optional<LinkResponse> optionalLink = linkService.unsubscribe(chatId, uri);

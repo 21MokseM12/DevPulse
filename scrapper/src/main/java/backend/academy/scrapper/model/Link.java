@@ -1,5 +1,6 @@
 package backend.academy.scrapper.model;
 
+import java.net.URI;
 import java.time.OffsetDateTime;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -17,7 +18,7 @@ public class Link {
 
     private Long id;
 
-    private String url;
+    private URI url;
 
     private List<String> tags;
 
