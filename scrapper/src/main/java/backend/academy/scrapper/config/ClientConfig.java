@@ -1,5 +1,6 @@
 package backend.academy.scrapper.config;
 
+import backend.academy.scrapper.client.BotClient;
 import backend.academy.scrapper.client.GithubClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -20,9 +21,20 @@ public class ClientConfig {
             .baseUrl(scrapperConfig.github().url())
             .defaultHeader("Authorization", "token " + scrapperConfig.github().token())
             .build();
-        HttpServiceProxyFactory factory = HttpServiceProxyFactory
+        return HttpServiceProxyFactory
             .builderFor(RestClientAdapter.create(restClient))
+            .build()
+            .createClient(GithubClient.class);
+    }
+
+    @Bean
+    public BotClient botClient(RestClient.Builder builder) {
+        RestClient restClient = builder
+            .baseUrl(scrapperConfig.botUrl())
             .build();
-        return factory.createClient(GithubClient.class);
+        return HttpServiceProxyFactory
+            .builderFor(RestClientAdapter.create(restClient))
+            .build()
+            .createClient(BotClient.class);
     }
 }
