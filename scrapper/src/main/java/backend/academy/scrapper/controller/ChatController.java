@@ -2,7 +2,6 @@ package backend.academy.scrapper.controller;
 
 import backend.academy.scrapper.exceptions.ResourceNotFoundException;
 import backend.academy.scrapper.service.ChatService;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -13,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import scrapper.bot.connectivity.exceptions.BadRequestException;
 
-@Slf4j
 @RestController
 @RequestMapping(value = "/tg-chat/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 public class ChatController {

@@ -1,13 +1,15 @@
 package backend.academy.scrapper.service;
 
 import backend.academy.scrapper.repository.ClientRepository;
-import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-@Slf4j
 public class ChatService {
+
+    private static final Logger LOG = LogManager.getLogger(ChatService.class);
 
     private final ClientRepository clientRepository;
 
@@ -19,9 +21,9 @@ public class ChatService {
     public boolean register(Long id) {
         if (!clientRepository.isClient(id)) {
             clientRepository.register(id);
+            LOG.info("Client registered with id {}", id);
             return true;
         } else {
-            log.info("Client registered with id {}", id);
             return false;
         }
     }
@@ -29,10 +31,10 @@ public class ChatService {
     public boolean unregister(Long id) {
         if (clientRepository.isClient(id)) {
             clientRepository.unregister(id);
-            log.info("Client unregistered with id {}", id);
+            LOG.info("Client unregistered with id {}", id);
             return true;
         } else {
-            log.info("Client unregistered with id {} failure", id);
+            LOG.info("Client unregistered with id {} failure", id);
             return false;
         }
     }
