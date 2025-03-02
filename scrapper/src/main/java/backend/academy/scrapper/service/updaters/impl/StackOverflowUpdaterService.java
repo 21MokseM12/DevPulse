@@ -28,19 +28,16 @@ public class StackOverflowUpdaterService implements LinkUpdater {
     @Override
     public Optional<List<LinkUpdateDTO>> getUpdates(URI link) {
         ResponseEntity<StackOverflowResponseDTO> events =
-            stackOverflowClient.getEvents(stackOverflowLinkParser.parseQuestionId(link.toString()));
-        if (events.getStatusCode().is2xxSuccessful() &&
-            !Objects.requireNonNull(events.getBody()).items().isEmpty()) {
+                stackOverflowClient.getEvents(stackOverflowLinkParser.parseQuestionId(link.toString()));
+        if (events.getStatusCode().is2xxSuccessful()
+                && !Objects.requireNonNull(events.getBody()).items().isEmpty()) {
             return Optional.of(events.getBody().items().stream()
-                .filter(Objects::nonNull)
-                .map(update -> new LinkUpdateDTO(
-                    updateId++,
-                    update.postLink(),
-                    "Last activity date: ".concat(update.lastActivity().toString())
-                    )
-                )
-                .toList()
-            );
+                    .filter(Objects::nonNull)
+                    .map(update -> new LinkUpdateDTO(
+                            updateId++,
+                            update.postLink(),
+                            "Last activity date: ".concat(update.lastActivity().toString())))
+                    .toList());
         }
         return Optional.empty();
     }

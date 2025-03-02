@@ -15,8 +15,8 @@ public class StackOverflowAPILinkValidator implements APILinkValidator {
             return false;
         }
         return splitLink[0].equals("https:")
-            && splitLink[1].equals("stackoverflow.com")
-            && splitLink[2].equals("questions")
-            && splitLink[3].matches("\\d");
+                && splitLink[1].equals("stackoverflow.com")
+                && splitLink[2].equals("questions")
+                && splitLink[3].matches("\\d");
     }
 }
