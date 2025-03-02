@@ -1,5 +1,7 @@
 package backend.academy.scrapper.repository;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import backend.academy.scrapper.model.Link;
 import java.net.URI;
 import java.time.Duration;
@@ -9,7 +11,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import scrapper.bot.connectivity.model.request.AddLinkRequest;
 import scrapper.bot.connectivity.model.request.RemoveLinkRequest;
-import static org.assertj.core.api.Assertions.assertThat;
 
 class ClientRepositoryTest {
 
@@ -41,7 +42,8 @@ class ClientRepositoryTest {
     void testSubscribeLink() {
         Long chatId = 3L;
         repository.register(chatId);
-        AddLinkRequest request = new AddLinkRequest(URI.create("https://example.com"), List.of("tag1"), List.of("filter1"));
+        AddLinkRequest request =
+                new AddLinkRequest(URI.create("https://example.com"), List.of("tag1"), List.of("filter1"));
         Link link = repository.subscribeLink(chatId, request);
 
         assertThat(repository.findAllLinks(chatId)).containsExactly(link);
@@ -52,7 +54,8 @@ class ClientRepositoryTest {
     void testUnsubscribeLink() {
         Long chatId = 4L;
         repository.register(chatId);
-        AddLinkRequest request = new AddLinkRequest(URI.create("https://example.com"), List.of("tag1"), List.of("filter1"));
+        AddLinkRequest request =
+                new AddLinkRequest(URI.create("https://example.com"), List.of("tag1"), List.of("filter1"));
         repository.subscribeLink(chatId, request);
 
         RemoveLinkRequest removeRequest = new RemoveLinkRequest(URI.create("https://example.com"));
@@ -66,8 +69,10 @@ class ClientRepositoryTest {
     void testFindAllLinks() {
         Long chatId = 5L;
         repository.register(chatId);
-        AddLinkRequest request1 = new AddLinkRequest(URI.create("https://example.com"), List.of("tag1"), List.of("filter1"));
-        AddLinkRequest request2 = new AddLinkRequest(URI.create("https://example.org"), List.of("tag2"), List.of("filter2"));
+        AddLinkRequest request1 =
+                new AddLinkRequest(URI.create("https://example.com"), List.of("tag1"), List.of("filter1"));
+        AddLinkRequest request2 =
+                new AddLinkRequest(URI.create("https://example.org"), List.of("tag2"), List.of("filter2"));
         repository.subscribeLink(chatId, request1);
         repository.subscribeLink(chatId, request2);
 
@@ -79,7 +84,8 @@ class ClientRepositoryTest {
     void testFindAllLinksByForceCheckDelay() throws InterruptedException {
         Long chatId = 6L;
         repository.register(chatId);
-        AddLinkRequest request = new AddLinkRequest(URI.create("https://example.com"), List.of("tag1"), List.of("filter1"));
+        AddLinkRequest request =
+                new AddLinkRequest(URI.create("https://example.com"), List.of("tag1"), List.of("filter1"));
         repository.subscribeLink(chatId, request);
 
         Thread.sleep(2);

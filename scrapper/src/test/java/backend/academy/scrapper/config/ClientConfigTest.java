@@ -1,5 +1,7 @@
 package backend.academy.scrapper.config;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+
 import backend.academy.scrapper.client.BotClient;
 import backend.academy.scrapper.client.GithubClient;
 import backend.academy.scrapper.client.StackOverflowClient;
@@ -11,7 +13,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.RestClient;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 @SpringBootTest
 @RunWith(SpringRunner.class)
