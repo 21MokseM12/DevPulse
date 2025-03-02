@@ -12,6 +12,8 @@ import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 @Configuration
 public class ClientConfig {
 
+    private static final String BASE_SCRAPPER_URL = "http://localhost:8081";
+
     private final ApplicationConfig config;
 
     @Autowired
@@ -22,7 +24,11 @@ public class ClientConfig {
     @Bean
     public HttpServiceProxyFactory httpServiceProxyFactory(RestClient.Builder builder) {
         RestClient restClient = builder
-            .baseUrl(config.scrapperUrl())
+            .baseUrl(
+                config.scrapperUrl() == null ?
+                    BASE_SCRAPPER_URL :
+                    config.scrapperUrl()
+            )
             .build();
         return HttpServiceProxyFactory
             .builderFor(RestClientAdapter.create(restClient))
