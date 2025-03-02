@@ -16,7 +16,7 @@ import scrapper.bot.connectivity.model.response.ApiErrorResponse;
 @Slf4j
 public class ScrapperNotificationManager {
 
-    private static long updateId = 1;
+    private long updateId = 1;
 
     @Autowired
     private BotClient botClient;

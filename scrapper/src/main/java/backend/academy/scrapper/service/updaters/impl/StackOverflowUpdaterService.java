@@ -31,7 +31,7 @@ public class StackOverflowUpdaterService implements LinkUpdater {
                 stackOverflowClient.getEvents(stackOverflowLinkParser.parseQuestionId(link.toString()));
         if (events.getStatusCode().is2xxSuccessful()
                 && !Objects.requireNonNull(events.getBody()).items().isEmpty()) {
-            return Optional.of(events.getBody().items().stream()
+            return Optional.of(Objects.requireNonNull(events.getBody()).items().stream()
                     .filter(Objects::nonNull)
                     .map(update -> new LinkUpdateDTO(
                             updateId++,
