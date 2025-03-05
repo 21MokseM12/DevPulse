@@ -2,7 +2,7 @@ package backend.academy.scrapper.service.updaters.impl;
 
 import backend.academy.scrapper.client.StackOverflowClient;
 import backend.academy.scrapper.model.LinkUpdateDTO;
-import backend.academy.scrapper.model.StackOverflowResponseDTO;
+import backend.academy.scrapper.model.StackOverflowResponse;
 import backend.academy.scrapper.service.parsers.StackOverflowLinkParser;
 import backend.academy.scrapper.service.updaters.LinkUpdater;
 import java.net.URI;
@@ -27,11 +27,11 @@ public class StackOverflowUpdaterService implements LinkUpdater {
 
     @Override
     public Optional<List<LinkUpdateDTO>> getUpdates(URI link) {
-        ResponseEntity<StackOverflowResponseDTO> events =
+        ResponseEntity<List<StackOverflowResponse>> events =
                 stackOverflowClient.getEvents(stackOverflowLinkParser.parseQuestionId(link.toString()));
         if (events.getStatusCode().is2xxSuccessful()
-                && !Objects.requireNonNull(events.getBody()).items().isEmpty()) {
-            return Optional.of(Objects.requireNonNull(events.getBody()).items().stream()
+                && !Objects.requireNonNull(events.getBody()).isEmpty()) {
+            return Optional.of(Objects.requireNonNull(events.getBody()).stream()
                     .filter(Objects::nonNull)
                     .map(update -> new LinkUpdateDTO(
                             updateId++,
