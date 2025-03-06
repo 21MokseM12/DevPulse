@@ -6,7 +6,7 @@ app:
     token: github-token
     url: https://example.ru
   stackoverflow:
-    url: https://example.com
+    url: https://api.stackexchange.com/2.3
     key: stackoverflow-key
     access-token: stackoverflow-access-token
   bot-url: https://example.eu
