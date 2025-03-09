@@ -1,0 +1,5 @@
+CREATE TABLE tags (
+    id SERIAL PRIMARY KEY,
+    link_id BIGINT NOT NULL REFERENCES links(id),
+    tag TEXT NOT NULL
+)

@@ -1,0 +1,5 @@
+CREATE TABLE links (
+    id BIGSERIAL PRIMARY KEY,
+    link TEXT NOT NULL,
+    updated_at TIMESTAMP NOT NULL
+)
