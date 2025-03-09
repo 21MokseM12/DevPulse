@@ -1,6 +1,7 @@
-package backend.academy.scrapper.service.notifications;
+package backend.academy.scrapper.service.notifications.impl;
 
 import backend.academy.scrapper.client.BotClient;
+import backend.academy.scrapper.service.notifications.NotificationManager;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
 import java.util.List;
@@ -14,7 +15,7 @@ import scrapper.bot.connectivity.model.response.ApiErrorResponse;
 
 @Service
 @Slf4j
-public class ScrapperNotificationManager {
+public class ScrapperHttpNotificationManager implements NotificationManager {
 
     private long updateId = 1;
 
