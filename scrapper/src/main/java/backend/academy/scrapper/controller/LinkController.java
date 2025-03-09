@@ -1,7 +1,7 @@
 package backend.academy.scrapper.controller;
 
 import backend.academy.scrapper.exceptions.ResourceNotFoundException;
-import backend.academy.scrapper.service.LinkService;
+import backend.academy.scrapper.database.LinkService;
 import backend.academy.scrapper.service.validators.LinkValidatorManager;
 import java.util.List;
 import java.util.Optional;

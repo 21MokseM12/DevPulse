@@ -10,8 +10,13 @@ app:
     key: ${SO_TOKEN_KEY}
     access-token: ${SO_ACCESS_TOKEN}
   bot-url: http://localhost:8080
+  database-access-type: SQL
 
 spring:
+  datasource:
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    url: ${POSTGRES_URL}
   application:
     name: Scrapper
   liquibase:
