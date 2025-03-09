@@ -57,7 +57,7 @@ public class UntrackCommandManager implements StatefulCommandManager {
             if (!scrapperConnectionService.unsubscribeLink(
                     Long.parseLong(callbackData.split("_")[0]),
                     subscribedLinks,
-                    Integer.parseInt(callbackData.split("_")[1]))) {
+                    Long.parseLong(callbackData.split("_")[1]))) {
                 return new SendMessage(chatId, Messages.ERROR.toString());
             }
             STATES.remove(chatId);
