@@ -1,0 +1,30 @@
+version: '3.1'
+
+services:
+  postgres-db:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB_NAME}
+    ports:
+      - "5432:5432"
+
+  liquibase:
+    image: liquibase/liquibase
+    container_name: liquibase-migrations
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB_NAME}
+    depends_on:
+      - postgres-db
+    volumes:
+      - ./migrations:/liquibase/changelog
+    command: >
+      update
+      --url=jdbc:postgresql://postgres-db:5432/${POSTGRES_DB_NAME}
+      --username=${POSTGRES_USER}
+      --password=${POSTGRES_PASSWORD}
+      --changeLogFile=./changelog/master.xml
