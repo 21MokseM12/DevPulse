@@ -1,6 +1,6 @@
 package backend.academy.scrapper.utils;
 
-import backend.academy.scrapper.model.Link;
+import backend.academy.scrapper.database.model.Link;
 import lombok.experimental.UtilityClass;
 import scrapper.bot.connectivity.model.response.LinkResponse;
 
