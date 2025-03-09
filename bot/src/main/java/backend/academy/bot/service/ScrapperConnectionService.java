@@ -99,7 +99,7 @@ public class ScrapperConnectionService {
         }
     }
 
-    public boolean unsubscribeLink(Long chatId, List<LinkResponse> subscribedLinks, Integer linkId) {
+    public boolean unsubscribeLink(Long chatId, List<LinkResponse> subscribedLinks, Long linkId) {
         URI uri = subscribedLinks.stream()
                 .filter(l -> Objects.equals(l.id(), (long) linkId))
                 .findFirst()
