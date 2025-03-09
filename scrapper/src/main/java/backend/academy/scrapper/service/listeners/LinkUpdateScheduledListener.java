@@ -2,10 +2,10 @@ package backend.academy.scrapper.service.listeners;
 
 import backend.academy.scrapper.config.ScrapperConfig;
 import backend.academy.scrapper.factory.LinkUpdaterServiceFactory;
-import backend.academy.scrapper.model.Link;
+import backend.academy.scrapper.database.model.Link;
 import backend.academy.scrapper.model.LinkUpdateDTO;
 import backend.academy.scrapper.repository.ClientRepository;
-import backend.academy.scrapper.service.notifications.ScrapperNotificationManager;
+import backend.academy.scrapper.service.notifications.impl.ScrapperHttpNotificationManager;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,14 +27,14 @@ public class LinkUpdateScheduledListener {
 
     private final LinkUpdaterServiceFactory updaterFactory;
 
-    private final ScrapperNotificationManager notificationManager;
+    private final ScrapperHttpNotificationManager notificationManager;
 
     @Autowired
     public LinkUpdateScheduledListener(
             ClientRepository clientRepository,
             ScrapperConfig scrapperConfig,
             LinkUpdaterServiceFactory updaterFactory,
-            ScrapperNotificationManager notificationManager) {
+            ScrapperHttpNotificationManager notificationManager) {
         this.clientRepository = clientRepository;
         this.scrapperConfig = scrapperConfig;
         this.updaterFactory = updaterFactory;
