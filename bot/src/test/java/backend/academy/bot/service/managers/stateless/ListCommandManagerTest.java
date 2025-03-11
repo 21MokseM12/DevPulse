@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 
 import backend.academy.bot.enums.Messages;
 import backend.academy.bot.service.ScrapperConnectionService;
+import backend.academy.bot.service.commands.managers.stateless.ListCommandManager;
 import com.pengrad.telegrambot.model.Chat;
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.Update;
