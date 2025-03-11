@@ -19,8 +19,8 @@ public class ChatService {
     }
 
     public boolean register(Long id) {
-        if (!clientRepository.isClient(id)) {
-            clientRepository.register(id);
+        if (!clientRepository.existsChat(id)) {
+            clientRepository.saveChat(id);
             LOG.info("Client registered with id {}", id);
             return true;
         } else {
@@ -29,8 +29,8 @@ public class ChatService {
     }
 
     public boolean unregister(Long id) {
-        if (clientRepository.isClient(id)) {
-            clientRepository.unregister(id);
+        if (clientRepository.existsChat(id)) {
+            clientRepository.deleteChat(id);
             LOG.info("Client unregistered with id {}", id);
             return true;
         } else {
