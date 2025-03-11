@@ -1,10 +1,9 @@
-package backend.academy.bot.service.commands.impl;
+package backend.academy.bot.service.commands.impl.stateless;
 
-import backend.academy.bot.service.commands.Command;
 import org.springframework.stereotype.Component;
 
 @Component
-public class HelpCommand implements Command {
+public class HelpCommand implements StatelessCommand {
     @Override
     public String apiCommand() {
         return "/help";

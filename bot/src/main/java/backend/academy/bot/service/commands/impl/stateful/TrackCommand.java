@@ -1,10 +1,9 @@
-package backend.academy.bot.service.commands.impl;
+package backend.academy.bot.service.commands.impl.stateful;
 
-import backend.academy.bot.service.commands.Command;
 import org.springframework.stereotype.Component;
 
 @Component
-public class TrackCommand implements Command {
+public class TrackCommand implements StatefulCommand {
     @Override
     public String apiCommand() {
         return "/track";

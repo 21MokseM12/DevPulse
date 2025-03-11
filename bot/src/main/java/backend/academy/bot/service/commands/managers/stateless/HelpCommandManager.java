@@ -1,7 +1,7 @@
 package backend.academy.bot.service.commands.managers.stateless;
 
+import backend.academy.bot.model.requests.Request;
 import backend.academy.bot.service.commands.Command;
-import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,15 +11,21 @@ import org.springframework.stereotype.Component;
 @Component
 public class HelpCommandManager implements StatelessCommandManager {
 
-    @Autowired
-    @Qualifier("helpCommand")
-    private Command helpCommand;
+    private final Command helpCommand;
+
+    private final List<Command> commands;
 
     @Autowired
-    private List<Command> commands;
+    public HelpCommandManager(
+        @Qualifier("helpCommand") Command helpCommand,
+        List<Command> commands
+    ) {
+        this.helpCommand = helpCommand;
+        this.commands = commands;
+    }
 
     @Override
-    public SendMessage createReply(Update update) {
+    public SendMessage createReply(Request request) {
         StringBuilder reply = new StringBuilder();
         for (Command command : commands) {
             reply.append(command.apiCommand())
@@ -27,7 +33,7 @@ public class HelpCommandManager implements StatelessCommandManager {
                     .append(command.description())
                     .append("\n");
         }
-        return new SendMessage(update.message().chat().id(), reply.toString());
+        return new SendMessage(request.getChatId(), reply.toString());
     }
 
     @Override

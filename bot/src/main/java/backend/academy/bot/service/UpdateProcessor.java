@@ -1,13 +1,11 @@
 package backend.academy.bot.service;
 
 import backend.academy.bot.exceptions.InvalidCommandException;
-import backend.academy.bot.factory.StatefulCommandManagerFactory;
-import backend.academy.bot.factory.StatelessCommandManagerFactory;
-import backend.academy.bot.service.managers.stateful.StatefulCommandManager;
-import backend.academy.bot.service.managers.stateless.StatelessCommandManager;
+import backend.academy.bot.model.requests.Request;
+import backend.academy.bot.service.requests.mapper.RequestMapperFactory;
+import backend.academy.bot.service.commands.CommandController;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
-import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
@@ -16,33 +14,22 @@ import org.springframework.stereotype.Service;
 @Primary
 public class UpdateProcessor {
 
-    private final StatefulCommandManagerFactory statefulCommandFactory;
+    private final CommandController commandController;
 
-    private final StatelessCommandManagerFactory statelessCommandFactory;
+    private final RequestMapperFactory requestMapperFactory;
 
     @Autowired
     public UpdateProcessor(
-            StatefulCommandManagerFactory statefulCommandFactory,
-            StatelessCommandManagerFactory statelessCommandFactory) {
-        this.statefulCommandFactory = statefulCommandFactory;
-        this.statelessCommandFactory = statelessCommandFactory;
+        CommandController commandController,
+        RequestMapperFactory requestMapperFactory
+    ) {
+        this.commandController = commandController;
+        this.requestMapperFactory = requestMapperFactory;
     }
 
     public SendMessage createReply(Update update) throws InvalidCommandException {
-        Optional<StatefulCommandManager> statefulCommandManagerOptional = statefulCommandFactory.get(update);
-        if (statefulCommandManagerOptional.isPresent()) {
-            return statefulCommandManagerOptional
-                    .orElseThrow(() -> new InvalidCommandException("Invalid command: " + update))
-                    .createReply(update);
-        }
-        Optional<StatelessCommandManager> statelessCommandManagerOptional =
-                statelessCommandFactory.get(update.message());
-        if (statelessCommandManagerOptional.isPresent()) {
-            return statelessCommandManagerOptional
-                    .orElseThrow(() -> new InvalidCommandException(
-                            "Invalid command: " + update.message().text()))
-                    .createReply(update);
-        }
-        throw new InvalidCommandException("Invalid command: " + update.message().text());
+        Request request = requestMapperFactory.map(update)
+            .orElseThrow(() -> new InvalidCommandException("Cannot map request"));
+        return commandController.process(request);
     }
 }
