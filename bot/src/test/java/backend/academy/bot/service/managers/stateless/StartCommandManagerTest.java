@@ -8,9 +8,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import backend.academy.bot.commands.Command;
+import backend.academy.bot.service.commands.Command;
 import backend.academy.bot.enums.Messages;
 import backend.academy.bot.service.ScrapperConnectionService;
+import backend.academy.bot.service.commands.managers.stateless.StartCommandManager;
 import com.pengrad.telegrambot.model.Chat;
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.Update;

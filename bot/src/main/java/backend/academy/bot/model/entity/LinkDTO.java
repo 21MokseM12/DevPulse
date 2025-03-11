@@ -1,4 +1,4 @@
-package backend.academy.bot.model;
+package backend.academy.bot.model.entity;
 
 import backend.academy.bot.enums.TrackCommandStates;
 import java.util.List;

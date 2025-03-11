@@ -1,6 +1,6 @@
-package backend.academy.bot.service.managers.stateless;
+package backend.academy.bot.service.commands.managers.stateless;
 
-import backend.academy.bot.commands.Command;
+import backend.academy.bot.service.commands.Command;
 import backend.academy.bot.enums.Messages;
 import backend.academy.bot.service.ScrapperConnectionService;
 import com.pengrad.telegrambot.model.Update;

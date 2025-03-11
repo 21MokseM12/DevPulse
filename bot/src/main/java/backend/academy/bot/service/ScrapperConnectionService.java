@@ -4,7 +4,7 @@ import backend.academy.bot.client.ChatClient;
 import backend.academy.bot.client.LinkClient;
 import backend.academy.bot.enums.Messages;
 import backend.academy.bot.exceptions.ChatNotFoundException;
-import backend.academy.bot.model.LinkDTO;
+import backend.academy.bot.model.entity.LinkDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
 import java.util.List;

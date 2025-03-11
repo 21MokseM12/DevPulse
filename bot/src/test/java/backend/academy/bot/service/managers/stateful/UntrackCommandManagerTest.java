@@ -12,6 +12,7 @@ import static org.mockito.Mockito.when;
 
 import backend.academy.bot.enums.Messages;
 import backend.academy.bot.service.ScrapperConnectionService;
+import backend.academy.bot.service.commands.managers.stateful.UntrackCommandManager;
 import com.pengrad.telegrambot.model.CallbackQuery;
 import com.pengrad.telegrambot.model.Chat;
 import com.pengrad.telegrambot.model.Message;

@@ -1,4 +1,4 @@
-package backend.academy.bot.commands;
+package backend.academy.bot.service.commands;
 
 import com.pengrad.telegrambot.model.BotCommand;
 

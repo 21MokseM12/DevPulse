@@ -13,6 +13,7 @@ import static org.mockito.Mockito.when;
 import backend.academy.bot.enums.Messages;
 import backend.academy.bot.enums.TrackCommandStates;
 import backend.academy.bot.service.ScrapperConnectionService;
+import backend.academy.bot.service.commands.managers.stateful.TrackCommandManager;
 import backend.academy.bot.utils.LinkValidator;
 import com.pengrad.telegrambot.model.Chat;
 import com.pengrad.telegrambot.model.Message;
@@ -62,7 +63,7 @@ class TrackCommandManagerTest {
         SendMessage response = trackCommandManager.createReply(update);
 
         assertEquals(
-                TrackCommandStates.LINK.successMessage(),
+            TrackCommandStates.LINK.successMessage(),
                 response.getParameters().get("text"));
         assertTrue(trackCommandManager.hasState(chatId));
     }
@@ -78,7 +79,7 @@ class TrackCommandManagerTest {
             mockedStatic.when(() -> LinkValidator.isValid("invalid link")).thenReturn(false);
             SendMessage response = trackCommandManager.createReply(update);
             assertEquals(
-                    TrackCommandStates.LINK.errorMessage(),
+                TrackCommandStates.LINK.errorMessage(),
                     response.getParameters().get("text"));
         }
     }
@@ -96,7 +97,7 @@ class TrackCommandManagerTest {
                     .thenReturn(true);
             SendMessage response = trackCommandManager.createReply(update);
             assertEquals(
-                    TrackCommandStates.TAGS.successMessage(),
+                TrackCommandStates.TAGS.successMessage(),
                     response.getParameters().get("text"));
         }
     }
@@ -111,7 +112,7 @@ class TrackCommandManagerTest {
         SendMessage response = trackCommandManager.createReply(update);
 
         assertEquals(
-                TrackCommandStates.FILTERS.successMessage(),
+            TrackCommandStates.FILTERS.successMessage(),
                 response.getParameters().get("text"));
     }
 
