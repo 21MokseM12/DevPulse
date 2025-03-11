@@ -2,13 +2,16 @@ package backend.academy.scrapper.repository;
 
 import backend.academy.scrapper.model.Link;
 import jakarta.validation.constraints.NotEmpty;
+import java.time.Clock;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import scrapper.bot.connectivity.model.request.AddLinkRequest;
 import scrapper.bot.connectivity.model.request.RemoveLinkRequest;
@@ -18,19 +21,26 @@ public class ClientRepository {
 
     private static final Map<Long, List<Link>> clients;
 
+    private final Clock clock;
+
+    @Autowired
+    public ClientRepository(Clock clock) {
+        this.clock = clock;
+    }
+
     static {
         clients = new ConcurrentHashMap<>();
     }
 
-    public boolean isClient(Long id) {
+    public boolean existsChat(Long id) {
         return clients.containsKey(id);
     }
 
-    public void register(Long id) {
+    public void saveChat(Long id) {
         clients.put(id, new ArrayList<>());
     }
 
-    public void unregister(Long id) {
+    public void deleteChat(Long id) {
         clients.remove(id);
     }
 
@@ -38,16 +48,18 @@ public class ClientRepository {
         return clients.get(chatId);
     }
 
-    public Link subscribeLink(Long chatId, AddLinkRequest link) {
+    public Link saveLink(Long chatId, AddLinkRequest link) {
+        UUID uuid = UUID.nameUUIDFromBytes(link.link().toString().getBytes());
+
         Link entity = new Link(
-                (long) clients.get(chatId).size() + 1, link.link(), link.tags(), link.filters(), OffsetDateTime.now());
+                uuid.getMostSignificantBits(), link.link(), link.tags(), link.filters(), OffsetDateTime.now(clock));
         if (!clients.get(chatId).contains(entity)) {
             clients.get(chatId).add(entity);
         }
         return entity;
     }
 
-    public Link unsubscribeLink(Long chatId, RemoveLinkRequest uri) {
+    public Link deleteLink(Long chatId, RemoveLinkRequest uri) {
         Link unsubscribedLink = clients.get(chatId).stream()
                 .filter(link -> link.url().equals(uri.link()))
                 .findFirst()
@@ -61,9 +73,9 @@ public class ClientRepository {
         for (Map.Entry<Long, List<Link>> entry : clients.entrySet()) {
             List<Link> clientLinksUpdate = new ArrayList<>();
             entry.getValue().stream()
-                    .filter(link -> !OffsetDateTime.now().minus(duration).isBefore(link.createdAt()))
+                    .filter(link -> !OffsetDateTime.now(clock).minus(duration).isBefore(link.createdAt()))
                     .forEach(link -> {
-                        link.createdAt(OffsetDateTime.now());
+                        link.createdAt(OffsetDateTime.now(clock));
                         clientLinksUpdate.add(link);
                     });
             neededUpdatesClients.put(entry.getKey(), new ArrayList<>(clientLinksUpdate));

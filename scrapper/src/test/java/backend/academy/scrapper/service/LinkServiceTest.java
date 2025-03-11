@@ -70,12 +70,12 @@ public class LinkServiceTest {
         Link link = new Link(1L, URI.create("uri"), List.of(), List.of(), OffsetDateTime.now());
         LinkResponse linkResponse = new LinkResponse(1L, URI.create("uri"), List.of(), List.of());
 
-        when(clientRepository.subscribeLink(id, addLinkRequest)).thenReturn(link);
+        when(clientRepository.saveLink(id, addLinkRequest)).thenReturn(link);
         Optional<LinkResponse> response = linkService.subscribe(id, addLinkRequest);
 
         assertThat(response.isPresent()).isTrue();
         assertThat(response.get()).isEqualTo(linkResponse);
-        verify(clientRepository).subscribeLink(id, addLinkRequest);
+        verify(clientRepository).saveLink(id, addLinkRequest);
     }
 
     @Test
@@ -85,11 +85,11 @@ public class LinkServiceTest {
         Link link = new Link(1L, URI.create("uri"), List.of(), List.of(), OffsetDateTime.now());
         LinkResponse linkResponse = new LinkResponse(1L, URI.create("uri"), List.of(), List.of());
 
-        when(clientRepository.unsubscribeLink(id, removeLinkRequest)).thenReturn(link);
+        when(clientRepository.deleteLink(id, removeLinkRequest)).thenReturn(link);
         Optional<LinkResponse> response = linkService.unsubscribe(id, removeLinkRequest);
 
         assertThat(response.isPresent()).isTrue();
         assertThat(response.get()).isEqualTo(linkResponse);
-        verify(clientRepository).unsubscribeLink(id, removeLinkRequest);
+        verify(clientRepository).deleteLink(id, removeLinkRequest);
     }
 }

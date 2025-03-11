@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import backend.academy.scrapper.model.Link;
 import java.net.URI;
+import java.time.Clock;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -18,48 +19,48 @@ class ClientRepositoryTest {
 
     @BeforeEach
     void setUp() {
-        repository = new ClientRepository();
+        repository = new ClientRepository(Clock.systemDefaultZone());
     }
 
     @Test
-    void testRegisterAndIsClient() {
+    void testSaveChatAndExistsChat() {
         Long chatId = 1L;
-        assertThat(repository.isClient(chatId)).isFalse();
-        repository.register(chatId);
-        assertThat(repository.isClient(chatId)).isTrue();
+        assertThat(repository.existsChat(chatId)).isFalse();
+        repository.saveChat(chatId);
+        assertThat(repository.existsChat(chatId)).isTrue();
     }
 
     @Test
-    void testUnregister() {
+    void testDeleteChat() {
         Long chatId = 2L;
-        repository.register(chatId);
-        assertThat(repository.isClient(chatId)).isTrue();
-        repository.unregister(chatId);
-        assertThat(repository.isClient(chatId)).isFalse();
+        repository.saveChat(chatId);
+        assertThat(repository.existsChat(chatId)).isTrue();
+        repository.deleteChat(chatId);
+        assertThat(repository.existsChat(chatId)).isFalse();
     }
 
     @Test
-    void testSubscribeLink() {
+    void testSaveLink() {
         Long chatId = 3L;
-        repository.register(chatId);
+        repository.saveChat(chatId);
         AddLinkRequest request =
                 new AddLinkRequest(URI.create("https://example.com"), List.of("tag1"), List.of("filter1"));
-        Link link = repository.subscribeLink(chatId, request);
+        Link link = repository.saveLink(chatId, request);
 
         assertThat(repository.findAllLinks(chatId)).containsExactly(link);
         assertThat(link.url()).isEqualTo(URI.create("https://example.com"));
     }
 
     @Test
-    void testUnsubscribeLink() {
+    void testDeleteLink() {
         Long chatId = 4L;
-        repository.register(chatId);
+        repository.saveChat(chatId);
         AddLinkRequest request =
                 new AddLinkRequest(URI.create("https://example.com"), List.of("tag1"), List.of("filter1"));
-        repository.subscribeLink(chatId, request);
+        repository.saveLink(chatId, request);
 
         RemoveLinkRequest removeRequest = new RemoveLinkRequest(URI.create("https://example.com"));
-        Link removedLink = repository.unsubscribeLink(chatId, removeRequest);
+        Link removedLink = repository.deleteLink(chatId, removeRequest);
 
         assertThat(removedLink.url()).isEqualTo(URI.create("https://example.com"));
         assertThat(repository.findAllLinks(chatId)).isEmpty();
@@ -68,13 +69,13 @@ class ClientRepositoryTest {
     @Test
     void testFindAllLinks() {
         Long chatId = 5L;
-        repository.register(chatId);
+        repository.saveChat(chatId);
         AddLinkRequest request1 =
                 new AddLinkRequest(URI.create("https://example.com"), List.of("tag1"), List.of("filter1"));
         AddLinkRequest request2 =
                 new AddLinkRequest(URI.create("https://example.org"), List.of("tag2"), List.of("filter2"));
-        repository.subscribeLink(chatId, request1);
-        repository.subscribeLink(chatId, request2);
+        repository.saveLink(chatId, request1);
+        repository.saveLink(chatId, request2);
 
         List<Link> links = repository.findAllLinks(chatId);
         assertThat(links).hasSize(2);
@@ -83,10 +84,10 @@ class ClientRepositoryTest {
     @Test
     void testFindAllLinksByForceCheckDelay() throws InterruptedException {
         Long chatId = 6L;
-        repository.register(chatId);
+        repository.saveChat(chatId);
         AddLinkRequest request =
                 new AddLinkRequest(URI.create("https://example.com"), List.of("tag1"), List.of("filter1"));
-        repository.subscribeLink(chatId, request);
+        repository.saveLink(chatId, request);
 
         Thread.sleep(2);
         Map<Long, List<Link>> result = repository.findAllLinksByForceCheckDelay(Duration.ofMillis(1));
