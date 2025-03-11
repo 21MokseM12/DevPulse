@@ -1,9 +1,9 @@
 package backend.academy.bot.service.commands.managers.stateless;
 
-import backend.academy.bot.service.commands.Command;
 import backend.academy.bot.enums.Messages;
+import backend.academy.bot.model.requests.Request;
 import backend.academy.bot.service.ScrapperConnectionService;
-import com.pengrad.telegrambot.model.Update;
+import backend.academy.bot.service.commands.Command;
 import com.pengrad.telegrambot.request.SendMessage;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,26 +17,31 @@ public class ListCommandManager implements StatelessCommandManager {
 
     private static final String HEADER_MESSAGE = "Список отслеживаемых ссылок:\n";
 
-    @Autowired
-    @Qualifier("listCommand")
-    private Command listCommand;
+    private final Command listCommand;
+
+    private final ScrapperConnectionService scrapperConnectionService;
 
     @Autowired
-    private ScrapperConnectionService scrapperConnectionService;
+    public ListCommandManager(
+        @Qualifier("listCommand") Command listCommand,
+        ScrapperConnectionService scrapperConnectionService
+    ) {
+        this.listCommand = listCommand;
+        this.scrapperConnectionService = scrapperConnectionService;
+    }
 
     @Override
-    public SendMessage createReply(Update update) {
+    public SendMessage createReply(Request request) {
         try {
-            List<LinkResponse> links = scrapperConnectionService.getAllLinks(
-                    update.message().chat().id());
+            List<LinkResponse> links = scrapperConnectionService.getAllLinks(request.getChatId());
             if (links.isEmpty()) {
-                return new SendMessage(update.message().chat().id(), Messages.EMPTY_LINK_LIST.toString());
+                return new SendMessage(request.getChatId(), Messages.EMPTY_LINK_LIST.toString());
             }
             StringBuilder reply = new StringBuilder(HEADER_MESSAGE);
             links.forEach(link -> reply.append(link.url()).append("\n"));
-            return new SendMessage(update.message().chat().id(), reply.toString());
+            return new SendMessage(request.getChatId(), reply.toString());
         } catch (BadRequestException e) {
-            return new SendMessage(update.message().chat().id(), e.getMessage());
+            return new SendMessage(request.getChatId(), e.getMessage());
         }
     }
 

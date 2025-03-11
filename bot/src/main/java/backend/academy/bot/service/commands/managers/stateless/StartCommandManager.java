@@ -1,9 +1,9 @@
 package backend.academy.bot.service.commands.managers.stateless;
 
-import backend.academy.bot.service.commands.Command;
 import backend.academy.bot.enums.Messages;
+import backend.academy.bot.model.requests.Request;
 import backend.academy.bot.service.ScrapperConnectionService;
-import com.pengrad.telegrambot.model.Update;
+import backend.academy.bot.service.commands.Command;
 import com.pengrad.telegrambot.request.SendMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -14,20 +14,26 @@ import scrapper.bot.connectivity.exceptions.BadRequestException;
 // todo добавить вывод сообщения о уже выполненной регистрации (опционально)
 public class StartCommandManager implements StatelessCommandManager {
 
-    @Autowired
-    private ScrapperConnectionService scrapperConnectionService;
+    private final ScrapperConnectionService scrapperConnectionService;
+
+    private final Command startCommand;
 
     @Autowired
-    @Qualifier("startCommand")
-    private Command startCommand;
+    public StartCommandManager(
+        @Qualifier("startCommand") Command startCommand,
+        ScrapperConnectionService scrapperConnectionService
+    ) {
+        this.scrapperConnectionService = scrapperConnectionService;
+        this.startCommand = startCommand;
+    }
 
     @Override
-    public SendMessage createReply(Update update) {
+    public SendMessage createReply(Request request) {
         try {
-            scrapperConnectionService.registerChat(update.message().chat().id());
-            return new SendMessage(update.message().chat().id(), Messages.WELCOME_MESSAGE.toString());
+            scrapperConnectionService.registerChat(request.getChatId());
+            return new SendMessage(request.getChatId(), Messages.WELCOME_MESSAGE.toString());
         } catch (BadRequestException e) {
-            return new SendMessage(update.message().chat().id(), e.getMessage());
+            return new SendMessage(request.getChatId(), e.getMessage());
         }
     }
 

@@ -1,14 +1,16 @@
 package backend.academy.bot.service.commands.managers.stateful;
 
-import backend.academy.bot.service.commands.Command;
 import backend.academy.bot.enums.Messages;
 import backend.academy.bot.enums.TrackCommandStates;
 import backend.academy.bot.exceptions.InvalidCommandException;
 import backend.academy.bot.model.entity.LinkDTO;
+import backend.academy.bot.model.requests.Request;
+import backend.academy.bot.model.requests.TrackRequest;
 import backend.academy.bot.service.ScrapperConnectionService;
+import backend.academy.bot.service.commands.Command;
+import backend.academy.bot.service.commands.impl.stateful.sessions.TrackSessionManager;
 import backend.academy.bot.utils.LinkSettingsParser;
 import backend.academy.bot.utils.LinkValidator;
-import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,63 +22,76 @@ import scrapper.bot.connectivity.exceptions.BadRequestException;
 @Component
 public class TrackCommandManager implements StatefulCommandManager {
 
-    private static final Map<Long, LinkDTO> STATES;
+    private final Command trackCommand;
+
+    private final ScrapperConnectionService scrapperConnectionService;
+
+    private final TrackSessionManager trackSessionManager;
+
+    private static final Map<Long, LinkDTO> trackLinks = new HashMap<>();
 
     @Autowired
-    @Qualifier("trackCommand")
-    private Command trackCommand;
-
-    @Autowired
-    private ScrapperConnectionService scrapperConnectionService;
-
-    static {
-        STATES = new HashMap<>();
+    public TrackCommandManager(
+        @Qualifier("trackCommand") Command trackCommand,
+        ScrapperConnectionService scrapperConnectionService,
+        TrackSessionManager trackSessionManager
+    ) {
+        this.trackCommand = trackCommand;
+        this.scrapperConnectionService = scrapperConnectionService;
+        this.trackSessionManager = trackSessionManager;
     }
 
     @Override
-    public SendMessage createReply(Update update) {
-        if (!STATES.containsKey(update.message().chat().id())) {
-            STATES.put(update.message().chat().id(), new LinkDTO(TrackCommandStates.LINK));
-            return new SendMessage(update.message().chat().id(), TrackCommandStates.LINK.successMessage());
+    public SendMessage createReply(Request request) {
+        if (!(request instanceof TrackRequest trackRequest)) {
+            return new SendMessage(request.getChatId(), Messages.ERROR.toString());
         } else {
-            LinkDTO linkDTO = STATES.get(update.message().chat().id());
-            switch (linkDTO.state()) {
-                case LINK:
-                    if (!LinkValidator.isValid(update.message().text())) {
+            if (!trackSessionManager.hasSession(trackRequest.getChatId())) {
+                trackSessionManager.createSession(trackRequest.getChatId());
+                trackLinks.put(trackRequest.getChatId(), new LinkDTO());
+                return new SendMessage(trackRequest.getChatId(), TrackCommandStates.LINK.successMessage());
+            } else {
+                TrackCommandStates state = trackSessionManager.getSession(request.getChatId());
+                switch (state) {
+                    case LINK:
+                        if (!LinkValidator.isValid(trackRequest.getData())) {
+                            return new SendMessage(
+                                request.getChatId(), state.errorMessage());
+                        }
+                        trackSessionManager.updateSession(trackRequest.getChatId(), TrackCommandStates.TAGS);
+                        trackLinks.get(trackRequest.getChatId()).uri(trackRequest.getData());
                         return new SendMessage(
-                                update.message().chat().id(), linkDTO.state().errorMessage());
-                    }
-                    linkDTO.state(TrackCommandStates.TAGS);
-                    linkDTO.uri(update.message().text());
-                    return new SendMessage(
-                            update.message().chat().id(), linkDTO.state().successMessage());
-                case TAGS:
-                    linkDTO.state(TrackCommandStates.FILTERS);
-                    linkDTO.tags(
-                            LinkSettingsParser.parseSettings(update.message().text()));
-                    return new SendMessage(
-                            update.message().chat().id(), linkDTO.state().successMessage());
-                case FILTERS:
-                    try {
-                        linkDTO.filters(LinkSettingsParser.parseSettings(
-                                update.message().text()));
-                        scrapperConnectionService.subscribeLink(
-                                update.message().chat().id(), linkDTO);
-                        STATES.remove(update.message().chat().id());
+                            trackRequest.getChatId(), state.successMessage());
+                    case TAGS:
+                        trackSessionManager.updateSession(trackRequest.getChatId(), TrackCommandStates.FILTERS);
+                        trackLinks.get(trackRequest.getChatId()).tags(
+                            LinkSettingsParser.parseSettings(trackRequest.getData()));
                         return new SendMessage(
-                                update.message().chat().id(), Messages.SUCCESS_SUBSCRIBE_LINK.toString());
-                    } catch (BadRequestException e) {
-                        return new SendMessage(update.message().chat().id(), e.getMessage());
-                    }
-                default:
-                    throw new InvalidCommandException(Messages.ERROR.toString());
+                            trackRequest.getChatId(), state.successMessage());
+                    case FILTERS:
+                        try {
+                            trackLinks.get(trackRequest.getChatId()).filters(LinkSettingsParser.parseSettings(
+                                trackRequest.getData()));
+                            scrapperConnectionService.subscribeLink(
+                                trackRequest.getChatId(), trackLinks.get(trackRequest.getChatId())
+                            );
+                            trackSessionManager.deleteSession(trackRequest.getChatId());
+                            return new SendMessage(
+                                trackRequest.getChatId(), Messages.SUCCESS_SUBSCRIBE_LINK.toString());
+                        } catch (BadRequestException e) {
+                            return new SendMessage(trackRequest.getChatId(), e.getMessage());
+                        }
+                    default:
+                        throw new InvalidCommandException(Messages.ERROR.toString());
+                }
             }
         }
+
     }
 
     @Override
     public boolean hasState(long chatId) {
-        return STATES.containsKey(chatId);
+        return trackSessionManager.hasSession(chatId);
     }
 
     @Override
