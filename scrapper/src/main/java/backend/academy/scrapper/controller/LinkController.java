@@ -5,6 +5,7 @@ import backend.academy.scrapper.service.LinkService;
 import backend.academy.scrapper.service.validators.LinkValidatorManager;
 import java.util.List;
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -22,6 +23,7 @@ import scrapper.bot.connectivity.model.response.ListLinkResponse;
 
 @RestController
 @RequestMapping("/links")
+@Slf4j
 public class LinkController {
 
     private final LinkService linkService;
@@ -37,6 +39,7 @@ public class LinkController {
     @GetMapping
     public ResponseEntity<ListLinkResponse> findAll(@RequestHeader(name = "Tg-Chat-Id") Long chatId)
             throws BadRequestException {
+        log.info("Get request to find all links by chat with id {}", chatId);
         Optional<List<LinkResponse>> optionalLinks = linkService.findAllByChatId(chatId);
         if (optionalLinks.isPresent()) {
             List<LinkResponse> links =
@@ -51,6 +54,7 @@ public class LinkController {
     public ResponseEntity<LinkResponse> subscribeLink(
             @RequestHeader(name = "Tg-Chat-Id") Long chatId, @RequestBody AddLinkRequest link)
             throws BadRequestException {
+        log.info("Get request to subscribe chat on link by chat with id {}", chatId);
         if (!linkValidatorManager.isValidLink(link.link().toString())) {
             throw new BadRequestException("Некорректные параметры запроса");
         }
@@ -67,6 +71,7 @@ public class LinkController {
     public ResponseEntity<LinkResponse> unsubscribeLink(
             @RequestHeader(name = "Tg-Chat-Id") Long chatId, @RequestBody RemoveLinkRequest uri)
             throws ResourceNotFoundException, BadRequestException {
+        log.info("Get request to unsubscribe chat on link by chat with id {}", chatId);
         if (!linkValidatorManager.isValidLink(uri.link().toString())) {
             throw new BadRequestException("Некорректные параметры запроса");
         }
