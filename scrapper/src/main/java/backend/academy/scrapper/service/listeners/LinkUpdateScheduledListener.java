@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -50,9 +49,8 @@ public class LinkUpdateScheduledListener {
         Map<URI, List<Long>> linkWasUpdated = new HashMap<>();
         for (Map.Entry<Long, List<Link>> entry : linkNeededCheck.entrySet()) {
             for (Link link : entry.getValue()) {
-                Optional<List<LinkUpdateDTO>> response =
-                        updaterFactory.get(link.url()).getUpdates(link.url());
-                if (response.isPresent()) {
+                List<LinkUpdateDTO> response = updaterFactory.get(link.url()).getUpdates(link.url());
+                if (!response.isEmpty()) {
                     if (!linkWasUpdated.containsKey(link.url())) {
                         linkWasUpdated.put(link.url(), new ArrayList<>());
                     }
