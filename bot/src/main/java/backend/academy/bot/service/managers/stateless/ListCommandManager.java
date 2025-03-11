@@ -27,7 +27,8 @@ public class ListCommandManager implements StatelessCommandManager {
     @Override
     public SendMessage createReply(Update update) {
         try {
-            List<LinkResponse> links = scrapperConnectionService.getAllLinks(update.message().chat().id());
+            List<LinkResponse> links = scrapperConnectionService.getAllLinks(
+                    update.message().chat().id());
             if (links.isEmpty()) {
                 return new SendMessage(update.message().chat().id(), Messages.EMPTY_LINK_LIST.toString());
             }

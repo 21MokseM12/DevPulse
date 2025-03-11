@@ -1,5 +1,7 @@
 package backend.academy.bot.config;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+
 import backend.academy.bot.client.ChatClient;
 import backend.academy.bot.client.LinkClient;
 import org.junit.Test;
@@ -10,7 +12,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.service.invoker.HttpServiceProxyFactory;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 @SpringBootTest
 @RunWith(SpringRunner.class)
@@ -22,12 +23,6 @@ public class ClientConfigTest {
 
     @MockitoBean
     private HttpServiceProxyFactory httpServiceProxyFactory;
-
-    @MockitoBean
-    private LinkClient linkClient;
-
-    @MockitoBean
-    private ChatClient chatClient;
 
     @Test
     public void testChatClientBean() {

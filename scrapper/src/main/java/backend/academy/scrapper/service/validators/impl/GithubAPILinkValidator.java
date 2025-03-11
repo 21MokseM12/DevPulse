@@ -9,6 +9,12 @@ public class GithubAPILinkValidator implements APILinkValidator {
 
     @Override
     public boolean isValidLink(String link) {
+        if (link == null) {
+            return false;
+        }
+        if (link.isBlank()) {
+            return false;
+        }
         link = link.replace("//", "/");
         String[] splitLink = link.split("/");
         if (splitLink.length != 4) {

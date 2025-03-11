@@ -23,9 +23,9 @@ public class StatefulCommandManagerFactory {
     }
 
     public Optional<StatefulCommandManager> get(Update update) {
-        long chatId = update.message() == null ?
-            Long.parseLong(update.callbackQuery().data().split("_")[0]) :
-            update.message().chat().id();
+        long chatId = update.message() == null
+                ? Long.parseLong(update.callbackQuery().data().split("_")[0])
+                : update.message().chat().id();
         for (Map.Entry<String, StatefulCommandManager> entry : managerMap.entrySet()) {
             if (entry.getValue().hasState(chatId)) {
                 return Optional.of(entry.getValue());

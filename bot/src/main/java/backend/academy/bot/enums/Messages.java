@@ -1,7 +1,6 @@
 package backend.academy.bot.enums;
 
 public enum Messages {
-
     ERROR("Что-то пошло не по плану..."),
 
     INVALID_MESSAGE("Вы отправили некорректное сообщение, попробуйте еще раз"),
@@ -12,7 +11,8 @@ public enum Messages {
 
     DELETE_SUBSCRIBE_MESSAGE("Ссылка больше не отслеживается"),
 
-    WELCOME_MESSAGE("""
+    WELCOME_MESSAGE(
+            """
         Приветствую тебя в боте, который за тебя будет следить за всеми твоими подписками!
         Советую ознакомиться со всеми моими возможностями, вызвать команду /help
         """),

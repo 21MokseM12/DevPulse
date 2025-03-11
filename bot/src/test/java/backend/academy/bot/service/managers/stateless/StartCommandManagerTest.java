@@ -1,7 +1,15 @@
 package backend.academy.bot.service.managers.stateless;
 
-import backend.academy.bot.enums.Messages;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import backend.academy.bot.commands.Command;
+import backend.academy.bot.enums.Messages;
 import backend.academy.bot.service.ScrapperConnectionService;
 import com.pengrad.telegrambot.model.Chat;
 import com.pengrad.telegrambot.model.Message;
@@ -14,13 +22,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import scrapper.bot.connectivity.exceptions.BadRequestException;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class StartCommandManagerTest {
@@ -56,7 +57,9 @@ public class StartCommandManagerTest {
 
     @Test
     public void testCreateReplyWithBadRequestException() {
-        doThrow(new BadRequestException(Messages.INVALID_MESSAGE.toString())).when(scrapperConnectionService).registerChat(any());
+        doThrow(new BadRequestException(Messages.INVALID_MESSAGE.toString()))
+                .when(scrapperConnectionService)
+                .registerChat(any());
         SendMessage reply = startCommandManager.createReply(update);
 
         verify(scrapperConnectionService, times(1)).registerChat(any());
