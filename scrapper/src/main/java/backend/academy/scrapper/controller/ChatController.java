@@ -32,20 +32,14 @@ public class ChatController {
     @PostMapping
     public ResponseEntity<Void> registerChat(@PathVariable @NotNull @Positive Long id) throws BadRequestException {
         log.info("Get request to register chat with id {}", id);
-//        if (id == null || id < 0) {
-//            throw new BadRequestException("Некорректные параметры запроса");
-//        }
         chatService.register(id);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping
     public ResponseEntity<Void> unregisterChat(@PathVariable @NotNull @Positive Long id)
-        throws BadRequestException, ResourceNotFoundException {
+            throws BadRequestException, ResourceNotFoundException {
         log.info("Get request to unregister chat with id {}", id);
-//        if (id == null || id < 0) {
-//            throw new BadRequestException("Некорректные параметры запроса");
-//        }
         if (!chatService.unregister(id)) {
             throw new ResourceNotFoundException("Чат не существует");
         }

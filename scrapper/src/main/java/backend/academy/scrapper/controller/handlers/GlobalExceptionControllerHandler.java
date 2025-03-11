@@ -1,6 +1,7 @@
 package backend.academy.scrapper.controller.handlers;
 
 import backend.academy.scrapper.exceptions.ResourceNotFoundException;
+import jakarta.validation.ConstraintViolationException;
 import java.util.Arrays;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -13,8 +14,8 @@ import scrapper.bot.connectivity.model.response.ApiErrorResponse;
 @RestControllerAdvice
 public class GlobalExceptionControllerHandler {
 
-    @ExceptionHandler(BadRequestException.class)
-    public ResponseEntity<ApiErrorResponse> badRequestException(BadRequestException e) {
+    @ExceptionHandler(exception = {BadRequestException.class, ConstraintViolationException.class})
+    public ResponseEntity<ApiErrorResponse> badRequestException(Exception e) {
         List<String> stacktrace = Arrays.stream(e.getStackTrace())
                 .map(StackTraceElement::toString)
                 .toList();
