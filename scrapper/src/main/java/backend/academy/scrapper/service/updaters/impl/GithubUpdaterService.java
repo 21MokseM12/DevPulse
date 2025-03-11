@@ -1,7 +1,6 @@
 package backend.academy.scrapper.service.updaters.impl;
 
 import backend.academy.scrapper.client.GithubClient;
-import backend.academy.scrapper.enums.LinkUpdaterType;
 import backend.academy.scrapper.model.GithubResponse;
 import backend.academy.scrapper.model.LinkUpdateDTO;
 import backend.academy.scrapper.service.parsers.GithubLinkParser;
@@ -14,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import scrapper.bot.connectivity.enums.LinkUpdaterType;
 
 @Service
 @Slf4j
@@ -30,20 +30,15 @@ public class GithubUpdaterService implements LinkUpdater {
     @Override
     public Optional<List<LinkUpdateDTO>> getUpdates(URI link) {
         ResponseEntity<List<GithubResponse>> events = githubClient.getEvents(
-            linkParser.parseUsername(link.toString()),
-            linkParser.parseRepo(link.toString())
-        );
+                linkParser.parseUsername(link.toString()), linkParser.parseRepo(link.toString()));
         if (events.getStatusCode().is2xxSuccessful()
-            && !Objects.requireNonNull(events.getBody()).isEmpty()) {
+                && !Objects.requireNonNull(events.getBody()).isEmpty()) {
             return Optional.of(Objects.requireNonNull(events.getBody()).stream()
-                .map(response ->
-                    new LinkUpdateDTO(
-                        updateId++,
-                        link,
-                        "Обновление в ".concat(response.create().toString())
-                    )
-                )
-                .toList());
+                    .map(response -> new LinkUpdateDTO(
+                            updateId++,
+                            link,
+                            "Обновление в ".concat(response.create().toString())))
+                    .toList());
         } else {
             return Optional.empty();
         }

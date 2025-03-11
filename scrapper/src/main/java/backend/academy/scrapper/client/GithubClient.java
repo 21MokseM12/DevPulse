@@ -11,8 +11,5 @@ import org.springframework.web.service.annotation.HttpExchange;
 public interface GithubClient {
 
     @GetExchange
-    ResponseEntity<List<GithubResponse>> getEvents(
-        @PathVariable String name,
-        @PathVariable String repo
-    );
+    ResponseEntity<List<GithubResponse>> getEvents(@PathVariable String name, @PathVariable String repo);
 }

@@ -31,11 +31,10 @@ public class LinkUpdateScheduledListener {
 
     @Autowired
     public LinkUpdateScheduledListener(
-        ClientRepository clientRepository,
-        ScrapperConfig scrapperConfig,
-        LinkUpdaterServiceFactory updaterFactory,
-        ScrapperNotificationManager notificationManager
-    ) {
+            ClientRepository clientRepository,
+            ScrapperConfig scrapperConfig,
+            LinkUpdaterServiceFactory updaterFactory,
+            ScrapperNotificationManager notificationManager) {
         this.clientRepository = clientRepository;
         this.scrapperConfig = scrapperConfig;
         this.updaterFactory = updaterFactory;
@@ -43,14 +42,16 @@ public class LinkUpdateScheduledListener {
     }
 
     @Scheduled(fixedDelayString = "#{ @scheduler.interval() }")
+    // todo добавить проверку на уже отправленные изменения и не отправлять их по новой
     public void listenUpdates() {
-        Map<Long, List<Link>> linkNeededCheck =
-            clientRepository.findAllLinksByForceCheckDelay(scrapperConfig.scheduler().forceCheckDelay());
+        Map<Long, List<Link>> linkNeededCheck = clientRepository.findAllLinksByForceCheckDelay(
+                scrapperConfig.scheduler().forceCheckDelay());
 
         Map<URI, List<Long>> linkWasUpdated = new HashMap<>();
         for (Map.Entry<Long, List<Link>> entry : linkNeededCheck.entrySet()) {
             for (Link link : entry.getValue()) {
-                Optional<List<LinkUpdateDTO>> response = updaterFactory.get(link.url()).getUpdates(link.url());
+                Optional<List<LinkUpdateDTO>> response =
+                        updaterFactory.get(link.url()).getUpdates(link.url());
                 if (response.isPresent()) {
                     if (!linkWasUpdated.containsKey(link.url())) {
                         linkWasUpdated.put(link.url(), new ArrayList<>());

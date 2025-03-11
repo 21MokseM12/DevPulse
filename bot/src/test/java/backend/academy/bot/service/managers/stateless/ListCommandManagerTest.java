@@ -1,5 +1,11 @@
 package backend.academy.bot.service.managers.stateless;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import backend.academy.bot.enums.Messages;
 import backend.academy.bot.service.ScrapperConnectionService;
 import com.pengrad.telegrambot.model.Chat;
@@ -16,11 +22,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import scrapper.bot.connectivity.exceptions.BadRequestException;
 import scrapper.bot.connectivity.model.response.LinkResponse;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class ListCommandManagerTest {
@@ -46,24 +47,24 @@ public class ListCommandManagerTest {
     public void testFullListCommandSuccess() {
         LinkResponse link = new LinkResponse(1L, URI.create("link"), List.of("tag"), List.of("filter"));
         when(scrapperConnectionService.getAllLinks(update.message().chat().id()))
-            .thenReturn(List.of(link));
+                .thenReturn(List.of(link));
 
         SendMessage reply = listCommandManager.createReply(update);
-        verify(scrapperConnectionService, times(1)).getAllLinks(update.message().chat().id());
+        verify(scrapperConnectionService, times(1))
+                .getAllLinks(update.message().chat().id());
         assertEquals(123L, reply.getParameters().get("chat_id"));
         assertEquals(
-            "Список отслеживаемых ссылок:\nlink\n",
-            reply.getParameters().get("text")
-        );
+                "Список отслеживаемых ссылок:\nlink\n", reply.getParameters().get("text"));
     }
 
     @Test
     public void testEmptyListCommandSuccess() {
         when(scrapperConnectionService.getAllLinks(update.message().chat().id()))
-            .thenReturn(List.of());
+                .thenReturn(List.of());
 
         SendMessage reply = listCommandManager.createReply(update);
-        verify(scrapperConnectionService, times(1)).getAllLinks(update.message().chat().id());
+        verify(scrapperConnectionService, times(1))
+                .getAllLinks(update.message().chat().id());
         assertEquals(123L, reply.getParameters().get("chat_id"));
         assertEquals(Messages.EMPTY_LINK_LIST.toString(), reply.getParameters().get("text"));
     }
@@ -71,12 +72,12 @@ public class ListCommandManagerTest {
     @Test
     public void testThrowsBadRequestException() {
         when(scrapperConnectionService.getAllLinks(update.message().chat().id()))
-            .thenThrow(new BadRequestException("Bad request"));
+                .thenThrow(new BadRequestException("Bad request"));
 
         SendMessage reply = listCommandManager.createReply(update);
-        verify(scrapperConnectionService, times(1)).getAllLinks(update.message().chat().id());
+        verify(scrapperConnectionService, times(1))
+                .getAllLinks(update.message().chat().id());
         assertEquals(123L, reply.getParameters().get("chat_id"));
         assertEquals("Bad request", reply.getParameters().get("text"));
-
     }
 }

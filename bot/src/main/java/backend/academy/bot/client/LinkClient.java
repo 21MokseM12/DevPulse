@@ -17,14 +17,9 @@ public interface LinkClient {
     ResponseEntity<?> getAllLinks(@RequestHeader(name = "Tg-Chat-Id") Long chatId);
 
     @PostExchange
-    ResponseEntity<?> subscribeLink(
-        @RequestHeader(name = "Tg-Chat-Id") Long chatId,
-        @RequestBody AddLinkRequest link
-    );
+    ResponseEntity<?> subscribeLink(@RequestHeader(name = "Tg-Chat-Id") Long chatId, @RequestBody AddLinkRequest link);
 
     @DeleteExchange
     ResponseEntity<?> unsubscribeLink(
-        @RequestHeader(name = "Tg-Chat-Id") Long chatId,
-        @RequestBody RemoveLinkRequest uri
-    );
+            @RequestHeader(name = "Tg-Chat-Id") Long chatId, @RequestBody RemoveLinkRequest uri);
 }

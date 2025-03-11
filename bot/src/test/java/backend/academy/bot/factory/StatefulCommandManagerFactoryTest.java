@@ -1,23 +1,23 @@
 package backend.academy.bot.factory;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import backend.academy.bot.commands.Command;
 import backend.academy.bot.service.managers.stateful.StatefulCommandManager;
 import com.pengrad.telegrambot.model.CallbackQuery;
 import com.pengrad.telegrambot.model.Chat;
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.Update;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class StatefulCommandManagerFactoryTest {
 
@@ -49,7 +49,7 @@ public class StatefulCommandManagerFactoryTest {
         when(command2.apiCommand()).thenReturn("command2");
 
         // Мокируем чат с ID
-        when(manager1.hasState(anyLong())).thenReturn(true);  // Состояние у manager1
+        when(manager1.hasState(anyLong())).thenReturn(true); // Состояние у manager1
         when(manager2.hasState(anyLong())).thenReturn(false); // У manager2 состояния нет
 
         // Создаем фабрику с двумя менеджерами

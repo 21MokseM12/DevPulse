@@ -1,7 +1,7 @@
 package backend.academy.bot.service.managers.stateful;
 
-import backend.academy.bot.enums.Messages;
 import backend.academy.bot.commands.Command;
+import backend.academy.bot.enums.Messages;
 import backend.academy.bot.service.ScrapperConnectionService;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
@@ -34,24 +34,19 @@ public class UntrackCommandManager implements StatefulCommandManager {
 
     @Override
     public SendMessage createReply(Update update) {
-        long chatId = update.message() == null ?
-            Long.parseLong(update.callbackQuery().data().split("_")[0]) :
-            update.message().chat().id();
+        long chatId = update.message() == null
+                ? Long.parseLong(update.callbackQuery().data().split("_")[0])
+                : update.message().chat().id();
         List<LinkResponse> subscribedLinks = scrapperConnectionService.getAllLinks(chatId);
         if (!STATES.contains(chatId)) {
             SendMessage reply;
             if (subscribedLinks.isEmpty()) {
-                reply = new SendMessage(
-                    update.message().chat().id(),
-                    Messages.EMPTY_LINK_LIST.toString()
-                );
+                reply = new SendMessage(update.message().chat().id(), Messages.EMPTY_LINK_LIST.toString());
             } else {
                 STATES.add(update.message().chat().id());
-                reply = new SendMessage(
-                    update.message().chat().id(),
-                    Messages.SEND_LINK_MESSAGE_UNTRACK.toString()
-                );
-                reply.replyMarkup(generateKeyboard(subscribedLinks, update.message().chat().id()));
+                reply = new SendMessage(update.message().chat().id(), Messages.SEND_LINK_MESSAGE_UNTRACK.toString());
+                reply.replyMarkup(generateKeyboard(
+                        subscribedLinks, update.message().chat().id()));
             }
             return reply;
         } else {
@@ -60,10 +55,9 @@ public class UntrackCommandManager implements StatefulCommandManager {
             }
             String callbackData = update.callbackQuery().data();
             if (!scrapperConnectionService.unsubscribeLink(
-                Long.parseLong(callbackData.split("_")[0]),
-                subscribedLinks,
-                Integer.parseInt(callbackData.split("_")[1])
-            )) {
+                    Long.parseLong(callbackData.split("_")[0]),
+                    subscribedLinks,
+                    Integer.parseInt(callbackData.split("_")[1]))) {
                 return new SendMessage(chatId, Messages.ERROR.toString());
             }
             STATES.remove(chatId);
@@ -76,11 +70,7 @@ public class UntrackCommandManager implements StatefulCommandManager {
         for (LinkResponse link : links) {
             var button = new InlineKeyboardButton();
             button.setText(link.url().toString());
-            button.callbackData(
-                String.valueOf(chatId)
-                    .concat("_")
-                    .concat(String.valueOf(link.id()))
-            );
+            button.callbackData(String.valueOf(chatId).concat("_").concat(String.valueOf(link.id())));
 
             keyboard.addRow(button);
         }

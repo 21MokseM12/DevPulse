@@ -1,7 +1,7 @@
 package backend.academy.bot.service.managers.stateless;
 
-import backend.academy.bot.enums.Messages;
 import backend.academy.bot.commands.Command;
+import backend.academy.bot.enums.Messages;
 import backend.academy.bot.service.ScrapperConnectionService;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 import scrapper.bot.connectivity.exceptions.BadRequestException;
 
 @Component
-//todo добавить вывод сообщения о уже выполненной регистрации (опционально)
+// todo добавить вывод сообщения о уже выполненной регистрации (опционально)
 public class StartCommandManager implements StatelessCommandManager {
 
     @Autowired

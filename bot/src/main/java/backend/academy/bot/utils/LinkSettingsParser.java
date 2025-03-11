@@ -1,8 +1,8 @@
 package backend.academy.bot.utils;
 
-import lombok.experimental.UtilityClass;
 import java.util.Arrays;
 import java.util.List;
+import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class LinkSettingsParser {

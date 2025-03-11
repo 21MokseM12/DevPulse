@@ -24,47 +24,37 @@ public class ClientConfig {
 
     @Bean
     public GithubClient githubClient(RestClient.Builder builder) {
-        RestClient restClient = builder
-            .baseUrl(
-                scrapperConfig.github().url() == null ?
-                    BASE_GITHUB_URL :
-                    scrapperConfig.github().url()
-            )
-            .defaultHeader("Authorization", "token " + scrapperConfig.github().token())
-            .build();
-        return HttpServiceProxyFactory
-            .builderFor(RestClientAdapter.create(restClient))
-            .build()
-            .createClient(GithubClient.class);
+        RestClient restClient = builder.baseUrl(
+                        scrapperConfig.github().url() == null
+                                ? BASE_GITHUB_URL
+                                : scrapperConfig.github().url())
+                .defaultHeader(
+                        "Authorization", "token " + scrapperConfig.github().token())
+                .build();
+        return HttpServiceProxyFactory.builderFor(RestClientAdapter.create(restClient))
+                .build()
+                .createClient(GithubClient.class);
     }
 
     @Bean
     public StackOverflowClient stackOverflowClient(RestClient.Builder builder) {
-        RestClient restClient = builder
-            .baseUrl(
-                scrapperConfig.stackOverflow().url() == null ?
-                    BASE_STACKOVERFLOW_URL :
-                    scrapperConfig.stackOverflow().url()
-            )
-            .defaultHeader("Authorization", "token " + scrapperConfig.github().token())
-            .build();
-        return HttpServiceProxyFactory
-            .builderFor(RestClientAdapter.create(restClient))
-            .build()
-            .createClient(StackOverflowClient.class);
+        RestClient restClient = builder.baseUrl(
+                        scrapperConfig.stackOverflow().url() == null
+                                ? BASE_STACKOVERFLOW_URL
+                                : scrapperConfig.stackOverflow().url())
+                .build();
+        return HttpServiceProxyFactory.builderFor(RestClientAdapter.create(restClient))
+                .build()
+                .createClient(StackOverflowClient.class);
     }
 
     @Bean
     public BotClient botClient(RestClient.Builder builder) {
-        RestClient restClient = builder
-            .baseUrl(
-                scrapperConfig.botUrl() == null ?
-                    BASE_BOT_URL :
-                    scrapperConfig.botUrl())
-            .build();
-        return HttpServiceProxyFactory
-            .builderFor(RestClientAdapter.create(restClient))
-            .build()
-            .createClient(BotClient.class);
+        RestClient restClient = builder.baseUrl(
+                        scrapperConfig.botUrl() == null ? BASE_BOT_URL : scrapperConfig.botUrl())
+                .build();
+        return HttpServiceProxyFactory.builderFor(RestClientAdapter.create(restClient))
+                .build()
+                .createClient(BotClient.class);
     }
 }

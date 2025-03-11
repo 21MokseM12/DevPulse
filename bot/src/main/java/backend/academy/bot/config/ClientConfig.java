@@ -23,16 +23,10 @@ public class ClientConfig {
 
     @Bean
     public HttpServiceProxyFactory httpServiceProxyFactory(RestClient.Builder builder) {
-        RestClient restClient = builder
-            .baseUrl(
-                config.scrapperUrl() == null ?
-                    BASE_SCRAPPER_URL :
-                    config.scrapperUrl()
-            )
-            .build();
-        return HttpServiceProxyFactory
-            .builderFor(RestClientAdapter.create(restClient))
-            .build();
+        RestClient restClient = builder.baseUrl(config.scrapperUrl() == null ? BASE_SCRAPPER_URL : config.scrapperUrl())
+                .build();
+        return HttpServiceProxyFactory.builderFor(RestClientAdapter.create(restClient))
+                .build();
     }
 
     @Bean
