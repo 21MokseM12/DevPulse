@@ -5,9 +5,9 @@ import backend.academy.bot.model.requests.StatelessRequest;
 import backend.academy.bot.service.commands.impl.stateless.StatelessCommand;
 import backend.academy.bot.service.requests.mapper.RequestMapper;
 import com.pengrad.telegrambot.model.Update;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import java.util.List;
 
 @Component
 public class StatelessRequestMapper implements RequestMapper {
@@ -21,7 +21,8 @@ public class StatelessRequestMapper implements RequestMapper {
 
     @Override
     public Request map(Update update) {
-        return new StatelessRequest(update.message().chat().id(), update.message().text());
+        return new StatelessRequest(
+                update.message().chat().id(), update.message().text());
     }
 
     @Override

@@ -26,17 +26,10 @@ public class UntrackRequestMapper implements RequestMapper {
     public Request map(Update update) {
         if (update.callbackQuery() != null) {
             String callback = update.callbackQuery().data();
-            return new UntrackRequest(
-                Long.parseLong(callback.split("_")[0]),
-                callback,
-                true
-            );
+            return new UntrackRequest(Long.parseLong(callback.split("_")[0]), callback, true);
         } else if (update.message() != null) {
             return new UntrackRequest(
-                update.message().chat().id(),
-                update.message().text(),
-                false
-            );
+                    update.message().chat().id(), update.message().text(), false);
         }
         return null;
     }
@@ -51,7 +44,8 @@ public class UntrackRequestMapper implements RequestMapper {
             }
         } else {
             return update.callbackQuery() != null
-                && untrackSessionManager.hasSession(Long.parseLong(update.callbackQuery().data().split("_")[0]));
+                    && untrackSessionManager.hasSession(
+                            Long.parseLong(update.callbackQuery().data().split("_")[0]));
         }
     }
 }

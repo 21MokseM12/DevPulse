@@ -23,9 +23,7 @@ public class ListCommandManager implements StatelessCommandManager {
 
     @Autowired
     public ListCommandManager(
-        @Qualifier("listCommand") Command listCommand,
-        ScrapperConnectionService scrapperConnectionService
-    ) {
+            @Qualifier("listCommand") Command listCommand, ScrapperConnectionService scrapperConnectionService) {
         this.listCommand = listCommand;
         this.scrapperConnectionService = scrapperConnectionService;
     }

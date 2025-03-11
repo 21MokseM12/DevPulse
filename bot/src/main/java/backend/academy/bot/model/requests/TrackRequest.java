@@ -13,7 +13,8 @@ public class TrackRequest implements StatefulRequest {
 
     private String message;
 
-    @Getter private TrackCommandStates state;
+    @Getter
+    private TrackCommandStates state;
 
     public TrackRequest(Long chatId, String message) {
         this.chatId = chatId;

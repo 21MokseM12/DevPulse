@@ -1,8 +1,8 @@
 package backend.academy.bot.service.commands.impl.stateful.sessions;
 
-import org.springframework.stereotype.Service;
 import java.util.HashSet;
 import java.util.Set;
+import org.springframework.stereotype.Service;
 
 @Service
 public class UntrackSessionManager {
@@ -15,9 +15,9 @@ public class UntrackSessionManager {
 
     public Long getSession(Long chatId) {
         return sessions.stream()
-            .filter(session -> session.equals(chatId))
-            .findFirst()
-            .orElse(null);
+                .filter(session -> session.equals(chatId))
+                .findFirst()
+                .orElse(null);
     }
 
     public void createSession(Long chatId) {

@@ -21,8 +21,8 @@ public class RequestMapperFactory {
 
     public Optional<Request> map(Update update) {
         return mappers.stream()
-            .filter(mapper -> mapper.canMap(update))
-            .findFirst()
-            .map(mapper -> mapper.map(update));
+                .filter(mapper -> mapper.canMap(update))
+                .findFirst()
+                .map(mapper -> mapper.map(update));
     }
 }

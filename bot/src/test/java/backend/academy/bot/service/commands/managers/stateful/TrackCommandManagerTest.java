@@ -1,5 +1,14 @@
 package backend.academy.bot.service.commands.managers.stateful;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import backend.academy.bot.enums.TrackCommandStates;
 import backend.academy.bot.model.entity.LinkDTO;
 import backend.academy.bot.model.requests.TrackRequest;
@@ -15,14 +24,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import scrapper.bot.connectivity.exceptions.BadRequestException;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class TrackCommandManagerTest {
@@ -53,7 +54,9 @@ class TrackCommandManagerTest {
 
         SendMessage response = trackCommandManager.createReply(request);
 
-        assertEquals(TrackCommandStates.LINK.successMessage(), response.getParameters().get("text"));
+        assertEquals(
+                TrackCommandStates.LINK.successMessage(),
+                response.getParameters().get("text"));
         verify(trackSessionManager).createSession(CHAT_ID);
     }
 
@@ -65,7 +68,8 @@ class TrackCommandManagerTest {
 
         SendMessage response = trackCommandManager.createReply(request);
 
-        assertEquals(TrackCommandStates.LINK.errorMessage(), response.getParameters().get("text"));
+        assertEquals(
+                TrackCommandStates.LINK.errorMessage(), response.getParameters().get("text"));
     }
 
     @Test
@@ -74,11 +78,15 @@ class TrackCommandManagerTest {
         when(trackSessionManager.hasSession(CHAT_ID)).thenReturn(true);
         when(trackSessionManager.getSession(CHAT_ID)).thenReturn(TrackCommandStates.LINK);
 
-        mockStatic(LinkValidator.class).when(() -> LinkValidator.isValid(request.getData())).thenReturn(true);
+        mockStatic(LinkValidator.class)
+                .when(() -> LinkValidator.isValid(request.getData()))
+                .thenReturn(true);
 
         SendMessage response = trackCommandManager.createReply(request);
 
-        assertEquals(TrackCommandStates.LINK.successMessage(), response.getParameters().get("text"));
+        assertEquals(
+                TrackCommandStates.LINK.successMessage(),
+                response.getParameters().get("text"));
     }
 
     @Test
@@ -88,7 +96,8 @@ class TrackCommandManagerTest {
         when(trackSessionManager.getSession(CHAT_ID)).thenReturn(TrackCommandStates.FILTERS);
 
         doThrow(new BadRequestException("Bad Request"))
-            .when(scrapperConnectionService).subscribeLink(eq(CHAT_ID), any(LinkDTO.class));
+                .when(scrapperConnectionService)
+                .subscribeLink(eq(CHAT_ID), any(LinkDTO.class));
 
         SendMessage response = trackCommandManager.createReply(request);
 

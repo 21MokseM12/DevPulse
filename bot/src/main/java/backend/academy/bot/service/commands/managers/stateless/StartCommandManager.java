@@ -20,9 +20,7 @@ public class StartCommandManager implements StatelessCommandManager {
 
     @Autowired
     public StartCommandManager(
-        @Qualifier("startCommand") Command startCommand,
-        ScrapperConnectionService scrapperConnectionService
-    ) {
+            @Qualifier("startCommand") Command startCommand, ScrapperConnectionService scrapperConnectionService) {
         this.scrapperConnectionService = scrapperConnectionService;
         this.startCommand = startCommand;
     }

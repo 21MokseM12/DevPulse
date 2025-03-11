@@ -18,8 +18,10 @@ public class CommandController {
     }
 
     public SendMessage process(Request request) throws InvalidCommandException {
-        return commandManagerFactoryRegistry.get(request)
-            .orElseThrow(() -> new InvalidCommandException("Invalid command in chat with id " + request.getChatId()))
-            .createReply(request);
+        return commandManagerFactoryRegistry
+                .get(request)
+                .orElseThrow(
+                        () -> new InvalidCommandException("Invalid command in chat with id " + request.getChatId()))
+                .createReply(request);
     }
 }

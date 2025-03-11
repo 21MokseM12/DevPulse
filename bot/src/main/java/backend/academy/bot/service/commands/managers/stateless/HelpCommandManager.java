@@ -16,10 +16,7 @@ public class HelpCommandManager implements StatelessCommandManager {
     private final List<Command> commands;
 
     @Autowired
-    public HelpCommandManager(
-        @Qualifier("helpCommand") Command helpCommand,
-        List<Command> commands
-    ) {
+    public HelpCommandManager(@Qualifier("helpCommand") Command helpCommand, List<Command> commands) {
         this.helpCommand = helpCommand;
         this.commands = commands;
     }

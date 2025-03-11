@@ -32,10 +32,9 @@ public class TrackCommandManager implements StatefulCommandManager {
 
     @Autowired
     public TrackCommandManager(
-        @Qualifier("trackCommand") Command trackCommand,
-        ScrapperConnectionService scrapperConnectionService,
-        TrackSessionManager trackSessionManager
-    ) {
+            @Qualifier("trackCommand") Command trackCommand,
+            ScrapperConnectionService scrapperConnectionService,
+            TrackSessionManager trackSessionManager) {
         this.trackCommand = trackCommand;
         this.scrapperConnectionService = scrapperConnectionService;
         this.trackSessionManager = trackSessionManager;
@@ -55,29 +54,27 @@ public class TrackCommandManager implements StatefulCommandManager {
                 switch (state) {
                     case LINK:
                         if (!LinkValidator.isValid(trackRequest.getData())) {
-                            return new SendMessage(
-                                request.getChatId(), state.errorMessage());
+                            return new SendMessage(request.getChatId(), state.errorMessage());
                         }
                         trackSessionManager.updateSession(trackRequest.getChatId(), TrackCommandStates.TAGS);
                         trackLinks.get(trackRequest.getChatId()).uri(trackRequest.getData());
-                        return new SendMessage(
-                            trackRequest.getChatId(), state.successMessage());
+                        return new SendMessage(trackRequest.getChatId(), state.successMessage());
                     case TAGS:
                         trackSessionManager.updateSession(trackRequest.getChatId(), TrackCommandStates.FILTERS);
-                        trackLinks.get(trackRequest.getChatId()).tags(
-                            LinkSettingsParser.parseSettings(trackRequest.getData()));
-                        return new SendMessage(
-                            trackRequest.getChatId(), state.successMessage());
+                        trackLinks
+                                .get(trackRequest.getChatId())
+                                .tags(LinkSettingsParser.parseSettings(trackRequest.getData()));
+                        return new SendMessage(trackRequest.getChatId(), state.successMessage());
                     case FILTERS:
                         try {
-                            trackLinks.get(trackRequest.getChatId()).filters(LinkSettingsParser.parseSettings(
-                                trackRequest.getData()));
+                            trackLinks
+                                    .get(trackRequest.getChatId())
+                                    .filters(LinkSettingsParser.parseSettings(trackRequest.getData()));
                             scrapperConnectionService.subscribeLink(
-                                trackRequest.getChatId(), trackLinks.get(trackRequest.getChatId())
-                            );
+                                    trackRequest.getChatId(), trackLinks.get(trackRequest.getChatId()));
                             trackSessionManager.deleteSession(trackRequest.getChatId());
                             return new SendMessage(
-                                trackRequest.getChatId(), Messages.SUCCESS_SUBSCRIBE_LINK.toString());
+                                    trackRequest.getChatId(), Messages.SUCCESS_SUBSCRIBE_LINK.toString());
                         } catch (BadRequestException e) {
                             return new SendMessage(trackRequest.getChatId(), e.getMessage());
                         }
@@ -86,7 +83,6 @@ public class TrackCommandManager implements StatefulCommandManager {
                 }
             }
         }
-
     }
 
     @Override

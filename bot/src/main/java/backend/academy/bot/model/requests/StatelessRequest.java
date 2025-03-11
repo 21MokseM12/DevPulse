@@ -12,7 +12,8 @@ public class StatelessRequest implements Request {
 
     private Long chatId;
 
-    @Getter private String command;
+    @Getter
+    private String command;
 
     @Override
     public Long getChatId() {
