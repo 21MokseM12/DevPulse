@@ -1,4 +1,4 @@
-package backend.academy.scrapper.controller.exception_handlers;
+package backend.academy.scrapper.controller.handlers;
 
 import backend.academy.scrapper.exceptions.ResourceNotFoundException;
 import java.util.Arrays;
