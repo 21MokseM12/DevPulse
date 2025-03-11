@@ -12,7 +12,8 @@ public class UntrackRequest implements StatefulRequest {
 
     private String data;
 
-    @Getter private boolean isCallbackQuery;
+    @Getter
+    private boolean isCallbackQuery;
 
     public UntrackRequest(Long chatId, String data, boolean isCallbackQuery) {
         this.chatId = chatId;

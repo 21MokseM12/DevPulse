@@ -17,9 +17,7 @@ public class StatefulCommandManagerFactory implements CommandManagerFactory {
     private final Map<String, StatefulCommandManager> managerMap;
 
     @Autowired
-    public StatefulCommandManagerFactory(
-        List<StatefulCommandManager> managers
-    ) {
+    public StatefulCommandManagerFactory(List<StatefulCommandManager> managers) {
         this.managerMap = new HashMap<>();
         for (StatefulCommandManager manager : managers) {
             managerMap.put(manager.getCommand().apiCommand(), manager);

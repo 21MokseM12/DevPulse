@@ -27,10 +27,9 @@ public class UntrackCommandManager implements StatefulCommandManager {
 
     @Autowired
     public UntrackCommandManager(
-        UntrackSessionManager untrackSessionManager,
-        @Qualifier("untrackCommand") Command untrackCommand,
-        ScrapperConnectionService scrapperConnectionService
-    ) {
+            UntrackSessionManager untrackSessionManager,
+            @Qualifier("untrackCommand") Command untrackCommand,
+            ScrapperConnectionService scrapperConnectionService) {
         this.untrackSessionManager = untrackSessionManager;
         this.scrapperConnectionService = scrapperConnectionService;
         this.untrackCommand = untrackCommand;
@@ -49,9 +48,7 @@ public class UntrackCommandManager implements StatefulCommandManager {
                 } else {
                     untrackSessionManager.createSession(untrackRequest.getChatId());
                     reply = new SendMessage(untrackRequest.getChatId(), Messages.SEND_LINK_MESSAGE_UNTRACK.toString());
-                    reply.replyMarkup(generateKeyboard(
-                        subscribedLinks, untrackRequest.getChatId()
-                    ));
+                    reply.replyMarkup(generateKeyboard(subscribedLinks, untrackRequest.getChatId()));
                 }
                 return reply;
             } else {
@@ -59,9 +56,9 @@ public class UntrackCommandManager implements StatefulCommandManager {
                     return new SendMessage(untrackRequest.getChatId(), Messages.ERROR.toString());
                 }
                 if (!scrapperConnectionService.unsubscribeLink(
-                    Long.parseLong(untrackRequest.getData().split("_")[0]),
-                    subscribedLinks,
-                    Integer.parseInt(untrackRequest.getData().split("_")[1]))) {
+                        Long.parseLong(untrackRequest.getData().split("_")[0]),
+                        subscribedLinks,
+                        Integer.parseInt(untrackRequest.getData().split("_")[1]))) {
                     return new SendMessage(untrackRequest.getChatId(), Messages.ERROR.toString());
                 }
                 untrackSessionManager.deleteSession(untrackRequest.getChatId());
