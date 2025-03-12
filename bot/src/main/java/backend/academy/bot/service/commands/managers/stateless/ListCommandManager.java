@@ -2,6 +2,7 @@ package backend.academy.bot.service.commands.managers.stateless;
 
 import backend.academy.bot.enums.Messages;
 import backend.academy.bot.model.requests.Request;
+import backend.academy.bot.model.requests.StatelessRequest;
 import backend.academy.bot.service.ScrapperConnectionService;
 import backend.academy.bot.service.commands.Command;
 import com.pengrad.telegrambot.request.SendMessage;
@@ -44,7 +45,10 @@ public class ListCommandManager implements StatelessCommandManager {
     }
 
     @Override
-    public Command getCommand() {
-        return listCommand;
+    public boolean canProcess(Request request) {
+        if (!(request instanceof StatelessRequest statelessRequest)) {
+            return false;
+        }
+        return statelessRequest.command().equals(listCommand.apiCommand());
     }
 }

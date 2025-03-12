@@ -1,6 +1,7 @@
 package backend.academy.bot.service.commands.managers.stateless;
 
 import backend.academy.bot.model.requests.Request;
+import backend.academy.bot.model.requests.StatelessRequest;
 import backend.academy.bot.service.commands.Command;
 import com.pengrad.telegrambot.request.SendMessage;
 import java.util.List;
@@ -34,7 +35,10 @@ public class HelpCommandManager implements StatelessCommandManager {
     }
 
     @Override
-    public Command getCommand() {
-        return this.helpCommand;
+    public boolean canProcess(Request request) {
+        if (!(request instanceof StatelessRequest statelessRequest)) {
+            return false;
+        }
+        return statelessRequest.command().equals(helpCommand.apiCommand());
     }
 }

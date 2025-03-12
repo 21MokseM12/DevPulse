@@ -67,6 +67,17 @@ public class UntrackCommandManager implements StatefulCommandManager {
         }
     }
 
+    @Override
+    public boolean canProcess(Request request) {
+        if (!(request instanceof UntrackRequest untrackRequest)) {
+            return false;
+        }
+        if (untrackRequest.getData().equals(untrackCommand.apiCommand())) {
+            return true;
+        }
+        return untrackSessionManager.hasSession(untrackRequest.getChatId());
+    }
+
     private Keyboard generateKeyboard(List<LinkResponse> links, Long chatId) {
         InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
         for (LinkResponse link : links) {
@@ -82,10 +93,5 @@ public class UntrackCommandManager implements StatefulCommandManager {
     @Override
     public boolean hasState(long chatId) {
         return untrackSessionManager.hasSession(chatId);
-    }
-
-    @Override
-    public Command getCommand() {
-        return untrackCommand;
     }
 }
