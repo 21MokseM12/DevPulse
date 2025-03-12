@@ -1,27 +1,28 @@
 package backend.academy.bot.service.commands;
 
 import backend.academy.bot.exceptions.InvalidCommandException;
-import backend.academy.bot.factory.CommandManagerFactoryRegistry;
 import backend.academy.bot.model.requests.Request;
+import backend.academy.bot.service.commands.managers.CommandManager;
 import com.pengrad.telegrambot.request.SendMessage;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class CommandController {
 
-    private final CommandManagerFactoryRegistry commandManagerFactoryRegistry;
+    private final List<CommandManager> commandManagers;
 
     @Autowired
-    public CommandController(CommandManagerFactoryRegistry commandManagerFactoryRegistry) {
-        this.commandManagerFactoryRegistry = commandManagerFactoryRegistry;
+    public CommandController(List<CommandManager> commandManagers) {
+        this.commandManagers = commandManagers;
     }
 
     public SendMessage process(Request request) throws InvalidCommandException {
-        return commandManagerFactoryRegistry
-                .get(request)
-                .orElseThrow(
-                        () -> new InvalidCommandException("Invalid command in chat with id " + request.getChatId()))
-                .createReply(request);
+        return commandManagers.stream()
+            .filter(x -> x.canProcess(request))
+            .findFirst()
+            .orElseThrow(() -> new InvalidCommandException("Invalid command sent by chat with id " + request.getChatId()))
+            .createReply(request);
     }
 }

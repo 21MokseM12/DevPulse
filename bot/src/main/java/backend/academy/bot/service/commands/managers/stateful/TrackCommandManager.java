@@ -91,7 +91,13 @@ public class TrackCommandManager implements StatefulCommandManager {
     }
 
     @Override
-    public Command getCommand() {
-        return trackCommand;
+    public boolean canProcess(Request request) {
+        if (!(request instanceof TrackRequest trackRequest)) {
+            return false;
+        }
+        if (trackRequest.getData().equals(trackCommand.apiCommand())) {
+            return true;
+        }
+        return trackSessionManager.hasSession(trackRequest.getChatId());
     }
 }
