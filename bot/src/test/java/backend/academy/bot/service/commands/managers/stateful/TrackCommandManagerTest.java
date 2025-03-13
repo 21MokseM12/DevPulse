@@ -1,16 +1,9 @@
 package backend.academy.bot.service.commands.managers.stateful;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import backend.academy.bot.enums.TrackCommandStates;
 import backend.academy.bot.model.entity.LinkDTO;
+import backend.academy.bot.model.requests.Request;
+import backend.academy.bot.model.requests.StatelessRequest;
 import backend.academy.bot.model.requests.TrackRequest;
 import backend.academy.bot.service.ScrapperConnectionService;
 import backend.academy.bot.service.commands.Command;
@@ -24,6 +17,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import scrapper.bot.connectivity.exceptions.BadRequestException;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class TrackCommandManagerTest {
@@ -112,7 +114,41 @@ class TrackCommandManagerTest {
     }
 
     @Test
-    void testGetCommand() {
-        assertEquals(trackCommand, trackCommandManager.getCommand());
+    public void testCanProcess_whenRequestIsNotTrackRequest_thenFailure() {
+        Request request = new StatelessRequest(123L, "/track");
+        assertFalse(trackCommandManager.canProcess(request));
+    }
+
+    @Test
+    public void testCanProcess_whenRequestDataIsAPICommand_thenSuccess() {
+        Request request = new TrackRequest(123L, "/track");
+
+        when(trackCommand.apiCommand()).thenReturn("/track");
+
+        assertTrue(trackCommandManager.canProcess(request));
+    }
+
+    @Test
+    public void testCanProcess_whenRequestDataIsNotAPICommand_thenFailure() {
+        Request request = new TrackRequest(123L, "/ttrack");
+        assertFalse(trackCommandManager.canProcess(request));
+    }
+
+    @Test
+    public void testCanProcess_whenRequestHaveSession_thenSuccess() {
+        Request request = new TrackRequest(123L, "/track");
+
+        when(trackSessionManager.hasSession(123L)).thenReturn(true);
+
+        assertTrue(trackCommandManager.canProcess(request));
+    }
+
+    @Test
+    public void testCanProcess_whenRequestHaveNotSession_thenFailure() {
+        Request request = new TrackRequest(123L, "/track");
+
+        when(trackSessionManager.hasSession(123L)).thenReturn(false);
+
+        assertFalse(trackCommandManager.canProcess(request));
     }
 }
