@@ -20,9 +20,10 @@ public class CommandController {
 
     public SendMessage process(Request request) throws InvalidCommandException {
         return commandManagers.stream()
-            .filter(x -> x.canProcess(request))
-            .findFirst()
-            .orElseThrow(() -> new InvalidCommandException("Invalid command sent by chat with id " + request.getChatId()))
-            .createReply(request);
+                .filter(x -> x.canProcess(request))
+                .findFirst()
+                .orElseThrow(() ->
+                        new InvalidCommandException("Invalid command sent by chat with id " + request.getChatId()))
+                .createReply(request);
     }
 }

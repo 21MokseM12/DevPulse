@@ -1,5 +1,7 @@
 package backend.academy.bot.config;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+
 import backend.academy.bot.client.ChatClient;
 import backend.academy.bot.client.LinkClient;
 import org.junit.Test;
@@ -9,7 +11,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 @SpringBootTest
 @RunWith(SpringRunner.class)
