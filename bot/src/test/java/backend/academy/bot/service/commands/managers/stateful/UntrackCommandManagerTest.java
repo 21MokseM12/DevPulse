@@ -1,29 +1,30 @@
- package backend.academy.bot.service.commands.managers.stateful;
+package backend.academy.bot.service.commands.managers.stateful;
 
- import backend.academy.bot.enums.Messages;
- import backend.academy.bot.model.requests.Request;
- import backend.academy.bot.model.requests.StatelessRequest;
- import backend.academy.bot.model.requests.TrackRequest;
- import backend.academy.bot.model.requests.UntrackRequest;
- import backend.academy.bot.service.ScrapperConnectionService;
- import backend.academy.bot.service.commands.Command;
- import backend.academy.bot.service.commands.impl.stateful.sessions.UntrackSessionManager;
- import com.pengrad.telegrambot.request.SendMessage;
- import java.net.URI;
- import java.util.List;
- import org.junit.jupiter.api.BeforeEach;
- import org.junit.jupiter.api.Test;
- import org.junit.jupiter.api.extension.ExtendWith;
- import org.mockito.InjectMocks;
- import org.mockito.Mock;
- import org.mockito.junit.jupiter.MockitoExtension;
- import scrapper.bot.connectivity.model.response.LinkResponse;
- import static org.junit.jupiter.api.Assertions.assertEquals;
- import static org.junit.jupiter.api.Assertions.assertFalse;
- import static org.junit.jupiter.api.Assertions.assertTrue;
- import static org.mockito.Mockito.lenient;
- import static org.mockito.Mockito.mock;
- import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import backend.academy.bot.enums.Messages;
+import backend.academy.bot.model.requests.Request;
+import backend.academy.bot.model.requests.StatelessRequest;
+import backend.academy.bot.model.requests.TrackRequest;
+import backend.academy.bot.model.requests.UntrackRequest;
+import backend.academy.bot.service.ScrapperConnectionService;
+import backend.academy.bot.service.commands.Command;
+import backend.academy.bot.service.commands.impl.stateful.sessions.UntrackSessionManager;
+import com.pengrad.telegrambot.request.SendMessage;
+import java.net.URI;
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import scrapper.bot.connectivity.model.response.LinkResponse;
 
 @ExtendWith(MockitoExtension.class)
 class UntrackCommandManagerTest {
@@ -61,16 +62,20 @@ class UntrackCommandManagerTest {
         when(request.getChatId()).thenReturn(chatId);
         when(scrapperConnectionService.getAllLinks(chatId)).thenReturn(List.of());
         SendMessage response = untrackCommandManager.createReply(request);
-        assertEquals(Messages.EMPTY_LINK_LIST.toString(), response.getParameters().get("text"));
+        assertEquals(
+                Messages.EMPTY_LINK_LIST.toString(), response.getParameters().get("text"));
     }
 
     @Test
     void testCreateReply_WithSubscribedLinks() {
         UntrackRequest request = mock(UntrackRequest.class);
         when(request.getChatId()).thenReturn(chatId);
-        when(scrapperConnectionService.getAllLinks(chatId)).thenReturn(List.of(new LinkResponse(1L, URI.create("http://example.com"), List.of(), List.of())));
+        when(scrapperConnectionService.getAllLinks(chatId))
+                .thenReturn(List.of(new LinkResponse(1L, URI.create("http://example.com"), List.of(), List.of())));
         SendMessage response = untrackCommandManager.createReply(request);
-        assertEquals(Messages.SEND_LINK_MESSAGE_UNTRACK.toString(), response.getParameters().get("text"));
+        assertEquals(
+                Messages.SEND_LINK_MESSAGE_UNTRACK.toString(),
+                response.getParameters().get("text"));
     }
 
     @Test
@@ -92,7 +97,9 @@ class UntrackCommandManagerTest {
         when(request.getData()).thenReturn("1_0");
         when(scrapperConnectionService.unsubscribeLink(1L, List.of(), 0)).thenReturn(true);
         SendMessage response = untrackCommandManager.createReply(request);
-        assertEquals(Messages.DELETE_SUBSCRIBE_MESSAGE.toString(), response.getParameters().get("text"));
+        assertEquals(
+                Messages.DELETE_SUBSCRIBE_MESSAGE.toString(),
+                response.getParameters().get("text"));
     }
 
     @Test
@@ -139,4 +146,4 @@ class UntrackCommandManagerTest {
 
         assertFalse(untrackCommandManager.canProcess(request));
     }
- }
+}
