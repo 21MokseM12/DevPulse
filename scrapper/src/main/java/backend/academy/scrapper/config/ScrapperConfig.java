@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.validation.annotation.Validated;
 
 @Validated
-@ConfigurationProperties(prefix = "app", ignoreUnknownFields = false)
+@ConfigurationProperties(prefix = "app.scrapper", ignoreUnknownFields = false)
 public record ScrapperConfig(
         GitHubCredentials github,
         StackOverflowCredentials stackOverflow,
