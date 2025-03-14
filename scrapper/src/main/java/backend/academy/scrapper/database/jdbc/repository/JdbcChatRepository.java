@@ -18,11 +18,8 @@ public class JdbcChatRepository {
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("id", id);
 
-        Integer countChats = jdbcTemplate.queryForObject(
-            "select count(id) from chats where id = :id",
-            params,
-            Integer.class
-        );
+        Integer countChats =
+                jdbcTemplate.queryForObject("select count(id) from chats where id = :id", params, Integer.class);
         return Optional.ofNullable(countChats).orElse(0) > 0;
     }
 
@@ -32,11 +29,7 @@ public class JdbcChatRepository {
         params.addValue("id", id);
 
         RowCountCallbackHandler countCallbackHandler = new RowCountCallbackHandler();
-        jdbcTemplate.query(
-            "insert into chats (id) values (:id)",
-            params,
-            countCallbackHandler
-        );
+        jdbcTemplate.query("insert into chats (id) values (:id)", params, countCallbackHandler);
         return countCallbackHandler.getRowCount() != 0;
     }
 
@@ -46,11 +39,7 @@ public class JdbcChatRepository {
         params.addValue("id", id);
 
         RowCountCallbackHandler countCallbackHandler = new RowCountCallbackHandler();
-        jdbcTemplate.query(
-            "delete from chats where id = :id",
-            params,
-            countCallbackHandler
-        );
+        jdbcTemplate.query("delete from chats where id = :id", params, countCallbackHandler);
         return countCallbackHandler.getRowCount() != 0;
     }
 }

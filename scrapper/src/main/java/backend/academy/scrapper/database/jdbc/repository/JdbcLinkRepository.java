@@ -29,10 +29,7 @@ public class JdbcLinkRepository {
 
     private final JdbcLinkRepository jdbcLinkRepository;
 
-    @Transactional(
-        propagation = Propagation.MANDATORY,
-        rollbackFor = DataAccessException.class
-    )
+    @Transactional(propagation = Propagation.MANDATORY, rollbackFor = DataAccessException.class)
     public Link save(AddLinkRequest linkRequest) {
         MapSqlParameterSource params = new MapSqlParameterSource();
         OffsetDateTime createdTime = OffsetDateTime.now(clock);
@@ -40,21 +37,12 @@ public class JdbcLinkRepository {
         params.addValue("link", linkRequest.link().toString());
         params.addValue("updated_at", createdTime);
         Long linkId = jdbcTemplate.queryForObject(
-            "insert into links (link, updated_at) values (:link, :updated_at) returning id",
-            params,
-            Long.class
-        );
+                "insert into links (link, updated_at) values (:link, :updated_at) returning id", params, Long.class);
 
         saveLinkTags(linkRequest.tags(), linkId);
         saveLinkFilters(linkRequest.filters(), linkId);
 
-        return new Link(
-            linkId,
-            linkRequest.link(),
-            linkRequest.tags(),
-            linkRequest.filters(),
-            createdTime
-        );
+        return new Link(linkId, linkRequest.link(), linkRequest.tags(), linkRequest.filters(), createdTime);
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
@@ -67,9 +55,8 @@ public class JdbcLinkRepository {
             tagSources.add(mapSqlParameterSource);
         }
         jdbcTemplate.batchUpdate(
-            "insert into tags (tag, link_id) values (:tag, :link_id)",
-            tagSources.toArray(new MapSqlParameterSource[] {})
-        );
+                "insert into tags (tag, link_id) values (:tag, :link_id)",
+                tagSources.toArray(new MapSqlParameterSource[] {}));
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
@@ -82,20 +69,19 @@ public class JdbcLinkRepository {
             filterSources.add(mapSqlParameterSource);
         }
         jdbcTemplate.batchUpdate(
-            "insert into filters (filter, link_id) values (:filter, :link_id)",
-            filterSources.toArray(new MapSqlParameterSource[] {})
-        );
+                "insert into filters (filter, link_id) values (:filter, :link_id)",
+                filterSources.toArray(new MapSqlParameterSource[] {}));
     }
 
     public Long findByLink(String link) {
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("link", link);
 
-        Optional<Long> linkId = jdbcTemplate.query(
-            "select id from links where link = :link",
-            params,
-            (rs, rowNum) -> rs.getLong("id")
-        ).stream().findFirst();
+        Optional<Long> linkId =
+                jdbcTemplate
+                        .query("select id from links where link = :link", params, (rs, rowNum) -> rs.getLong("id"))
+                        .stream()
+                        .findFirst();
 
         return linkId.orElse(-1L);
     }
@@ -103,7 +89,8 @@ public class JdbcLinkRepository {
     public Link findById(Long linkId) {
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("link_id", linkId);
-        String query = """
+        String query =
+                """
             select l.id, l.link, l.updated_at, t.tag, f.filter
             from links l
             left join tags t on t.link_id = l.id
@@ -111,11 +98,7 @@ public class JdbcLinkRepository {
             where l.id = :linkId
             """;
 
-        List<Link> links =  jdbcTemplate.queryForObject(
-            query,
-            params,
-            new LinkMapper()
-        );
+        List<Link> links = jdbcTemplate.queryForObject(query, params, new LinkMapper());
 
         return Optional.ofNullable(links).orElse(new ArrayList<>()).getFirst();
     }
@@ -124,11 +107,8 @@ public class JdbcLinkRepository {
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("link", link);
 
-        Integer linkCount = jdbcTemplate.queryForObject(
-            "select count(link) from links where link = :link",
-            params,
-            Integer.class
-        );
+        Integer linkCount =
+                jdbcTemplate.queryForObject("select count(link) from links where link = :link", params, Integer.class);
 
         return Optional.ofNullable(linkCount).orElse(0) == 1;
     }
@@ -143,31 +123,19 @@ public class JdbcLinkRepository {
         deletedLink.tags(new HashSet<>());
         deletedLink.filters(new HashSet<>());
 
-        jdbcTemplate.query(
-            "delete from tags where link_id = :link_id returning tag",
-            params,
-            rs -> {
-                deletedLink.tags().add(rs.getString("tag"));
-            }
-        );
+        jdbcTemplate.query("delete from tags where link_id = :link_id returning tag", params, rs -> {
+            deletedLink.tags().add(rs.getString("tag"));
+        });
 
-        jdbcTemplate.query(
-            "delete from filters where link_id = :link_id returning filter",
-            params,
-            rs -> {
-                deletedLink.filters().add(rs.getString("filter"));
-            }
-        );
+        jdbcTemplate.query("delete from filters where link_id = :link_id returning filter", params, rs -> {
+            deletedLink.filters().add(rs.getString("filter"));
+        });
 
-        jdbcTemplate.query(
-            "delete from links where id = :link_id returning id, link, updated_at",
-            params,
-            rs -> {
-                deletedLink.id(rs.getLong("id"));
-                deletedLink.url(URI.create(rs.getString("link")));
-                deletedLink.createdAt(rs.getObject("updated_at", OffsetDateTime.class));
-            }
-        );
+        jdbcTemplate.query("delete from links where id = :link_id returning id, link, updated_at", params, rs -> {
+            deletedLink.id(rs.getLong("id"));
+            deletedLink.url(URI.create(rs.getString("link")));
+            deletedLink.createdAt(rs.getObject("updated_at", OffsetDateTime.class));
+        });
 
         return deletedLink;
     }
@@ -176,7 +144,8 @@ public class JdbcLinkRepository {
         MapSqlParameterSource sources = new MapSqlParameterSource();
         sources.addValue("link_ids", linkIds);
 
-        String query = """
+        String query =
+                """
             select l.id, l.link, l.updated_at, t.tag, f.filter
             from links l
             left join tags t on t.link_id = l.id
@@ -184,10 +153,6 @@ public class JdbcLinkRepository {
             where l.id in (:linkIds)
         """;
 
-        return jdbcTemplate.queryForObject(
-            query,
-            sources,
-            new LinkMapper()
-        );
+        return jdbcTemplate.queryForObject(query, sources, new LinkMapper());
     }
 }

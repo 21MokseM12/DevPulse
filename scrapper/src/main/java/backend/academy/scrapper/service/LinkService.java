@@ -1,8 +1,8 @@
 package backend.academy.scrapper.service;
 
+import backend.academy.scrapper.database.jdbc.mapper.LinkResponseMapper;
 import backend.academy.scrapper.database.model.Link;
 import backend.academy.scrapper.repository.ClientRepository;
-import backend.academy.scrapper.database.jdbc.mapper.LinkResponseMapper;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;

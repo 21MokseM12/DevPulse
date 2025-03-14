@@ -23,17 +23,15 @@ public class JdbcLinkToChatRepository {
 
         RowCountCallbackHandler countCallbackHandler = new RowCountCallbackHandler();
         jdbcTemplate.query(
-            "insert into links_chats (chat_id, link_id) values (:chat_id, :link_id)",
-            params,
-            countCallbackHandler
-        );
+                "insert into links_chats (chat_id, link_id) values (:chat_id, :link_id)", params, countCallbackHandler);
 
         return countCallbackHandler.getRowCount() == 1;
     }
 
     public boolean chatIsSubscribedOnLink(Long chatId, Long linkId) {
         MapSqlParameterSource params = new MapSqlParameterSource();
-        String query = """
+        String query =
+                """
             select chat_id, link_id
             from links_chats
             where chat_id = :chatId and link_id = :linkId
@@ -42,11 +40,7 @@ public class JdbcLinkToChatRepository {
         params.addValue("linkId", linkId);
 
         RowCountCallbackHandler countCallbackHandler = new RowCountCallbackHandler();
-        jdbcTemplate.query(
-            query,
-            params,
-            countCallbackHandler
-        );
+        jdbcTemplate.query(query, params, countCallbackHandler);
         return countCallbackHandler.getRowCount() == 1;
     }
 
@@ -57,10 +51,9 @@ public class JdbcLinkToChatRepository {
         params.addValue("link_id", linkId);
 
         jdbcTemplate.query(
-            "delete from links_chats where chat_id = :chat_id and link_id = :link_id",
-            params,
-            new RowCountCallbackHandler()
-        );
+                "delete from links_chats where chat_id = :chat_id and link_id = :link_id",
+                params,
+                new RowCountCallbackHandler());
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
@@ -68,11 +61,7 @@ public class JdbcLinkToChatRepository {
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("chat_id", chatId);
 
-        jdbcTemplate.query(
-            "delete from links_chats where chat_id = :chat_id",
-            params,
-            new RowCountCallbackHandler()
-        );
+        jdbcTemplate.query("delete from links_chats where chat_id = :chat_id", params, new RowCountCallbackHandler());
     }
 
     public List<Long> findAllIdByChatId(Long chatId) {
@@ -80,9 +69,6 @@ public class JdbcLinkToChatRepository {
         params.addValue("chat_id", chatId);
 
         return jdbcTemplate.queryForList(
-            "select link_id from links_chats where chat_id = :chat_id",
-            params,
-            Long.class
-        );
+                "select link_id from links_chats where chat_id = :chat_id", params, Long.class);
     }
 }

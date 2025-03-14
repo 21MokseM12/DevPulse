@@ -1,8 +1,8 @@
 package backend.academy.scrapper.service.listeners;
 
 import backend.academy.scrapper.config.ScrapperConfig;
-import backend.academy.scrapper.factory.LinkUpdaterServiceFactory;
 import backend.academy.scrapper.database.model.Link;
+import backend.academy.scrapper.factory.LinkUpdaterServiceFactory;
 import backend.academy.scrapper.model.LinkUpdateDTO;
 import backend.academy.scrapper.repository.ClientRepository;
 import backend.academy.scrapper.service.notifications.impl.ScrapperHttpNotificationManager;
@@ -42,6 +42,7 @@ public class LinkUpdateScheduledListener {
     }
 
     @Scheduled(fixedDelayString = "#{ @scheduler.interval() }")
+    // todo переделать сущности: сейчас указана сущность конкретной реализации
     // todo добавить проверку на уже отправленные изменения и не отправлять их по новой
     public void listenUpdates() {
         Map<Long, List<Link>> linkNeededCheck = clientRepository.findAllLinksByForceCheckDelay(
