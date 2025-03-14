@@ -2,7 +2,7 @@ package backend.academy.scrapper.database.model;
 
 import java.net.URI;
 import java.time.OffsetDateTime;
-import java.util.List;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -20,9 +20,9 @@ public class Link {
 
     private URI url;
 
-    private List<String> tags;
+    private Set<String> tags;
 
-    private List<String> filters;
+    private Set<String> filters;
 
     private OffsetDateTime createdAt;
 }
