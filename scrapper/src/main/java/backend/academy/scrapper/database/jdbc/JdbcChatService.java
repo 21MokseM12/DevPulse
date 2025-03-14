@@ -1,8 +1,8 @@
 package backend.academy.scrapper.database.jdbc;
 
 import backend.academy.scrapper.database.ChatService;
-import backend.academy.scrapper.database.repository.jdbc.JdbcChatRepository;
-import backend.academy.scrapper.database.repository.jdbc.JdbcLinkToChatRepository;
+import backend.academy.scrapper.database.jdbc.repository.JdbcChatRepository;
+import backend.academy.scrapper.database.jdbc.repository.JdbcLinkToChatRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

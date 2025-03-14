@@ -1,12 +1,15 @@
-package backend.academy.scrapper.database.repository.jdbc;
+package backend.academy.scrapper.database.jdbc.repository;
 
+import backend.academy.scrapper.database.jdbc.mapper.LinkMapper;
 import backend.academy.scrapper.database.model.Link;
-import backend.academy.scrapper.database.model.mapper.LinkMapper;
 import java.net.URI;
+import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -20,6 +23,8 @@ import scrapper.bot.connectivity.model.request.AddLinkRequest;
 @RequiredArgsConstructor
 public class JdbcLinkRepository {
 
+    private final Clock clock;
+
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
     private final JdbcLinkRepository jdbcLinkRepository;
@@ -30,7 +35,7 @@ public class JdbcLinkRepository {
     )
     public Link save(AddLinkRequest linkRequest) {
         MapSqlParameterSource params = new MapSqlParameterSource();
-        OffsetDateTime createdTime = OffsetDateTime.now();
+        OffsetDateTime createdTime = OffsetDateTime.now(clock);
 
         params.addValue("link", linkRequest.link().toString());
         params.addValue("updated_at", createdTime);
@@ -53,32 +58,32 @@ public class JdbcLinkRepository {
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public void saveLinkTags(List<String> tags, Long linkId) {
-        MapSqlParameterSource[] tagSources
-            = new MapSqlParameterSource[tags.size()];
-        for (int i = 0; i < tags.size(); i++) {
-            tagSources[i] = new MapSqlParameterSource();
-            tagSources[i].addValue("tag", tags.get(i));
-            tagSources[i].addValue("link_id", linkId);
+    public void saveLinkTags(Set<String> tags, Long linkId) {
+        List<MapSqlParameterSource> tagSources = new ArrayList<>();
+        for (String tag : tags) {
+            MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
+            mapSqlParameterSource.addValue("tag", tag);
+            mapSqlParameterSource.addValue("link_id", linkId);
+            tagSources.add(mapSqlParameterSource);
         }
         jdbcTemplate.batchUpdate(
             "insert into tags (tag, link_id) values (:tag, :link_id)",
-            tagSources
+            tagSources.toArray(new MapSqlParameterSource[] {})
         );
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public void saveLinkFilters(List<String> filters, Long linkId) {
-        MapSqlParameterSource[] filterSources
-            = new MapSqlParameterSource[filters.size()];
-        for (int i = 0; i < filters.size(); i++) {
-            filterSources[i] = new MapSqlParameterSource();
-            filterSources[i].addValue("filter", filters.get(i));
-            filterSources[i].addValue("link_id", linkId);
+    public void saveLinkFilters(Set<String> filters, Long linkId) {
+        List<MapSqlParameterSource> filterSources = new ArrayList<>();
+        for (String filter : filters) {
+            MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
+            mapSqlParameterSource.addValue("filter", filter);
+            mapSqlParameterSource.addValue("link_id", linkId);
+            filterSources.add(mapSqlParameterSource);
         }
         jdbcTemplate.batchUpdate(
             "insert into filters (filter, link_id) values (:filter, :link_id)",
-            filterSources
+            filterSources.toArray(new MapSqlParameterSource[] {})
         );
     }
 
@@ -135,8 +140,8 @@ public class JdbcLinkRepository {
         params.addValue("link_id", linkId);
 
         Link deletedLink = new Link();
-        deletedLink.tags(new ArrayList<>());
-        deletedLink.filters(new ArrayList<>());
+        deletedLink.tags(new HashSet<>());
+        deletedLink.filters(new HashSet<>());
 
         jdbcTemplate.query(
             "delete from tags where link_id = :link_id returning tag",

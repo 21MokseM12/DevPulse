@@ -1,8 +1,8 @@
 package backend.academy.scrapper.service;
 
-import backend.academy.scrapper.model.Link;
+import backend.academy.scrapper.database.model.Link;
 import backend.academy.scrapper.repository.ClientRepository;
-import backend.academy.scrapper.utils.LinkLinkResponseConverter;
+import backend.academy.scrapper.database.jdbc.mapper.LinkResponseMapper;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -28,7 +28,7 @@ public class LinkService {
         List<Link> links = clientRepository.findAllLinks(chatId);
         List<LinkResponse> linkResponses = new ArrayList<>();
         for (Link link : links) {
-            linkResponses.add(LinkLinkResponseConverter.convert(link));
+            linkResponses.add(LinkResponseMapper.map(link));
         }
         return Optional.of(linkResponses);
     }
@@ -36,11 +36,11 @@ public class LinkService {
     public Optional<LinkResponse> subscribe(Long chatId, AddLinkRequest linkRequest) {
         Link link = clientRepository.subscribeLink(chatId, linkRequest);
         log.info("Subscribed to link {}", link.url().toString());
-        return Optional.of(LinkLinkResponseConverter.convert(link));
+        return Optional.of(LinkResponseMapper.map(link));
     }
 
     public Optional<LinkResponse> unsubscribe(Long chatId, RemoveLinkRequest uri) {
         log.info("Unsubscribed link {}", uri.link().toString());
-        return Optional.of(LinkLinkResponseConverter.convert(clientRepository.unsubscribeLink(chatId, uri)));
+        return Optional.of(LinkResponseMapper.map(clientRepository.unsubscribeLink(chatId, uri)));
     }
 }
