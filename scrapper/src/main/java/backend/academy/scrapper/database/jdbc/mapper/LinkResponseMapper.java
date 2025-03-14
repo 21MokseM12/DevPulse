@@ -1,13 +1,11 @@
-package backend.academy.scrapper.utils;
+package backend.academy.scrapper.database.jdbc.mapper;
 
 import backend.academy.scrapper.database.model.Link;
-import lombok.experimental.UtilityClass;
 import scrapper.bot.connectivity.model.response.LinkResponse;
 
-@UtilityClass
-public class LinkLinkResponseConverter {
+public class LinkResponseMapper {
 
-    public static LinkResponse convert(final Link link) {
+    public static LinkResponse map(Link link) {
         return new LinkResponse(link.id(), link.url(), link.tags(), link.filters());
     }
 }

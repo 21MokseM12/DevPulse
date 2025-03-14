@@ -1,4 +1,4 @@
-package backend.academy.scrapper.database.model.mapper;
+package backend.academy.scrapper.database.jdbc.mapper;
 
 import backend.academy.scrapper.database.model.Link;
 import java.net.URI;
@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import org.springframework.jdbc.core.RowMapper;
@@ -22,8 +23,8 @@ public class LinkMapper implements RowMapper<List<Link>> {
             link = new Link(
                 rs.getLong("id"),
                 URI.create(rs.getString("link")),
-                new ArrayList<>(),
-                new ArrayList<>(),
+                new HashSet<>(),
+                new HashSet<>(),
                 rs.getObject("updated_at", OffsetDateTime.class)
             );
             linkMap.put(linkId, link);
