@@ -2,10 +2,11 @@ package backend.academy.scrapper.database.jdbc;
 
 import backend.academy.scrapper.database.LinkService;
 import backend.academy.scrapper.database.model.Link;
-import backend.academy.scrapper.database.repository.jdbc.JdbcChatRepository;
-import backend.academy.scrapper.database.repository.jdbc.JdbcLinkRepository;
-import backend.academy.scrapper.database.repository.jdbc.JdbcLinkToChatRepository;
-import backend.academy.scrapper.utils.LinkLinkResponseConverter;
+import backend.academy.scrapper.database.jdbc.repository.JdbcChatRepository;
+import backend.academy.scrapper.database.jdbc.repository.JdbcLinkRepository;
+import backend.academy.scrapper.database.jdbc.repository.JdbcLinkToChatRepository;
+import backend.academy.scrapper.database.jdbc.mapper.LinkResponseMapper;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -39,16 +40,16 @@ public class JdbcLinkService implements LinkService {
 
     @Override
     @Transactional
-    public Optional<List<LinkResponse>> findAllByChatId(Long chatId) {
+    public List<LinkResponse> findAllByChatId(Long chatId) {
         if (!chatRepository.isClient(chatId)) {
-            return Optional.empty();
+            return new ArrayList<>();
         }
         List<Long> linkIds = linkToChatRepository.findAllIdByChatId(chatId);
         List<Link> links = linkRepository.findAllLinks(linkIds);
 
-        return Optional.of(links.stream()
-            .map(LinkLinkResponseConverter::convert)
-            .toList());
+        return links.stream()
+            .map(LinkResponseMapper::map)
+            .toList();
     }
 
     @Override
@@ -65,14 +66,14 @@ public class JdbcLinkService implements LinkService {
         } else {
             link = linkRepository.findById(linkId);
             if (linkToChatRepository.chatIsSubscribedOnLink(chatId, linkId)) {
-                return Optional.of(LinkLinkResponseConverter.convert(
+                return Optional.of(LinkResponseMapper.map(
                     link
                 ));
             }
             linkToChatRepository.subscribeChatOnLink(chatId, linkId);
         }
         log.info("Subscribed to link {}", link.url().toString());
-        return Optional.of(LinkLinkResponseConverter.convert(link));
+        return Optional.of(LinkResponseMapper.map(link));
     }
 
     @Override
@@ -88,7 +89,7 @@ public class JdbcLinkService implements LinkService {
         Link deletedLink = linkRepository.delete(uri.link().toString());
         linkToChatRepository.unsubscribed(chatId, deletedLink.id());
         return Optional.of(
-            LinkLinkResponseConverter.convert(
+            LinkResponseMapper.map(
                 deletedLink
             )
         );

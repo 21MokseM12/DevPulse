@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface LinkService {
-    Optional<List<LinkResponse>> findAllByChatId(Long chatId);
+    List<LinkResponse> findAllByChatId(Long chatId);
 
     Optional<LinkResponse> subscribe(Long chatId, AddLinkRequest link);
 
