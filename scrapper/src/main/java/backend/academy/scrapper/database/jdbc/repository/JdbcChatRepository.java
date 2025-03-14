@@ -1,4 +1,4 @@
-package backend.academy.scrapper.database.repository.jdbc;
+package backend.academy.scrapper.database.jdbc.repository;
 
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
