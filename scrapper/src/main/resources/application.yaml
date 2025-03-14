@@ -1,16 +1,18 @@
 app:
-  scheduler:
-    interval: 15s
-    force-check-delay: 30s
-  github:
-    token: ${GITHUB_TOKEN} # env variable
-    url: https://api.github.com
-  stackoverflow:
-    url: https://api.stackexchange.com/2.3
-    key: ${SO_TOKEN_KEY}
-    access-token: ${SO_ACCESS_TOKEN}
-  bot-url: http://localhost:8080
-  database-access-type: SQL
+  scrapper:
+    scheduler:
+      interval: 15s
+      force-check-delay: 30s
+    github:
+      token: ${GITHUB_TOKEN} # env variable
+      url: https://api.github.com
+    stackoverflow:
+      url: https://api.stackexchange.com/2.3
+      key: ${SO_TOKEN_KEY}
+      access-token: ${SO_ACCESS_TOKEN}
+    bot-url: http://localhost:8080
+  database:
+    access-type: SQL
 
 spring:
   datasource:
