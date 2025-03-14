@@ -1,10 +1,10 @@
 package backend.academy.scrapper.database;
 
+import java.util.List;
+import java.util.Optional;
 import scrapper.bot.connectivity.model.request.AddLinkRequest;
 import scrapper.bot.connectivity.model.request.RemoveLinkRequest;
 import scrapper.bot.connectivity.model.response.LinkResponse;
-import java.util.List;
-import java.util.Optional;
 
 public interface LinkService {
     List<LinkResponse> findAllByChatId(Long chatId);

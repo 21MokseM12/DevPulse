@@ -21,12 +21,11 @@ public class LinkMapper implements RowMapper<List<Link>> {
         Link link = linkMap.get(linkId);
         if (link == null) {
             link = new Link(
-                rs.getLong("id"),
-                URI.create(rs.getString("link")),
-                new HashSet<>(),
-                new HashSet<>(),
-                rs.getObject("updated_at", OffsetDateTime.class)
-            );
+                    rs.getLong("id"),
+                    URI.create(rs.getString("link")),
+                    new HashSet<>(),
+                    new HashSet<>(),
+                    rs.getObject("updated_at", OffsetDateTime.class));
             linkMap.put(linkId, link);
         }
         String tag = rs.getString("tag");

@@ -1,11 +1,11 @@
 package backend.academy.scrapper.database.jdbc;
 
 import backend.academy.scrapper.database.LinkService;
-import backend.academy.scrapper.database.model.Link;
+import backend.academy.scrapper.database.jdbc.mapper.LinkResponseMapper;
 import backend.academy.scrapper.database.jdbc.repository.JdbcChatRepository;
 import backend.academy.scrapper.database.jdbc.repository.JdbcLinkRepository;
 import backend.academy.scrapper.database.jdbc.repository.JdbcLinkToChatRepository;
-import backend.academy.scrapper.database.jdbc.mapper.LinkResponseMapper;
+import backend.academy.scrapper.database.model.Link;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -29,10 +29,9 @@ public class JdbcLinkService implements LinkService {
 
     @Autowired
     public JdbcLinkService(
-        JdbcChatRepository chatRepository,
-        JdbcLinkRepository linkRepository,
-        JdbcLinkToChatRepository linkToChatRepository
-    ) {
+            JdbcChatRepository chatRepository,
+            JdbcLinkRepository linkRepository,
+            JdbcLinkToChatRepository linkToChatRepository) {
         this.chatRepository = chatRepository;
         this.linkRepository = linkRepository;
         this.linkToChatRepository = linkToChatRepository;
@@ -47,9 +46,7 @@ public class JdbcLinkService implements LinkService {
         List<Long> linkIds = linkToChatRepository.findAllIdByChatId(chatId);
         List<Link> links = linkRepository.findAllLinks(linkIds);
 
-        return links.stream()
-            .map(LinkResponseMapper::map)
-            .toList();
+        return links.stream().map(LinkResponseMapper::map).toList();
     }
 
     @Override
@@ -66,9 +63,7 @@ public class JdbcLinkService implements LinkService {
         } else {
             link = linkRepository.findById(linkId);
             if (linkToChatRepository.chatIsSubscribedOnLink(chatId, linkId)) {
-                return Optional.of(LinkResponseMapper.map(
-                    link
-                ));
+                return Optional.of(LinkResponseMapper.map(link));
             }
             linkToChatRepository.subscribeChatOnLink(chatId, linkId);
         }
@@ -88,10 +83,6 @@ public class JdbcLinkService implements LinkService {
         log.info("User {} unsubscribed link {}", chatId, uri.link());
         Link deletedLink = linkRepository.delete(uri.link().toString());
         linkToChatRepository.unsubscribed(chatId, deletedLink.id());
-        return Optional.of(
-            LinkResponseMapper.map(
-                deletedLink
-            )
-        );
+        return Optional.of(LinkResponseMapper.map(deletedLink));
     }
 }

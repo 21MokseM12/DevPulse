@@ -36,10 +36,9 @@ public class OrmLinkService implements LinkService {
             return new ArrayList<>();
         }
 
-        return ormChatRepository.findAllById(chatId)
-            .stream()
-            .map(LinkMapper::map)
-            .toList();
+        return ormChatRepository.findAllById(chatId).stream()
+                .map(LinkMapper::map)
+                .toList();
     }
 
     @Transactional
@@ -49,11 +48,12 @@ public class OrmLinkService implements LinkService {
         if (chat.isEmpty()) {
             return Optional.empty();
         }
-        LinkEntity linkResponse = ormLinkRepository.findByLink(link.link().toString())
-            .orElseGet(() -> {
-                LinkEntity linkEntity = LinkMapper.map(link);
-                return ormLinkRepository.save(linkEntity);
-            });
+        LinkEntity linkResponse = ormLinkRepository
+                .findByLink(link.link().toString())
+                .orElseGet(() -> {
+                    LinkEntity linkEntity = LinkMapper.map(link);
+                    return ormLinkRepository.save(linkEntity);
+                });
         chat.get().links().add(linkResponse);
         return Optional.of(LinkMapper.map(linkResponse));
     }
@@ -65,7 +65,8 @@ public class OrmLinkService implements LinkService {
         if (chat.isEmpty()) {
             return Optional.empty();
         }
-        Optional<LinkEntity> linkEntity = ormLinkRepository.findByLink(removeLinkRequest.link().toString());
+        Optional<LinkEntity> linkEntity =
+                ormLinkRepository.findByLink(removeLinkRequest.link().toString());
         if (linkEntity.isEmpty()) {
             return Optional.empty();
         }

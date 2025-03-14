@@ -1,6 +1,6 @@
 package backend.academy.scrapper.repository;
 
-import backend.academy.scrapper.model.Link;
+import backend.academy.scrapper.database.model.Link;
 import jakarta.validation.constraints.NotEmpty;
 import java.time.Duration;
 import java.time.OffsetDateTime;

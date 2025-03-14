@@ -28,10 +28,9 @@ public class ChatEntity {
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-        name = "links_chats",
-        joinColumns = @JoinColumn(name = "chat_id"),
-        inverseJoinColumns = @JoinColumn(name = "link_id")
-    )
+            name = "links_chats",
+            joinColumns = @JoinColumn(name = "chat_id"),
+            inverseJoinColumns = @JoinColumn(name = "link_id"))
     Set<LinkEntity> links;
 
     public ChatEntity(Long id) {

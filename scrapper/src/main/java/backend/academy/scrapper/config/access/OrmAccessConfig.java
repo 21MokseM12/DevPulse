@@ -15,10 +15,7 @@ import org.springframework.context.annotation.Configuration;
 public class OrmAccessConfig {
 
     @Bean
-    public LinkService linkService(
-        OrmLinkRepository ormLinkRepository,
-        OrmChatRepository ormChatRepository
-    ) {
+    public LinkService linkService(OrmLinkRepository ormLinkRepository, OrmChatRepository ormChatRepository) {
         return new OrmLinkService(ormLinkRepository, ormChatRepository);
     }
 

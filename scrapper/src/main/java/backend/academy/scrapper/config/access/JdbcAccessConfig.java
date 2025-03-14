@@ -17,18 +17,14 @@ public class JdbcAccessConfig {
 
     @Bean
     public LinkService linkService(
-        JdbcChatRepository chatRepository,
-        JdbcLinkRepository linkRepository,
-        JdbcLinkToChatRepository linkToChatRepository
-    ) {
+            JdbcChatRepository chatRepository,
+            JdbcLinkRepository linkRepository,
+            JdbcLinkToChatRepository linkToChatRepository) {
         return new JdbcLinkService(chatRepository, linkRepository, linkToChatRepository);
     }
 
     @Bean
-    public ChatService chatService(
-        JdbcChatRepository chatRepository,
-        JdbcLinkToChatRepository linkToChatRepository
-    ) {
+    public ChatService chatService(JdbcChatRepository chatRepository, JdbcLinkToChatRepository linkToChatRepository) {
         return new JdbcChatService(chatRepository, linkToChatRepository);
     }
 }
