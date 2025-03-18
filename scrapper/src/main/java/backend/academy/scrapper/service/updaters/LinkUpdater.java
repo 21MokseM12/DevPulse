@@ -8,7 +8,7 @@ import scrapper.bot.connectivity.enums.LinkUpdaterType;
 
 public interface LinkUpdater {
 
-    Optional<List<LinkUpdateDTO>> getUpdates(URI link);
+    List<LinkUpdateDTO> getUpdates(URI link);
 
     LinkUpdaterType getType();
 }
