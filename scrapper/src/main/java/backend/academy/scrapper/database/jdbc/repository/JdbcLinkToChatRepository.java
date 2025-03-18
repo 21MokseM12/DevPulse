@@ -45,7 +45,7 @@ public class JdbcLinkToChatRepository {
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public void unsubscribed(Long chatId, Long linkId) {
+    public void unsubscribe(Long chatId, Long linkId) {
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("chat_id", chatId);
         params.addValue("link_id", linkId);
@@ -57,7 +57,7 @@ public class JdbcLinkToChatRepository {
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public void unsubscribed(Long chatId) {
+    public void unsubscribe(Long chatId) {
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("chat_id", chatId);
 

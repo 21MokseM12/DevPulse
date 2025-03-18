@@ -29,12 +29,12 @@ public class LinkMapper implements RowMapper<List<Link>> {
             linkMap.put(linkId, link);
         }
         String tag = rs.getString("tag");
-        if (tag != null && !link.tags().contains(tag)) {
+        if (tag != null) {
             link.tags().add(tag);
         }
 
         String filter = rs.getString("filter");
-        if (filter != null && !link.filters().contains(filter)) {
+        if (filter != null) {
             link.filters().add(filter);
         }
 

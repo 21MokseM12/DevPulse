@@ -82,7 +82,7 @@ public class JdbcLinkService implements LinkService {
         }
         log.info("User {} unsubscribed link {}", chatId, uri.link());
         Link deletedLink = linkRepository.delete(uri.link().toString());
-        linkToChatRepository.unsubscribed(chatId, deletedLink.id());
+        linkToChatRepository.unsubscribe(chatId, deletedLink.id());
         return Optional.of(LinkResponseMapper.map(deletedLink));
     }
 }
