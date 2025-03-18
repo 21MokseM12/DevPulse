@@ -12,4 +12,13 @@ app:
       access-token: stackoverflow-access-token
     bot-url: https://example.eu
   database:
-    access-type: ORM
+    access-type: SQL
+
+spring:
+  datasource:
+    url: jdbc:postgresql-17://localhost:5432/local
+    username: postgres
+    password: test
+    driver-class-name: org.postgresql.Driver
+  liquibase:
+    enabled: false
