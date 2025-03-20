@@ -35,7 +35,7 @@ public class JdbcChatService implements ChatService {
     @Transactional
     public boolean unregister(Long id) {
         if (chatRepository.isClient(id)) {
-            linkToChatRepository.unsubscribe(id);
+            linkToChatRepository.unsubscribeAll(id);
             chatRepository.delete(id);
             LOG.info("Client unregistered with id {}", id);
             return true;

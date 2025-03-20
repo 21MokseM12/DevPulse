@@ -1,6 +1,7 @@
 package backend.academy.scrapper.database.jdbc.repository;
 
 import java.util.List;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.RowCountCallbackHandler;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -16,18 +17,19 @@ public class JdbcLinkToChatRepository {
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public boolean subscribeChatOnLink(Long chatId, Long linkId) {
+    public boolean subscribeChatOnLink(@NotNull Long chatId, @NotNull Long linkId) {
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("link_id", linkId);
         params.addValue("chat_id", chatId);
 
         RowCountCallbackHandler countCallbackHandler = new RowCountCallbackHandler();
         jdbcTemplate.query(
-                "insert into links_chats (chat_id, link_id) values (:chat_id, :link_id)", params, countCallbackHandler);
+                "insert into links_chats (chat_id, link_id) values (:chat_id, :link_id) returning 1", params, countCallbackHandler);
 
         return countCallbackHandler.getRowCount() == 1;
     }
 
+    @Transactional(readOnly = true)
     public boolean chatIsSubscribedOnLink(Long chatId, Long linkId) {
         MapSqlParameterSource params = new MapSqlParameterSource();
         String query =
@@ -51,17 +53,17 @@ public class JdbcLinkToChatRepository {
         params.addValue("link_id", linkId);
 
         jdbcTemplate.query(
-                "delete from links_chats where chat_id = :chat_id and link_id = :link_id",
+                "delete from links_chats where chat_id = :chat_id and link_id = :link_id returning chat_id",
                 params,
                 new RowCountCallbackHandler());
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public void unsubscribe(Long chatId) {
+    public void unsubscribeAll(Long chatId) {
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("chat_id", chatId);
 
-        jdbcTemplate.query("delete from links_chats where chat_id = :chat_id", params, new RowCountCallbackHandler());
+        jdbcTemplate.query("delete from links_chats where chat_id = :chat_id returning 1", params, new RowCountCallbackHandler());
     }
 
     public List<Long> findAllIdByChatId(Long chatId) {

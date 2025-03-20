@@ -1,13 +1,15 @@
 package backend.academy.scrapper.database.jdbc.repository;
 
-import backend.academy.scrapper.database.jdbc.mapper.LinkMapper;
+import backend.academy.scrapper.build.spring.annotations.SelfAutowired;
 import backend.academy.scrapper.database.model.Link;
 import java.net.URI;
 import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +29,8 @@ public class JdbcLinkRepository {
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
-    private final JdbcLinkRepository jdbcLinkRepository;
+    @SelfAutowired
+    private JdbcLinkRepository jdbcLinkRepository;
 
     @Transactional(propagation = Propagation.MANDATORY, rollbackFor = DataAccessException.class)
     public Link save(AddLinkRequest linkRequest) {
@@ -39,8 +42,8 @@ public class JdbcLinkRepository {
         Long linkId = jdbcTemplate.queryForObject(
                 "insert into links (link, updated_at) values (:link, :updated_at) returning id", params, Long.class);
 
-        saveLinkTags(linkRequest.tags(), linkId);
-        saveLinkFilters(linkRequest.filters(), linkId);
+        jdbcLinkRepository.saveLinkTags(linkRequest.tags(), linkId);
+        jdbcLinkRepository.saveLinkFilters(linkRequest.filters(), linkId);
 
         return new Link(linkId, linkRequest.link(), linkRequest.tags(), linkRequest.filters(), createdTime);
     }
@@ -73,20 +76,19 @@ public class JdbcLinkRepository {
                 filterSources.toArray(new MapSqlParameterSource[] {}));
     }
 
-    public Long findByLink(String link) {
+    @Transactional
+    public Optional<Long> findByLink(String link) {
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("link", link);
 
-        Optional<Long> linkId =
-                jdbcTemplate
-                        .query("select id from links where link = :link", params, (rs, rowNum) -> rs.getLong("id"))
-                        .stream()
-                        .findFirst();
-
-        return linkId.orElse(-1L);
+        return jdbcTemplate
+                .query("select id from links where link = :link", params, (rs, rowNum) -> rs.getLong("id"))
+                .stream()
+                .findFirst();
     }
 
-    public Link findById(Long linkId) {
+    @Transactional
+    public Optional<Link> findById(Long linkId) {
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("link_id", linkId);
         String query =
@@ -95,14 +97,41 @@ public class JdbcLinkRepository {
             from links l
             left join tags t on t.link_id = l.id
             left join filters f on f.link_id = l.id
-            where l.id = :linkId
+            where l.id = :link_id
             """;
 
-        List<Link> links = jdbcTemplate.queryForObject(query, params, new LinkMapper());
+        Map<Long, Link> linkMap = new HashMap<>();
+        jdbcTemplate.query(query, params, rs -> {
+            Long id = rs.getLong("id");
+            Link link = linkMap.get(id);
+            if (link == null) {
+                link = new Link(
+                    id,
+                    URI.create(rs.getString("link")),
+                    new HashSet<>(),
+                    new HashSet<>(),
+                    rs.getObject("updated_at", OffsetDateTime.class));
+                linkMap.put(linkId, link);
+            }
+            String tag = rs.getString("tag");
+            if (tag != null) {
+                link.tags().add(tag);
+            }
 
-        return Optional.ofNullable(links).orElse(new ArrayList<>()).getFirst();
+            String filter = rs.getString("filter");
+            if (filter != null) {
+                link.filters().add(filter);
+            }
+        });
+
+        if (linkMap.isEmpty()) {
+            return Optional.empty();
+        }
+
+        return Optional.of(linkMap.get(linkId));
     }
 
+    @Transactional
     public boolean existsLink(String link) {
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("link", link);
@@ -114,8 +143,13 @@ public class JdbcLinkRepository {
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public Link delete(String link) {
-        Long linkId = jdbcLinkRepository.findByLink(link);
+    public Optional<Link> delete(String link) {
+        Optional<Long> optionalLinkId = jdbcLinkRepository.findByLink(link);
+
+        if (optionalLinkId.isEmpty()) {
+            return Optional.empty();
+        }
+        Long linkId = optionalLinkId.get();
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("link_id", linkId);
 
@@ -137,10 +171,14 @@ public class JdbcLinkRepository {
             deletedLink.createdAt(rs.getObject("updated_at", OffsetDateTime.class));
         });
 
-        return deletedLink;
+        return Optional.of(deletedLink);
     }
 
+    @Transactional
     public List<Link> findAllLinks(List<Long> linkIds) {
+        if (linkIds.isEmpty()) {
+            return new ArrayList<>();
+        }
         MapSqlParameterSource sources = new MapSqlParameterSource();
         sources.addValue("link_ids", linkIds);
 
@@ -150,9 +188,36 @@ public class JdbcLinkRepository {
             from links l
             left join tags t on t.link_id = l.id
             left join filters f on f.link_id = l.id
-            where l.id in (:linkIds)
+            where l.id in (:link_ids)
         """;
 
-        return jdbcTemplate.queryForObject(query, sources, new LinkMapper());
+        Map<Long, Link> linkMap = new HashMap<>();
+        jdbcTemplate.query(query, sources, rs -> {
+            Long id = rs.getLong("id");
+            Link link = linkMap.get(id);
+            if (link == null) {
+                link = new Link(
+                    id,
+                    URI.create(rs.getString("link")),
+                    new HashSet<>(),
+                    new HashSet<>(),
+                    rs.getObject("updated_at", OffsetDateTime.class));
+                linkMap.put(id, link);
+            }
+            String tag = rs.getString("tag");
+            if (tag != null) {
+                link.tags().add(tag);
+            }
+
+            String filter = rs.getString("filter");
+            if (filter != null) {
+                link.filters().add(filter);
+            }
+        });
+
+        if (linkMap.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return linkMap.values().stream().toList();
     }
 }
