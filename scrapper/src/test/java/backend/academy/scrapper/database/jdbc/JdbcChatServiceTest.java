@@ -48,7 +48,7 @@
         when(chatRepository.isClient(id)).thenReturn(true);
         assertThat(chatService.unregister(id)).isTrue();
         verify(chatRepository, times(1)).delete(id);
-        verify(linkToChatRepository, times(1)).unsubscribe(id);
+        verify(linkToChatRepository, times(1)).unsubscribeAll(id);
     }
 
     @Test
