@@ -24,13 +24,12 @@ public class JdbcChatRepository {
     }
 
     @Transactional
-    public boolean save(Long id) {
+    public void save(Long id) {
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("id", id);
 
         RowCountCallbackHandler countCallbackHandler = new RowCountCallbackHandler();
-        jdbcTemplate.query("insert into chats (id) values (:id)", params, countCallbackHandler);
-        return countCallbackHandler.getRowCount() != 0;
+        jdbcTemplate.query("insert into chats (id) values (:id) returning id", params, countCallbackHandler);
     }
 
     @Transactional
@@ -39,7 +38,7 @@ public class JdbcChatRepository {
         params.addValue("id", id);
 
         RowCountCallbackHandler countCallbackHandler = new RowCountCallbackHandler();
-        jdbcTemplate.query("delete from chats where id = :id", params, countCallbackHandler);
+        jdbcTemplate.query("delete from chats where id = :id returning id", params, countCallbackHandler);
         return countCallbackHandler.getRowCount() != 0;
     }
 }
