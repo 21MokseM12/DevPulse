@@ -88,7 +88,7 @@ public class JdbcLinkServiceTest {
         LinkResponse expected = LinkResponseMapper.map(link);
 
         when(chatRepository.isClient(id)).thenReturn(true);
-        when(linkRepository.findByLink(addLinkRequest.link().toString())).thenReturn(linkId);
+        when(linkRepository.findByLink(addLinkRequest.link().toString())).thenReturn(Optional.empty());
         when(linkRepository.save(addLinkRequest)).thenReturn(link);
 
         Optional<LinkResponse> linkResponse = linkService.subscribe(id, addLinkRequest);
@@ -113,8 +113,8 @@ public class JdbcLinkServiceTest {
         LinkResponse expected = LinkResponseMapper.map(link);
 
         when(chatRepository.isClient(id)).thenReturn(true);
-        when(linkRepository.findByLink(addLinkRequest.link().toString())).thenReturn(linkId);
-        when(linkRepository.findById(linkId)).thenReturn(link);
+        when(linkRepository.findByLink(addLinkRequest.link().toString())).thenReturn(Optional.of(linkId));
+        when(linkRepository.findById(linkId)).thenReturn(Optional.of(link));
 
         Optional<LinkResponse> linkResponse = linkService.subscribe(id, addLinkRequest);
         assertThat(linkResponse.isPresent()).isTrue();
@@ -134,7 +134,7 @@ public class JdbcLinkServiceTest {
 
         when(chatRepository.isClient(id)).thenReturn(true);
         when(linkRepository.existsLink(removeLinkRequest.link().toString())).thenReturn(true);
-        when(linkRepository.delete(removeLinkRequest.link().toString())).thenReturn(link);
+        when(linkRepository.delete(removeLinkRequest.link().toString())).thenReturn(Optional.of(link));
         Optional<LinkResponse> response = linkService.unsubscribe(id, removeLinkRequest);
 
         assertThat(response.isPresent()).isTrue();
