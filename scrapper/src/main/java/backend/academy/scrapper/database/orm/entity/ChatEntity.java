@@ -31,7 +31,7 @@ public class ChatEntity {
             name = "links_chats",
             joinColumns = @JoinColumn(name = "chat_id"),
             inverseJoinColumns = @JoinColumn(name = "link_id"))
-    Set<LinkEntity> links;
+    private Set<LinkEntity> links;
 
     public ChatEntity(Long id) {
         this.id = id;

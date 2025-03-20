@@ -38,6 +38,7 @@ public class OrmChatService implements ChatService {
         if (ormChatRepository.existsById(id)) {
             ormChatRepository.deleteById(id);
             LOG.info("Client unregistered with id {}", id);
+            return true;
         }
         return false;
     }

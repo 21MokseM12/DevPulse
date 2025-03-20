@@ -22,8 +22,7 @@ public class LinkMapper {
         LinkEntity linkEntity = new LinkEntity();
         linkEntity.link(addLinkRequest.link().toString());
         linkEntity.tags(addLinkRequest.tags().stream().map(TagEntity::new).collect(Collectors.toSet()));
-        linkEntity.filters(
-                addLinkRequest.filters().stream().map(FilterEntity::new).collect(Collectors.toSet()));
+        linkEntity.filters(addLinkRequest.filters().stream().map(FilterEntity::new).collect(Collectors.toSet()));
         return linkEntity;
     }
 }

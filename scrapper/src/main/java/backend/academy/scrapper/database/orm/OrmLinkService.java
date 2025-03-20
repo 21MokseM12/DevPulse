@@ -50,10 +50,7 @@ public class OrmLinkService implements LinkService {
         }
         LinkEntity linkResponse = ormLinkRepository
                 .findByLink(link.link().toString())
-                .orElseGet(() -> {
-                    LinkEntity linkEntity = LinkMapper.map(link);
-                    return ormLinkRepository.save(linkEntity);
-                });
+                .orElseGet(() -> ormLinkRepository.save(LinkMapper.map(link)));
         chat.get().links().add(linkResponse);
         return Optional.of(LinkMapper.map(linkResponse));
     }
