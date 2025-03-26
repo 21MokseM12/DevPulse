@@ -149,6 +149,7 @@ public class JdbcLinkService implements LinkService {
             uris = linkRepository.findAllLinksByUpdatedAt(
                     OffsetDateTime.now(clock).minus(duration), pageNum, config.pageSize());
             resultStream = Stream.concat(resultStream, uris.stream());
+            pageNum++;
         } while (!uris.isEmpty());
         return resultStream;
     }
