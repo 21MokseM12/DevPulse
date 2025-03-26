@@ -38,10 +38,10 @@ public class StackOverflowAnswerUpdateProcessor implements StackOverflowQuestion
         List<LinkUpdateDTO> resultUpdatesList = new ArrayList<>();
         List<ProcessedIdDTO> nowProcessedIds = new ArrayList<>();
 
-        List<Long> alreadyProcessedAnswersIds = linkService.getProcessedAnswersIds(link);
         ResponseEntity<StackOverflowResponse<StackOverflowAnswerItem>> answersResponse =
                 stackOverflowClient.getAnswersByQuestionId(questionId, "stackoverflow", "withbody");
         if (answersResponse.getStatusCode() == HttpStatus.OK) {
+            List<Long> alreadyProcessedAnswersIds = linkService.getProcessedAnswersIds(link);
             var answers = Objects.requireNonNull(answersResponse.getBody());
             answers.items().stream()
                     .filter(answer -> !alreadyProcessedAnswersIds.contains(answer.id()))
