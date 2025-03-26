@@ -13,6 +13,7 @@ app:
     bot-url: http://localhost:8080
   database:
     access-type: SQL
+    page-size: 100
 
 spring:
   datasource:
