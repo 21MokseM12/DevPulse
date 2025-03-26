@@ -84,4 +84,23 @@ public class JdbcLinkToChatRepositoryTest extends TestContainersConfiguration {
         assertNotNull(allIdByChatId);
         assertTrue(allIdByChatId.isEmpty());
     }
+
+    @Test
+    public void findAllByLinkId_whenLinkIsSubscribedByChats_thenReturnChatIds() {
+        List<Long> expected = List.of(6L, 5L);
+
+        List<Long> subscribedChats = repository.findAllByLinkId(2L);
+
+        assertNotNull(subscribedChats);
+        assertFalse(subscribedChats.isEmpty());
+        assertEquals(expected, subscribedChats);
+    }
+
+    @Test
+    public void findAllByLinkId_whenLinkIsNotSubscribedByChats_thenReturnEmptyList() {
+        List<Long> subscribedChats = repository.findAllByLinkId(4L);
+
+        assertNotNull(subscribedChats);
+        assertTrue(subscribedChats.isEmpty());
+    }
 }

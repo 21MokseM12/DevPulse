@@ -1,10 +1,9 @@
 package backend.academy.scrapper.database.jdbc;
 
-import backend.academy.scrapper.database.jdbc.mapper.LinkResponseMapper;
+import backend.academy.scrapper.database.jdbc.model.Link;
 import backend.academy.scrapper.database.jdbc.repository.JdbcChatRepository;
 import backend.academy.scrapper.database.jdbc.repository.JdbcLinkRepository;
 import backend.academy.scrapper.database.jdbc.repository.JdbcLinkToChatRepository;
-import backend.academy.scrapper.database.model.Link;
 import java.net.URI;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -85,7 +84,7 @@ public class JdbcLinkServiceTest {
             Set.of("filter")
         );
         Link link = new Link(1L, URI.create("link"), Set.of("tag"), Set.of("filter"), OffsetDateTime.now());
-        LinkResponse expected = LinkResponseMapper.map(link);
+        LinkResponse expected = new LinkResponse(link.id(), link.url(), link.tags(), link.filters());
 
         when(chatRepository.isClient(id)).thenReturn(true);
         when(linkRepository.findByLink(addLinkRequest.link().toString())).thenReturn(Optional.empty());
@@ -110,7 +109,7 @@ public class JdbcLinkServiceTest {
             Set.of("filter")
         );
         Link link = new Link(1L, URI.create("link"), Set.of("tag"), Set.of("filter"), OffsetDateTime.now());
-        LinkResponse expected = LinkResponseMapper.map(link);
+        LinkResponse expected = new LinkResponse(link.id(), link.url(), link.tags(), link.filters());
 
         when(chatRepository.isClient(id)).thenReturn(true);
         when(linkRepository.findByLink(addLinkRequest.link().toString())).thenReturn(Optional.of(linkId));
