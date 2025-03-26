@@ -2,7 +2,6 @@ package backend.academy.scrapper.database.jdbc;
 
 import backend.academy.scrapper.config.DatabaseConfig;
 import backend.academy.scrapper.database.LinkService;
-import backend.academy.scrapper.database.jdbc.mapper.LinkResponseMapper;
 import backend.academy.scrapper.database.jdbc.model.Link;
 import backend.academy.scrapper.database.jdbc.model.ProcessedId;
 import backend.academy.scrapper.database.jdbc.repository.JdbcChatRepository;
@@ -47,7 +46,8 @@ public class JdbcLinkService implements LinkService {
 
     @Autowired
     public JdbcLinkService(
-        Clock clock, DatabaseConfig config, JdbcChatRepository chatRepository,
+        Clock clock, DatabaseConfig config,
+        JdbcChatRepository chatRepository,
         JdbcLinkRepository linkRepository,
         JdbcLinkToChatRepository linkToChatRepository,
         JdbcProcessedIdRepository processedIdRepository) {
@@ -68,7 +68,10 @@ public class JdbcLinkService implements LinkService {
         List<Long> linkIds = linkToChatRepository.findAllIdByChatId(chatId);
         List<Link> links = linkRepository.findAllLinks(linkIds);
 
-        return links.stream().map(LinkResponseMapper::map).toList();
+        return links
+            .stream()
+            .map(link -> new LinkResponse(link.id(), link.url(), link.tags(), link.filters()))
+            .toList();
     }
 
     @Override
@@ -86,12 +89,12 @@ public class JdbcLinkService implements LinkService {
         } else {
             link = linkRepository.findById(linkId.get()).get();
             if (linkToChatRepository.chatIsSubscribedOnLink(chatId, linkId.get())) {
-                return Optional.of(LinkResponseMapper.map(link));
+                return Optional.of(new LinkResponse(link.id(), link.url(), link.tags(), link.filters()));
             }
             linkToChatRepository.subscribeChatOnLink(chatId, linkId.get());
         }
         log.info("Subscribed to link {}", link.url().toString());
-        return Optional.of(LinkResponseMapper.map(link));
+        return Optional.of(new LinkResponse(link.id(), link.url(), link.tags(), link.filters()));
     }
 
     @Override
@@ -107,7 +110,7 @@ public class JdbcLinkService implements LinkService {
         Link deletedLink = linkRepository.delete(uri.link().toString())
             .orElseThrow(() -> new LinkNotFoundException("Link " + uri.link() + " was not found"));
         linkToChatRepository.unsubscribe(chatId, deletedLink.id());
-        return Optional.of(LinkResponseMapper.map(deletedLink));
+        return Optional.of(new LinkResponse(deletedLink.id(), deletedLink.url(), deletedLink.tags(), deletedLink.filters()));
     }
 
     @Override
