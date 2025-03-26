@@ -16,7 +16,7 @@ public enum ProcessedIdType {
     }
 
     public static ProcessedIdType fromString(String type) {
-        for (ProcessedIdType t : ProcessedIdType.values()) {
+        for (ProcessedIdType t : values()) {
             if (t.type.equals(type)) {
                 return t;
             }

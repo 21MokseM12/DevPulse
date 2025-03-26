@@ -1,5 +1,12 @@
 package backend.academy.scrapper.service.updaters.impl;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import backend.academy.scrapper.client.GithubClient;
 import backend.academy.scrapper.model.LinkUpdateDTO;
 import backend.academy.scrapper.model.github.GithubActor;
@@ -13,12 +20,6 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class GithubUpdaterServiceTest {
 
@@ -42,12 +43,13 @@ public class GithubUpdaterServiceTest {
     @Test
     public void getUpdates_whenStatusCodeNotSuccessful_shouldReturnEmptyList() {
         URI link = URI.create("https://api.github.com");
-        GithubResponse response = new GithubResponse(1L, "type", new GithubActor("login"), OffsetDateTime.now(), new GithubPayload("action", null, null));
+        GithubResponse response = new GithubResponse(
+                1L, "type", new GithubActor("login"), OffsetDateTime.now(), new GithubPayload("action", null, null));
 
         when(githubLinkParser.parseUsername(link.toString())).thenReturn("username");
         when(githubLinkParser.parseRepo(link.toString())).thenReturn("repo");
         when(githubClient.getEvents("username", "repo"))
-            .thenReturn(ResponseEntity.badRequest().body(List.of(response)));
+                .thenReturn(ResponseEntity.badRequest().body(List.of(response)));
 
         List<LinkUpdateDTO> updates = githubUpdaterService.getUpdates(link);
         assertNotNull(updates);
@@ -57,14 +59,15 @@ public class GithubUpdaterServiceTest {
     @Test
     public void getUpdates_whenStatusCodeSuccessful_shouldReturnUpdates() {
         URI link = URI.create("https://api.github.com");
-        GithubResponse response = new GithubResponse(1L, "type", new GithubActor("login"), OffsetDateTime.now(), new GithubPayload("action", null, null));
+        GithubResponse response = new GithubResponse(
+                1L, "type", new GithubActor("login"), OffsetDateTime.now(), new GithubPayload("action", null, null));
 
         LinkUpdateDTO updateDTO = new LinkUpdateDTO(1L, "title", "owner", OffsetDateTime.now(), "description");
         when(processor.processUpdates(link, List.of(response))).thenReturn(List.of(updateDTO));
         when(githubLinkParser.parseUsername(link.toString())).thenReturn("username");
         when(githubLinkParser.parseRepo(link.toString())).thenReturn("repo");
         when(githubClient.getEvents("username", "repo"))
-            .thenReturn(ResponseEntity.ok().body(List.of(response)));
+                .thenReturn(ResponseEntity.ok().body(List.of(response)));
 
         List<LinkUpdateDTO> updates = githubUpdaterService.getUpdates(link);
         assertNotNull(updates);

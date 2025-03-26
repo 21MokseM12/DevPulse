@@ -2,6 +2,7 @@ package backend.academy.scrapper.database.jdbc.repository;
 
 import backend.academy.scrapper.build.spring.annotations.SelfAutowired;
 import backend.academy.scrapper.database.jdbc.model.Link;
+import backend.academy.scrapper.exceptions.LinkNotFoundException;
 import java.net.URI;
 import java.time.Clock;
 import java.time.OffsetDateTime;
@@ -150,7 +151,7 @@ public class JdbcLinkRepository {
         if (optionalLinkId.isEmpty()) {
             return Optional.empty();
         }
-        Long linkId = optionalLinkId.get();
+        Long linkId = optionalLinkId.orElseThrow(() -> new LinkNotFoundException("Link" + link + " not found"));
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("link_id", linkId);
 

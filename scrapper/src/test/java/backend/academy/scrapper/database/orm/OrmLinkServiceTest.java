@@ -1,5 +1,14 @@
 package backend.academy.scrapper.database.orm;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import backend.academy.scrapper.config.DatabaseConfig;
 import backend.academy.scrapper.database.orm.entity.ChatEntity;
 import backend.academy.scrapper.database.orm.entity.FilterEntity;
@@ -36,14 +45,6 @@ import org.springframework.data.domain.Sort;
 import scrapper.bot.connectivity.model.request.AddLinkRequest;
 import scrapper.bot.connectivity.model.request.RemoveLinkRequest;
 import scrapper.bot.connectivity.model.response.LinkResponse;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class OrmLinkServiceTest {
@@ -296,25 +297,22 @@ public class OrmLinkServiceTest {
         URI link = URI.create("link");
         LinkEntity linkEntity = new LinkEntity();
         Set<ProcessedIdEntity> processedIds = Set.of(
-            new ProcessedIdEntity(1L, ProcessedIdType.GITHUB_PULL_REQUEST.type(), linkEntity),
-            new ProcessedIdEntity(2L, ProcessedIdType.STACKOVERFLOW_COMMENT.type(), linkEntity),
-            new ProcessedIdEntity(3L, ProcessedIdType.STACKOVERFLOW_ANSWER.type(), linkEntity),
-            new ProcessedIdEntity(4L, ProcessedIdType.GITHUB_ISSUE.type(), linkEntity)
-        );
+                new ProcessedIdEntity(1L, ProcessedIdType.GITHUB_PULL_REQUEST.type(), linkEntity),
+                new ProcessedIdEntity(2L, ProcessedIdType.STACKOVERFLOW_COMMENT.type(), linkEntity),
+                new ProcessedIdEntity(3L, ProcessedIdType.STACKOVERFLOW_ANSWER.type(), linkEntity),
+                new ProcessedIdEntity(4L, ProcessedIdType.GITHUB_ISSUE.type(), linkEntity));
         linkEntity.processedIds(processedIds);
         List<ProcessedIdDTO> expected = List.of(
-            new ProcessedIdDTO(1L, ProcessedIdType.GITHUB_PULL_REQUEST),
-            new ProcessedIdDTO(2L, ProcessedIdType.STACKOVERFLOW_COMMENT),
-            new ProcessedIdDTO(3L, ProcessedIdType.STACKOVERFLOW_ANSWER),
-            new ProcessedIdDTO(4L, ProcessedIdType.GITHUB_ISSUE)
-        );
+                new ProcessedIdDTO(1L, ProcessedIdType.GITHUB_PULL_REQUEST),
+                new ProcessedIdDTO(2L, ProcessedIdType.STACKOVERFLOW_COMMENT),
+                new ProcessedIdDTO(3L, ProcessedIdType.STACKOVERFLOW_ANSWER),
+                new ProcessedIdDTO(4L, ProcessedIdType.GITHUB_ISSUE));
 
         when(linkRepository.findByLink(link.toString())).thenReturn(Optional.of(linkEntity));
 
-        List<ProcessedIdDTO> allProcessedIds = linkService.findAllProcessedIds(link)
-            .stream()
-            .sorted(Comparator.comparing(ProcessedIdDTO::id))
-            .toList();
+        List<ProcessedIdDTO> allProcessedIds = linkService.findAllProcessedIds(link).stream()
+                .sorted(Comparator.comparing(ProcessedIdDTO::id))
+                .toList();
 
         assertNotNull(allProcessedIds);
         assertFalse(allProcessedIds.isEmpty());
@@ -358,17 +356,16 @@ public class OrmLinkServiceTest {
         when(clock.getZone()).thenReturn(ZoneOffset.UTC);
         when(config.pageSize()).thenReturn(1);
 
-        Pageable pageable = PageRequest.of(
-            0, 1, Sort.by("updatedAt").descending());
+        Pageable pageable = PageRequest.of(0, 1, Sort.by("updatedAt").descending());
         when(linkRepository.findLinkEntitiesByUpdatedAtBefore(fixed.minus(duration), pageable))
-            .thenReturn(Page.empty());
+                .thenReturn(Page.empty());
         when(config.pageSize()).thenReturn(1);
 
-        List<URI> allLinksByForceCheckDelay = linkService.findAllLinksByForceCheckDelay(duration).toList();
+        List<URI> allLinksByForceCheckDelay =
+                linkService.findAllLinksByForceCheckDelay(duration).toList();
         assertNotNull(allLinksByForceCheckDelay);
         assertTrue(allLinksByForceCheckDelay.isEmpty());
-        verify(linkRepository, times(1))
-            .findLinkEntitiesByUpdatedAtBefore(fixed.minus(duration), pageable);
+        verify(linkRepository, times(1)).findLinkEntitiesByUpdatedAtBefore(fixed.minus(duration), pageable);
     }
 
     @Test

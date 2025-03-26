@@ -1,5 +1,11 @@
 package backend.academy.scrapper.service.updaters.links.wrappers.impl;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
+
 import backend.academy.scrapper.database.LinkService;
 import backend.academy.scrapper.enums.ProcessedIdType;
 import backend.academy.scrapper.model.stackoverflow.ProcessedIdDTO;
@@ -10,11 +16,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class GithubLinkServiceTest {
@@ -30,11 +31,10 @@ public class GithubLinkServiceTest {
     @Test
     public void getProcessedPullRequestIds_whenAllIdsIsPullRequestType_shouldReturnAllIds() {
         List<ProcessedIdDTO> processedIds = List.of(
-            new ProcessedIdDTO(1L, ProcessedIdType.GITHUB_PULL_REQUEST),
-            new ProcessedIdDTO(2L, ProcessedIdType.GITHUB_PULL_REQUEST),
-            new ProcessedIdDTO(3L, ProcessedIdType.GITHUB_PULL_REQUEST),
-            new ProcessedIdDTO(4L, ProcessedIdType.GITHUB_PULL_REQUEST)
-        );
+                new ProcessedIdDTO(1L, ProcessedIdType.GITHUB_PULL_REQUEST),
+                new ProcessedIdDTO(2L, ProcessedIdType.GITHUB_PULL_REQUEST),
+                new ProcessedIdDTO(3L, ProcessedIdType.GITHUB_PULL_REQUEST),
+                new ProcessedIdDTO(4L, ProcessedIdType.GITHUB_PULL_REQUEST));
 
         when(linkService.findAllProcessedIds(link)).thenReturn(processedIds);
 
@@ -47,11 +47,10 @@ public class GithubLinkServiceTest {
     @Test
     public void getProcessedPullRequestIds_whenPartOfIdsIsPullRequestType_shouldReturnPullRequestTypeIdsPart() {
         List<ProcessedIdDTO> processedIds = List.of(
-            new ProcessedIdDTO(1L, ProcessedIdType.GITHUB_PULL_REQUEST),
-            new ProcessedIdDTO(2L, ProcessedIdType.GITHUB_ISSUE),
-            new ProcessedIdDTO(3L, ProcessedIdType.GITHUB_PULL_REQUEST),
-            new ProcessedIdDTO(4L, ProcessedIdType.STACKOVERFLOW_ANSWER)
-        );
+                new ProcessedIdDTO(1L, ProcessedIdType.GITHUB_PULL_REQUEST),
+                new ProcessedIdDTO(2L, ProcessedIdType.GITHUB_ISSUE),
+                new ProcessedIdDTO(3L, ProcessedIdType.GITHUB_PULL_REQUEST),
+                new ProcessedIdDTO(4L, ProcessedIdType.STACKOVERFLOW_ANSWER));
 
         when(linkService.findAllProcessedIds(link)).thenReturn(processedIds);
 
@@ -64,11 +63,10 @@ public class GithubLinkServiceTest {
     @Test
     public void getProcessedPullRequestIds_whenNotContainsPullRequestIds_shouldReturnEmptyList() {
         List<ProcessedIdDTO> processedIds = List.of(
-            new ProcessedIdDTO(1L, ProcessedIdType.STACKOVERFLOW_COMMENT),
-            new ProcessedIdDTO(2L, ProcessedIdType.STACKOVERFLOW_ANSWER),
-            new ProcessedIdDTO(3L, ProcessedIdType.GITHUB_ISSUE),
-            new ProcessedIdDTO(4L, ProcessedIdType.GITHUB_ISSUE)
-        );
+                new ProcessedIdDTO(1L, ProcessedIdType.STACKOVERFLOW_COMMENT),
+                new ProcessedIdDTO(2L, ProcessedIdType.STACKOVERFLOW_ANSWER),
+                new ProcessedIdDTO(3L, ProcessedIdType.GITHUB_ISSUE),
+                new ProcessedIdDTO(4L, ProcessedIdType.GITHUB_ISSUE));
 
         when(linkService.findAllProcessedIds(link)).thenReturn(processedIds);
 
@@ -80,11 +78,10 @@ public class GithubLinkServiceTest {
     @Test
     public void getProcessedIssueIds_whenAllIdsIsIssueType_shouldReturnAllIds() {
         List<ProcessedIdDTO> processedIds = List.of(
-            new ProcessedIdDTO(1L, ProcessedIdType.GITHUB_ISSUE),
-            new ProcessedIdDTO(2L, ProcessedIdType.GITHUB_ISSUE),
-            new ProcessedIdDTO(3L, ProcessedIdType.GITHUB_ISSUE),
-            new ProcessedIdDTO(4L, ProcessedIdType.GITHUB_ISSUE)
-        );
+                new ProcessedIdDTO(1L, ProcessedIdType.GITHUB_ISSUE),
+                new ProcessedIdDTO(2L, ProcessedIdType.GITHUB_ISSUE),
+                new ProcessedIdDTO(3L, ProcessedIdType.GITHUB_ISSUE),
+                new ProcessedIdDTO(4L, ProcessedIdType.GITHUB_ISSUE));
 
         when(linkService.findAllProcessedIds(link)).thenReturn(processedIds);
 
@@ -97,11 +94,10 @@ public class GithubLinkServiceTest {
     @Test
     public void getProcessedIssueIds_whenPartOfIdsIsIssueType_shouldReturnIssueTypeIdsPart() {
         List<ProcessedIdDTO> processedIds = List.of(
-            new ProcessedIdDTO(1L, ProcessedIdType.GITHUB_PULL_REQUEST),
-            new ProcessedIdDTO(2L, ProcessedIdType.GITHUB_ISSUE),
-            new ProcessedIdDTO(3L, ProcessedIdType.STACKOVERFLOW_COMMENT),
-            new ProcessedIdDTO(4L, ProcessedIdType.STACKOVERFLOW_ANSWER)
-        );
+                new ProcessedIdDTO(1L, ProcessedIdType.GITHUB_PULL_REQUEST),
+                new ProcessedIdDTO(2L, ProcessedIdType.GITHUB_ISSUE),
+                new ProcessedIdDTO(3L, ProcessedIdType.STACKOVERFLOW_COMMENT),
+                new ProcessedIdDTO(4L, ProcessedIdType.STACKOVERFLOW_ANSWER));
 
         when(linkService.findAllProcessedIds(link)).thenReturn(processedIds);
 
@@ -114,11 +110,10 @@ public class GithubLinkServiceTest {
     @Test
     public void getProcessedIssueIds_whenNotContainsIssueIds_shouldReturnEmptyList() {
         List<ProcessedIdDTO> processedIds = List.of(
-            new ProcessedIdDTO(1L, ProcessedIdType.STACKOVERFLOW_COMMENT),
-            new ProcessedIdDTO(2L, ProcessedIdType.STACKOVERFLOW_ANSWER),
-            new ProcessedIdDTO(3L, ProcessedIdType.GITHUB_PULL_REQUEST),
-            new ProcessedIdDTO(4L, ProcessedIdType.GITHUB_PULL_REQUEST)
-        );
+                new ProcessedIdDTO(1L, ProcessedIdType.STACKOVERFLOW_COMMENT),
+                new ProcessedIdDTO(2L, ProcessedIdType.STACKOVERFLOW_ANSWER),
+                new ProcessedIdDTO(3L, ProcessedIdType.GITHUB_PULL_REQUEST),
+                new ProcessedIdDTO(4L, ProcessedIdType.GITHUB_PULL_REQUEST));
 
         when(linkService.findAllProcessedIds(link)).thenReturn(processedIds);
 
