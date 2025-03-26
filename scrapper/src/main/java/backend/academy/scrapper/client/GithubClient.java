@@ -1,6 +1,6 @@
 package backend.academy.scrapper.client;
 
-import backend.academy.scrapper.model.GithubResponse;
+import backend.academy.scrapper.model.github.GithubResponse;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
