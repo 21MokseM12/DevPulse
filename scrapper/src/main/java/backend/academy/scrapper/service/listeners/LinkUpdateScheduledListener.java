@@ -29,11 +29,10 @@ public class LinkUpdateScheduledListener {
 
     @Autowired
     public LinkUpdateScheduledListener(
-        LinkService linkService,
-        ScrapperConfig scrapperConfig,
-        LinkUpdaterServiceFactory updaterFactory,
-        ScrapperHttpNotificationManager notificationManager
-    ) {
+            LinkService linkService,
+            ScrapperConfig scrapperConfig,
+            LinkUpdaterServiceFactory updaterFactory,
+            ScrapperHttpNotificationManager notificationManager) {
         this.linkService = linkService;
         this.scrapperConfig = scrapperConfig;
         this.updaterFactory = updaterFactory;
@@ -42,7 +41,8 @@ public class LinkUpdateScheduledListener {
 
     @Scheduled(fixedDelayString = "#{ @scheduler.interval() }")
     public void listenUpdates() {
-        Stream<URI> linkNeededCheck = linkService.findAllLinksByForceCheckDelay(scrapperConfig.scheduler().forceCheckDelay());
+        Stream<URI> linkNeededCheck = linkService.findAllLinksByForceCheckDelay(
+                scrapperConfig.scheduler().forceCheckDelay());
         List<NotifyUpdateEntity> notifyList = new ArrayList<>();
 
         linkNeededCheck.forEach(link -> {

@@ -28,37 +28,27 @@ public class StackOverflowAnswerUpdateProcessor implements StackOverflowQuestion
 
     @Autowired
     public StackOverflowAnswerUpdateProcessor(
-        StackOverflowLinkService linkService,
-        StackOverflowClient stackOverflowClient
-    ) {
+            StackOverflowLinkService linkService, StackOverflowClient stackOverflowClient) {
         this.linkService = linkService;
         this.stackOverflowClient = stackOverflowClient;
     }
 
     @Override
-    public List<LinkUpdateDTO> processUpdates(
-        URI link,
-        Long questionId,
-        StackOverflowQuestionItem question
-    ) {
+    public List<LinkUpdateDTO> processUpdates(URI link, Long questionId, StackOverflowQuestionItem question) {
         List<LinkUpdateDTO> resultUpdatesList = new ArrayList<>();
         List<ProcessedIdDTO> nowProcessedIds = new ArrayList<>();
 
         List<Long> alreadyProcessedAnswersIds = linkService.getProcessedAnswersIds(link);
         ResponseEntity<StackOverflowResponse<StackOverflowAnswerItem>> answersResponse =
-            stackOverflowClient.getAnswersByQuestionId(questionId, "stackoverflow", "withbody");
+                stackOverflowClient.getAnswersByQuestionId(questionId, "stackoverflow", "withbody");
         if (answersResponse.getStatusCode() == HttpStatus.OK) {
             var answers = Objects.requireNonNull(answersResponse.getBody());
-            answers.items()
-                .stream()
-                .filter(answer -> !alreadyProcessedAnswersIds.contains(answer.id()))
-                .forEach(answer -> {
-                    resultUpdatesList.add(StackOverflowResponseMapper.mapToAnswer(answer, question));
-                    nowProcessedIds.add(new ProcessedIdDTO(
-                        answer.id(),
-                        ProcessedIdType.STACKOVERFLOW_ANSWER
-                    ));
-                });
+            answers.items().stream()
+                    .filter(answer -> !alreadyProcessedAnswersIds.contains(answer.id()))
+                    .forEach(answer -> {
+                        resultUpdatesList.add(StackOverflowResponseMapper.mapToAnswer(answer, question));
+                        nowProcessedIds.add(new ProcessedIdDTO(answer.id(), ProcessedIdType.STACKOVERFLOW_ANSWER));
+                    });
             linkService.saveProcessedIds(link, nowProcessedIds);
         }
 

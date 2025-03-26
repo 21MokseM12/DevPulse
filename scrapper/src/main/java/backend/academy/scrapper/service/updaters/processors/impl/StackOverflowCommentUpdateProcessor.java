@@ -28,37 +28,27 @@ public class StackOverflowCommentUpdateProcessor implements StackOverflowQuestio
 
     @Autowired
     public StackOverflowCommentUpdateProcessor(
-        StackOverflowLinkService linkService,
-        StackOverflowClient stackOverflowClient
-    ) {
+            StackOverflowLinkService linkService, StackOverflowClient stackOverflowClient) {
         this.linkService = linkService;
         this.stackOverflowClient = stackOverflowClient;
     }
 
     @Override
-    public List<LinkUpdateDTO> processUpdates(
-        URI link,
-        Long questionId,
-        StackOverflowQuestionItem question
-    ) {
+    public List<LinkUpdateDTO> processUpdates(URI link, Long questionId, StackOverflowQuestionItem question) {
         List<LinkUpdateDTO> resultUpdatesList = new ArrayList<>();
         List<ProcessedIdDTO> nowProcessedIds = new ArrayList<>();
 
         List<Long> alreadyProcessedCommentsIds = linkService.getProcessedCommentsIds(link);
         ResponseEntity<StackOverflowResponse<StackOverflowCommentItem>> commentsResponse =
-            stackOverflowClient.getCommentsByQuestionId(questionId, "stackoverflow", "withbody");
+                stackOverflowClient.getCommentsByQuestionId(questionId, "stackoverflow", "withbody");
         if (commentsResponse.getStatusCode() == HttpStatus.OK) {
             var comments = Objects.requireNonNull(commentsResponse.getBody());
-            comments.items()
-                .stream()
-                .filter(comment -> !alreadyProcessedCommentsIds.contains(comment.id()))
-                .forEach(comment -> {
-                    resultUpdatesList.add(StackOverflowResponseMapper.mapToComment(comment, question));
-                    nowProcessedIds.add(new ProcessedIdDTO(
-                        comment.id(),
-                        ProcessedIdType.STACKOVERFLOW_COMMENT
-                    ));
-                });
+            comments.items().stream()
+                    .filter(comment -> !alreadyProcessedCommentsIds.contains(comment.id()))
+                    .forEach(comment -> {
+                        resultUpdatesList.add(StackOverflowResponseMapper.mapToComment(comment, question));
+                        nowProcessedIds.add(new ProcessedIdDTO(comment.id(), ProcessedIdType.STACKOVERFLOW_COMMENT));
+                    });
             linkService.saveProcessedIds(link, nowProcessedIds);
         }
 

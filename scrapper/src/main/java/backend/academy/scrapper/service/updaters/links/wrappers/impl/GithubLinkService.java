@@ -4,10 +4,10 @@ import backend.academy.scrapper.database.LinkService;
 import backend.academy.scrapper.enums.ProcessedIdType;
 import backend.academy.scrapper.model.stackoverflow.ProcessedIdDTO;
 import backend.academy.scrapper.service.updaters.links.wrappers.ApiLinkService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import java.net.URI;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 @Service
 public class GithubLinkService implements ApiLinkService {
@@ -21,16 +21,16 @@ public class GithubLinkService implements ApiLinkService {
 
     public List<Long> getProcessedPullRequestIds(URI link) {
         return linkService.findAllProcessedIds(link).stream()
-            .filter(id -> id.type() == ProcessedIdType.GITHUB_PULL_REQUEST)
-            .map(ProcessedIdDTO::id)
-            .toList();
+                .filter(id -> id.type() == ProcessedIdType.GITHUB_PULL_REQUEST)
+                .map(ProcessedIdDTO::id)
+                .toList();
     }
 
     public List<Long> getProcessedIssueIds(URI link) {
         return linkService.findAllProcessedIds(link).stream()
-            .filter(id -> id.type() == ProcessedIdType.GITHUB_ISSUE)
-            .map(ProcessedIdDTO::id)
-            .toList();
+                .filter(id -> id.type() == ProcessedIdType.GITHUB_ISSUE)
+                .map(ProcessedIdDTO::id)
+                .toList();
     }
 
     @Override

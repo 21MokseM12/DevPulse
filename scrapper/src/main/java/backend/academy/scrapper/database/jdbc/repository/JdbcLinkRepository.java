@@ -107,11 +107,11 @@ public class JdbcLinkRepository {
             Link link = linkMap.get(id);
             if (link == null) {
                 link = new Link(
-                    id,
-                    URI.create(rs.getString("link")),
-                    new HashSet<>(),
-                    new HashSet<>(),
-                    rs.getObject("updated_at", OffsetDateTime.class));
+                        id,
+                        URI.create(rs.getString("link")),
+                        new HashSet<>(),
+                        new HashSet<>(),
+                        rs.getObject("updated_at", OffsetDateTime.class));
                 linkMap.put(linkId, link);
             }
             String tag = rs.getString("tag");
@@ -198,11 +198,11 @@ public class JdbcLinkRepository {
             Link link = linkMap.get(id);
             if (link == null) {
                 link = new Link(
-                    id,
-                    URI.create(rs.getString("link")),
-                    new HashSet<>(),
-                    new HashSet<>(),
-                    rs.getObject("updated_at", OffsetDateTime.class));
+                        id,
+                        URI.create(rs.getString("link")),
+                        new HashSet<>(),
+                        new HashSet<>(),
+                        rs.getObject("updated_at", OffsetDateTime.class));
                 linkMap.put(id, link);
             }
             String tag = rs.getString("tag");
@@ -223,21 +223,20 @@ public class JdbcLinkRepository {
     }
 
     @Transactional(readOnly = true)
-    public Set<URI> findAllLinksByUpdatedAt(
-        OffsetDateTime highestTimeLimit,
-        int offsetMultiplier,
-        Integer limit
-    ) {
+    public Set<URI> findAllLinksByUpdatedAt(OffsetDateTime highestTimeLimit, int offsetMultiplier, Integer limit) {
         int offset = offsetMultiplier * limit;
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("highestTimeLimit", highestTimeLimit.toLocalDateTime());
         params.addValue("offset", offset);
         params.addValue("limit", limit);
 
-        return jdbcTemplate.queryForList(
-            "select link from links where updated_at <= :highestTimeLimit limit :limit offset :offset",
-            params,
-            String.class
-        ).stream().map(URI::create).collect(Collectors.toSet());
+        return jdbcTemplate
+                .queryForList(
+                        "select link from links where updated_at <= :highestTimeLimit limit :limit offset :offset",
+                        params,
+                        String.class)
+                .stream()
+                .map(URI::create)
+                .collect(Collectors.toSet());
     }
 }

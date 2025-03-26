@@ -28,10 +28,9 @@ public class StackOverflowUpdaterService implements LinkUpdater {
 
     @Autowired
     public StackOverflowUpdaterService(
-        StackOverflowClient stackOverflowClient,
-        StackOverflowLinkParser stackOverflowLinkParser,
-        List<StackOverflowQuestionUpdateProcessor> questionUpdateProcessors
-    ) {
+            StackOverflowClient stackOverflowClient,
+            StackOverflowLinkParser stackOverflowLinkParser,
+            List<StackOverflowQuestionUpdateProcessor> questionUpdateProcessors) {
         this.stackOverflowClient = stackOverflowClient;
         this.stackOverflowLinkParser = stackOverflowLinkParser;
         this.questionUpdateProcessors = questionUpdateProcessors;
@@ -42,19 +41,19 @@ public class StackOverflowUpdaterService implements LinkUpdater {
         List<LinkUpdateDTO> resultUpdatesList = new ArrayList<>();
 
         Long questionId = stackOverflowLinkParser.parseQuestionId(link.toString());
-        ResponseEntity<StackOverflowResponse<StackOverflowQuestionItem>> questionsResponse
-            = stackOverflowClient.getQuestionById(questionId, "stackoverflow");
+        ResponseEntity<StackOverflowResponse<StackOverflowQuestionItem>> questionsResponse =
+                stackOverflowClient.getQuestionById(questionId, "stackoverflow");
 
         if (!(questionsResponse.getStatusCode() == HttpStatus.OK)
-            || Objects.requireNonNull(questionsResponse.getBody()).items().isEmpty()) {
+                || Objects.requireNonNull(questionsResponse.getBody()).items().isEmpty()) {
             return new ArrayList<>();
         }
-        var question = Objects.requireNonNull(questionsResponse.getBody()).items().getFirst();
+        var question =
+                Objects.requireNonNull(questionsResponse.getBody()).items().getFirst();
 
-        questionUpdateProcessors
-            .stream()
-            .map(processor -> processor.processUpdates(link, questionId, question))
-            .forEach(resultUpdatesList::addAll);
+        questionUpdateProcessors.stream()
+                .map(processor -> processor.processUpdates(link, questionId, question))
+                .forEach(resultUpdatesList::addAll);
 
         return resultUpdatesList;
     }

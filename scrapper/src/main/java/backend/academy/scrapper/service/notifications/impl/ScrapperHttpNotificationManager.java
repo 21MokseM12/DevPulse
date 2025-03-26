@@ -28,14 +28,13 @@ public class ScrapperHttpNotificationManager implements NotificationManager {
         for (NotifyUpdateEntity notification : notifications) {
             notification.updates().forEach(update -> {
                 ResponseEntity<?> response = botClient.sendUpdates(new LinkUpdate(
-                    update.id(),
-                    notification.link(),
-                    update.title(),
-                    update.updateOwner(),
-                    update.descriptionPreview(),
-                    update.creationDate(),
-                    notification.chatIds()
-                ));
+                        update.id(),
+                        notification.link(),
+                        update.title(),
+                        update.updateOwner(),
+                        update.descriptionPreview(),
+                        update.creationDate(),
+                        notification.chatIds()));
                 if (!response.getStatusCode().is2xxSuccessful()) {
                     ObjectMapper mapper = new ObjectMapper();
                     ApiErrorResponse errorResponse = mapper.convertValue(response.getBody(), ApiErrorResponse.class);

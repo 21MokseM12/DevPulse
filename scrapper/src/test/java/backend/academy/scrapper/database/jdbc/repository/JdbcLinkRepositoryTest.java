@@ -1,5 +1,10 @@
 package backend.academy.scrapper.database.jdbc.repository;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import backend.academy.scrapper.config.ApplicationConfig;
 import backend.academy.scrapper.database.TestContainersConfiguration;
 import backend.academy.scrapper.database.jdbc.model.Link;
@@ -22,10 +27,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import scrapper.bot.connectivity.model.request.AddLinkRequest;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @JdbcTest
 @Testcontainers
@@ -43,11 +44,8 @@ public class JdbcLinkRepositoryTest extends TestContainersConfiguration {
 
     @Test
     public void saveLinkSuccess() {
-        AddLinkRequest request = new AddLinkRequest(
-            URI.create("https://github.com"),
-            Set.of("tag1"),
-            Set.of("filter1")
-        );
+        AddLinkRequest request =
+                new AddLinkRequest(URI.create("https://github.com"), Set.of("tag1"), Set.of("filter1"));
         Link saved = repository.save(request);
         assertNotNull(saved);
         assertEquals(request.link(), saved.url());
@@ -98,12 +96,11 @@ public class JdbcLinkRepositoryTest extends TestContainersConfiguration {
     public void findById_whenIdExists_shouldReturnLink() {
         Long id = 1L;
         Link expected = new Link(
-            1L,
-            URI.create("https://github.com/21MokseM12/Log-analyzer-Tbank-project"),
-            Set.of("logger", "tinkoff"),
-            Set.of("pet-project", "project"),
-            OffsetDateTime.of(LocalDate.of(2025, 3, 19), LocalTime.of(10, 30, 0), ZoneOffset.UTC)
-        );
+                1L,
+                URI.create("https://github.com/21MokseM12/Log-analyzer-Tbank-project"),
+                Set.of("logger", "tinkoff"),
+                Set.of("pet-project", "project"),
+                OffsetDateTime.of(LocalDate.of(2025, 3, 19), LocalTime.of(10, 30, 0), ZoneOffset.UTC));
         Optional<Link> byId = repository.findById(id);
         assertTrue(byId.isPresent());
         assertNotNull(byId.get());
@@ -125,11 +122,7 @@ public class JdbcLinkRepositoryTest extends TestContainersConfiguration {
 
     @Test
     public void delete_whenLinkExists_shouldDeleteLink() {
-        AddLinkRequest request = new AddLinkRequest(
-            URI.create("https://example.com"),
-            Set.of(),
-            Set.of()
-        );
+        AddLinkRequest request = new AddLinkRequest(URI.create("https://example.com"), Set.of(), Set.of());
         repository.save(request);
         Optional<Link> deleted = repository.delete(request.link().toString());
         assertTrue(deleted.isPresent());
@@ -173,7 +166,8 @@ public class JdbcLinkRepositoryTest extends TestContainersConfiguration {
     public void findAllLinksByUpdateAt_whenAllLinksNeededUpdate_shouldReturnSetOfUris() {
         OffsetDateTime time = OffsetDateTime.of(LocalDate.of(2025, 3, 19), LocalTime.of(10, 35, 0), ZoneOffset.UTC);
 
-        Set<URI> allLinksByUpdatedAt = repository.findAllLinksByUpdatedAt(time.minus(Duration.of(1, ChronoUnit.MINUTES)), 0, 5);
+        Set<URI> allLinksByUpdatedAt =
+                repository.findAllLinksByUpdatedAt(time.minus(Duration.of(1, ChronoUnit.MINUTES)), 0, 5);
 
         assertNotNull(allLinksByUpdatedAt);
         assertFalse(allLinksByUpdatedAt.isEmpty());
@@ -184,7 +178,8 @@ public class JdbcLinkRepositoryTest extends TestContainersConfiguration {
     public void findAllLinksByUpdateAt_whenLinksNeededUpdateExists_shouldReturnSetOfUris() {
         OffsetDateTime time = OffsetDateTime.of(LocalDate.of(2025, 3, 19), LocalTime.of(10, 32, 0), ZoneOffset.UTC);
 
-        Set<URI> allLinksByUpdatedAt = repository.findAllLinksByUpdatedAt(time.minus(Duration.of(1, ChronoUnit.MINUTES)), 0, 5);
+        Set<URI> allLinksByUpdatedAt =
+                repository.findAllLinksByUpdatedAt(time.minus(Duration.of(1, ChronoUnit.MINUTES)), 0, 5);
 
         assertNotNull(allLinksByUpdatedAt);
         assertFalse(allLinksByUpdatedAt.isEmpty());
@@ -195,10 +190,10 @@ public class JdbcLinkRepositoryTest extends TestContainersConfiguration {
     public void findAllLinksByUpdateAt_whenLinkNeededUpdateDoesNotExist_shouldReturnEmptySet() {
         OffsetDateTime time = OffsetDateTime.of(LocalDate.of(2025, 3, 19), LocalTime.of(10, 30, 0), ZoneOffset.UTC);
 
-        Set<URI> allLinksByUpdatedAt = repository.findAllLinksByUpdatedAt(time.minus(Duration.of(1, ChronoUnit.MINUTES)), 0, 5);
+        Set<URI> allLinksByUpdatedAt =
+                repository.findAllLinksByUpdatedAt(time.minus(Duration.of(1, ChronoUnit.MINUTES)), 0, 5);
 
         assertNotNull(allLinksByUpdatedAt);
         assertTrue(allLinksByUpdatedAt.isEmpty());
     }
-
 }

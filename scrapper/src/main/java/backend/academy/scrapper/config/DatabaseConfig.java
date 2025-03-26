@@ -7,5 +7,4 @@ import org.springframework.validation.annotation.Validated;
 
 @Validated
 @ConfigurationProperties(prefix = "app.database")
-public record DatabaseConfig(@NotNull @Positive Integer pageSize) {
-}
+public record DatabaseConfig(@NotNull @Positive Integer pageSize) {}

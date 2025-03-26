@@ -46,11 +46,12 @@ public class JdbcLinkService implements LinkService {
 
     @Autowired
     public JdbcLinkService(
-        Clock clock, DatabaseConfig config,
-        JdbcChatRepository chatRepository,
-        JdbcLinkRepository linkRepository,
-        JdbcLinkToChatRepository linkToChatRepository,
-        JdbcProcessedIdRepository processedIdRepository) {
+            Clock clock,
+            DatabaseConfig config,
+            JdbcChatRepository chatRepository,
+            JdbcLinkRepository linkRepository,
+            JdbcLinkToChatRepository linkToChatRepository,
+            JdbcProcessedIdRepository processedIdRepository) {
         this.clock = clock;
         this.config = config;
         this.chatRepository = chatRepository;
@@ -68,15 +69,14 @@ public class JdbcLinkService implements LinkService {
         List<Long> linkIds = linkToChatRepository.findAllIdByChatId(chatId);
         List<Link> links = linkRepository.findAllLinks(linkIds);
 
-        return links
-            .stream()
-            .map(link -> new LinkResponse(link.id(), link.url(), link.tags(), link.filters()))
-            .toList();
+        return links.stream()
+                .map(link -> new LinkResponse(link.id(), link.url(), link.tags(), link.filters()))
+                .toList();
     }
 
     @Override
     @Transactional
-    //todo добавить chatId для вставки на реф в таблицы filters and tags
+    // todo добавить chatId для вставки на реф в таблицы filters and tags
     public Optional<LinkResponse> subscribe(Long chatId, AddLinkRequest linkRequest) {
         if (!chatRepository.isClient(chatId)) {
             return Optional.empty();
@@ -107,10 +107,12 @@ public class JdbcLinkService implements LinkService {
             return Optional.empty();
         }
         log.info("User {} unsubscribed link {}", chatId, uri.link());
-        Link deletedLink = linkRepository.delete(uri.link().toString())
-            .orElseThrow(() -> new LinkNotFoundException("Link " + uri.link() + " was not found"));
+        Link deletedLink = linkRepository
+                .delete(uri.link().toString())
+                .orElseThrow(() -> new LinkNotFoundException("Link " + uri.link() + " was not found"));
         linkToChatRepository.unsubscribe(chatId, deletedLink.id());
-        return Optional.of(new LinkResponse(deletedLink.id(), deletedLink.url(), deletedLink.tags(), deletedLink.filters()));
+        return Optional.of(
+                new LinkResponse(deletedLink.id(), deletedLink.url(), deletedLink.tags(), deletedLink.filters()));
     }
 
     @Override
@@ -122,10 +124,9 @@ public class JdbcLinkService implements LinkService {
         }
 
         Set<ProcessedId> processedIds = processedIdRepository.findAll(optionalLinkId.get());
-        return processedIds.stream().map(id -> new ProcessedIdDTO(
-            id.processedId(),
-            ProcessedIdType.fromString(id.type())
-        )).toList();
+        return processedIds.stream()
+                .map(id -> new ProcessedIdDTO(id.processedId(), ProcessedIdType.fromString(id.type())))
+                .toList();
     }
 
     @Override
@@ -146,10 +147,7 @@ public class JdbcLinkService implements LinkService {
 
         do {
             uris = linkRepository.findAllLinksByUpdatedAt(
-                OffsetDateTime.now(clock).minus(duration),
-                pageNum,
-                config.pageSize()
-            );
+                    OffsetDateTime.now(clock).minus(duration), pageNum, config.pageSize());
             resultStream = Stream.concat(resultStream, uris.stream());
         } while (!uris.isEmpty());
         return resultStream;

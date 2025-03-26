@@ -4,7 +4,8 @@ import lombok.Getter;
 
 @Getter
 public enum GithubActionType {
-    PULL_REQUEST_EVENT("PullRequestEvent"), ISSUE_EVENT("IssuesEvent");
+    PULL_REQUEST_EVENT("PullRequestEvent"),
+    ISSUE_EVENT("IssuesEvent");
 
     private final String type;
 
