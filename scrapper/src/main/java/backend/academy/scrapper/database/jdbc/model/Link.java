@@ -1,4 +1,4 @@
-package backend.academy.scrapper.database.model;
+package backend.academy.scrapper.database.jdbc.model;
 
 import java.net.URI;
 import java.time.OffsetDateTime;

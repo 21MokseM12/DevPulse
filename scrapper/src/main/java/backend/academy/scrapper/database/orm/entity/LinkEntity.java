@@ -44,5 +44,8 @@ public class LinkEntity {
     private Set<FilterEntity> filters;
 
     @ManyToMany(mappedBy = "links")
-    Set<ChatEntity> chats;
+    private Set<ChatEntity> chats;
+
+    @OneToMany(mappedBy = "link", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+    private Set<ProcessedIdEntity> processedIds;
 }
