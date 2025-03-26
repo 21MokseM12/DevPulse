@@ -1,5 +1,10 @@
 package backend.academy.scrapper.database.jdbc;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import backend.academy.scrapper.database.jdbc.model.Link;
 import backend.academy.scrapper.database.jdbc.repository.JdbcChatRepository;
 import backend.academy.scrapper.database.jdbc.repository.JdbcLinkRepository;
@@ -17,10 +22,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import scrapper.bot.connectivity.model.request.AddLinkRequest;
 import scrapper.bot.connectivity.model.request.RemoveLinkRequest;
 import scrapper.bot.connectivity.model.response.LinkResponse;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class JdbcLinkServiceTest {
@@ -41,9 +42,8 @@ public class JdbcLinkServiceTest {
     public void testGetAllLinksSuccess() {
         Long id = 1L;
         List<Link> links =
-            List.of(new Link(1L, URI.create("uri"), Set.of("tag"), Set.of("filter"), OffsetDateTime.now()));
-        List<LinkResponse> response =
-            List.of(new LinkResponse(1L, URI.create("uri"), Set.of("tag"), Set.of("filter")));
+                List.of(new Link(1L, URI.create("uri"), Set.of("tag"), Set.of("filter"), OffsetDateTime.now()));
+        List<LinkResponse> response = List.of(new LinkResponse(1L, URI.create("uri"), Set.of("tag"), Set.of("filter")));
 
         when(chatRepository.isClient(id)).thenReturn(true);
         when(linkToChatRepository.findAllIdByChatId(id)).thenReturn(List.of(id));
@@ -78,11 +78,7 @@ public class JdbcLinkServiceTest {
     public void whenLinkIsNotRegistered_thenSaveLinkAndSubscribeAccount() {
         Long id = 123L;
         Long linkId = -1L;
-        AddLinkRequest addLinkRequest = new AddLinkRequest(
-            URI.create("link"),
-            Set.of("tag"),
-            Set.of("filter")
-        );
+        AddLinkRequest addLinkRequest = new AddLinkRequest(URI.create("link"), Set.of("tag"), Set.of("filter"));
         Link link = new Link(1L, URI.create("link"), Set.of("tag"), Set.of("filter"), OffsetDateTime.now());
         LinkResponse expected = new LinkResponse(link.id(), link.url(), link.tags(), link.filters());
 
@@ -103,11 +99,7 @@ public class JdbcLinkServiceTest {
     public void whenLinkIsRegistered_thenOnlySubscribeAccount() {
         Long id = 123L;
         Long linkId = 1L;
-        AddLinkRequest addLinkRequest = new AddLinkRequest(
-            URI.create("link"),
-            Set.of("tag"),
-            Set.of("filter")
-        );
+        AddLinkRequest addLinkRequest = new AddLinkRequest(URI.create("link"), Set.of("tag"), Set.of("filter"));
         Link link = new Link(1L, URI.create("link"), Set.of("tag"), Set.of("filter"), OffsetDateTime.now());
         LinkResponse expected = new LinkResponse(link.id(), link.url(), link.tags(), link.filters());
 

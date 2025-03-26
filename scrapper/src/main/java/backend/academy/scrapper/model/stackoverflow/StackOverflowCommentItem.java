@@ -4,9 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.OffsetDateTime;
 
 public record StackOverflowCommentItem(
-    @JsonProperty("comment_id") Long id,
-    @JsonProperty("owner") StackOverflowOwner owner,
-    @JsonProperty("creation_date") OffsetDateTime creationDate,
-    @JsonProperty("body") String comment
-) {
-}
+        @JsonProperty("comment_id") Long id,
+        @JsonProperty("owner") StackOverflowOwner owner,
+        @JsonProperty("creation_date") OffsetDateTime creationDate,
+        @JsonProperty("body") String comment) {}

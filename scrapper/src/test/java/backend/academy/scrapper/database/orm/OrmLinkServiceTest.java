@@ -1,5 +1,14 @@
 package backend.academy.scrapper.database.orm;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import backend.academy.scrapper.database.orm.entity.ChatEntity;
 import backend.academy.scrapper.database.orm.entity.FilterEntity;
 import backend.academy.scrapper.database.orm.entity.LinkEntity;
@@ -25,14 +34,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import scrapper.bot.connectivity.model.request.AddLinkRequest;
 import scrapper.bot.connectivity.model.request.RemoveLinkRequest;
 import scrapper.bot.connectivity.model.response.LinkResponse;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class OrmLinkServiceTest {
@@ -58,22 +59,17 @@ public class OrmLinkServiceTest {
         LinkResponse expected = new LinkResponse(1L, URI.create("link"), Set.of("tag"), Set.of("filter"));
 
         when(ormChatRepository.existsById(id)).thenReturn(true);
-        when(ormChatRepository.findById(id)).thenReturn(Optional.of(
-            new ChatEntity(
-                1L,
-                Set.of(
-                    new LinkEntity(
+        when(ormChatRepository.findById(id))
+                .thenReturn(Optional.of(new ChatEntity(
                         1L,
-                        "link",
-                        OffsetDateTime.now(),
-                        Set.of(new TagEntity("tag")),
-                        Set.of(new FilterEntity("filter")),
-                        Set.of(new ChatEntity(1L)),
-                        Set.of(new ProcessedIdEntity())
-                    )
-                )
-            )
-        ));
+                        Set.of(new LinkEntity(
+                                1L,
+                                "link",
+                                OffsetDateTime.now(),
+                                Set.of(new TagEntity("tag")),
+                                Set.of(new FilterEntity("filter")),
+                                Set.of(new ChatEntity(1L)),
+                                Set.of(new ProcessedIdEntity()))))));
 
         List<LinkResponse> allByChatId = ormLinkService.findAllByChatId(id);
         assertNotNull(allByChatId);
@@ -97,29 +93,25 @@ public class OrmLinkServiceTest {
         AddLinkRequest request = new AddLinkRequest(URI.create("link"), Set.of("tag"), Set.of("filter"));
         LinkResponse expected = new LinkResponse(1L, URI.create("link"), Set.of("tag"), Set.of("filter"));
         Set<LinkEntity> set = new HashSet<>();
-        set.add(
-            new LinkEntity(
+        set.add(new LinkEntity(
                 1L,
                 "link",
                 OffsetDateTime.now(),
                 Set.of(new TagEntity("tag")),
                 Set.of(new FilterEntity("filter")),
                 Set.of(new ChatEntity(1L)),
-                Set.of(new ProcessedIdEntity())
-            )
-        );
+                Set.of(new ProcessedIdEntity())));
 
         when(ormChatRepository.findById(id)).thenReturn(Optional.of(new ChatEntity(1L, set)));
         when(ormLinkRepository.findByLink(request.link().toString()))
-            .thenReturn(Optional.of(new LinkEntity(
-                1L,
-                "link",
-                OffsetDateTime.now(),
-                Set.of(new TagEntity("tag")),
-                Set.of(new FilterEntity("filter")),
-                Set.of(new ChatEntity(1L)),
-                Set.of(new ProcessedIdEntity())
-            )));
+                .thenReturn(Optional.of(new LinkEntity(
+                        1L,
+                        "link",
+                        OffsetDateTime.now(),
+                        Set.of(new TagEntity("tag")),
+                        Set.of(new FilterEntity("filter")),
+                        Set.of(new ChatEntity(1L)),
+                        Set.of(new ProcessedIdEntity()))));
 
         Optional<LinkResponse> response = ormLinkService.subscribe(id, request);
         assertNotNull(response);
@@ -133,21 +125,17 @@ public class OrmLinkServiceTest {
         AddLinkRequest request = new AddLinkRequest(URI.create("link"), Set.of("tag"), Set.of("filter"));
         LinkResponse expected = new LinkResponse(1L, URI.create("link"), Set.of("tag"), Set.of("filter"));
         Set<LinkEntity> set = new HashSet<>();
-        set.add(
-            new LinkEntity(
+        set.add(new LinkEntity(
                 1L,
                 "link",
                 OffsetDateTime.now(),
                 Set.of(new TagEntity("tag")),
                 Set.of(new FilterEntity("filter")),
                 Set.of(new ChatEntity(1L)),
-                Set.of(new ProcessedIdEntity())
-            )
-        );
+                Set.of(new ProcessedIdEntity())));
 
         when(ormChatRepository.findById(id)).thenReturn(Optional.of(new ChatEntity(1L, set)));
-        when(ormLinkRepository.findByLink(request.link().toString()))
-            .thenReturn(Optional.empty());
+        when(ormLinkRepository.findByLink(request.link().toString())).thenReturn(Optional.empty());
         when(ormLinkRepository.save(any())).thenReturn(set.iterator().next());
         when(ormTagRepository.save(any())).thenReturn(new TagEntity(1L, "tag", new LinkEntity()));
         when(ormFilterRepository.save(any())).thenReturn(new FilterEntity(1L, "filter", new LinkEntity()));
@@ -190,22 +178,18 @@ public class OrmLinkServiceTest {
         Long id = 1L;
         RemoveLinkRequest request = new RemoveLinkRequest(URI.create("link"));
         Set<LinkEntity> set = new HashSet<>();
-        set.add(
-            new LinkEntity(
+        set.add(new LinkEntity(
                 1L,
                 "link",
                 OffsetDateTime.now(),
                 Set.of(new TagEntity("tag")),
                 Set.of(new FilterEntity("filter")),
                 Set.of(new ChatEntity(1L)),
-                Set.of(new ProcessedIdEntity())
-            )
-        );
+                Set.of(new ProcessedIdEntity())));
         ChatEntity chatEntity = new ChatEntity(1L, set);
 
         when(ormChatRepository.findById(id)).thenReturn(Optional.of(chatEntity));
-        when(ormLinkRepository.findByLink(request.link().toString()))
-            .thenReturn(Optional.empty());
+        when(ormLinkRepository.findByLink(request.link().toString())).thenReturn(Optional.empty());
 
         Optional<LinkResponse> unsubscribed = ormLinkService.unsubscribe(id, request);
         assertNotNull(unsubscribed);
@@ -217,31 +201,26 @@ public class OrmLinkServiceTest {
         Long id = 1L;
         RemoveLinkRequest request = new RemoveLinkRequest(URI.create("link"));
         Set<LinkEntity> set = new HashSet<>();
-        set.add(
-            new LinkEntity(
+        set.add(new LinkEntity(
                 1L,
                 "link",
                 OffsetDateTime.now(),
                 Set.of(new TagEntity("tag")),
                 Set.of(new FilterEntity("filter")),
                 Set.of(new ChatEntity(1L)),
-                Set.of(new ProcessedIdEntity())
-            )
-        );
+                Set.of(new ProcessedIdEntity())));
         ChatEntity chatEntity = new ChatEntity(1L, set);
         LinkEntity linkEntity = new LinkEntity(
-            2L,
-            "link",
-            OffsetDateTime.now(),
-            Set.of(new TagEntity("tag")),
-            Set.of(new FilterEntity("filter")),
-            Set.of(new ChatEntity(1L)),
-            Set.of(new ProcessedIdEntity())
-        );
+                2L,
+                "link",
+                OffsetDateTime.now(),
+                Set.of(new TagEntity("tag")),
+                Set.of(new FilterEntity("filter")),
+                Set.of(new ChatEntity(1L)),
+                Set.of(new ProcessedIdEntity()));
 
         when(ormChatRepository.findById(id)).thenReturn(Optional.of(chatEntity));
-        when(ormLinkRepository.findByLink(request.link().toString()))
-            .thenReturn(Optional.of(linkEntity));
+        when(ormLinkRepository.findByLink(request.link().toString())).thenReturn(Optional.of(linkEntity));
 
         Optional<LinkResponse> unsubscribed = ormLinkService.unsubscribe(id, request);
         assertNotNull(unsubscribed);
@@ -253,32 +232,27 @@ public class OrmLinkServiceTest {
         Long id = 1L;
         RemoveLinkRequest request = new RemoveLinkRequest(URI.create("link"));
         Set<LinkEntity> set = new HashSet<>();
-        set.add(
-            new LinkEntity(
+        set.add(new LinkEntity(
                 1L,
                 "link",
                 OffsetDateTime.of(LocalDateTime.MAX, ZoneOffset.UTC),
                 Set.of(new TagEntity("tag")),
                 Set.of(new FilterEntity("filter")),
                 Set.of(new ChatEntity(1L)),
-                Set.of(new ProcessedIdEntity())
-            )
-        );
+                Set.of(new ProcessedIdEntity())));
         ChatEntity chatEntity = new ChatEntity(1L, set);
         LinkEntity linkEntity = new LinkEntity(
-            1L,
-            "link",
-            OffsetDateTime.of(LocalDateTime.MAX, ZoneOffset.UTC),
-            Set.of(new TagEntity("tag")),
-            Set.of(new FilterEntity("filter")),
-            Set.of(new ChatEntity(1L)),
-            Set.of(new ProcessedIdEntity())
-        );
+                1L,
+                "link",
+                OffsetDateTime.of(LocalDateTime.MAX, ZoneOffset.UTC),
+                Set.of(new TagEntity("tag")),
+                Set.of(new FilterEntity("filter")),
+                Set.of(new ChatEntity(1L)),
+                Set.of(new ProcessedIdEntity()));
         LinkResponse expected = new LinkResponse(1L, URI.create("link"), Set.of("tag"), Set.of("filter"));
 
         when(ormChatRepository.findById(id)).thenReturn(Optional.of(chatEntity));
-        when(ormLinkRepository.findByLink(request.link().toString()))
-            .thenReturn(Optional.of(linkEntity));
+        when(ormLinkRepository.findByLink(request.link().toString())).thenReturn(Optional.of(linkEntity));
 
         Optional<LinkResponse> unsubscribed = ormLinkService.unsubscribe(id, request);
         assertNotNull(unsubscribed);

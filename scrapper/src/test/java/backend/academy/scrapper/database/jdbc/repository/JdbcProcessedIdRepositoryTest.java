@@ -1,5 +1,11 @@
 package backend.academy.scrapper.database.jdbc.repository;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import backend.academy.scrapper.database.TestContainersConfiguration;
 import backend.academy.scrapper.database.jdbc.model.ProcessedId;
 import backend.academy.scrapper.enums.ProcessedIdType;
@@ -14,11 +20,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @JdbcTest
 @Testcontainers
@@ -49,7 +50,9 @@ public class JdbcProcessedIdRepositoryTest extends TestContainersConfiguration {
 
     @Test
     public void saveAll_whenLinkNotContainsProcessedIds_shouldSaveAllViaLink() {
-        List<ProcessedIdDTO> nowProcessedIds = List.of(new ProcessedIdDTO(34L, ProcessedIdType.STACKOVERFLOW_ANSWER), new ProcessedIdDTO(37L, ProcessedIdType.STACKOVERFLOW_COMMENT));
+        List<ProcessedIdDTO> nowProcessedIds = List.of(
+                new ProcessedIdDTO(34L, ProcessedIdType.STACKOVERFLOW_ANSWER),
+                new ProcessedIdDTO(37L, ProcessedIdType.STACKOVERFLOW_COMMENT));
 
         repository.saveAll(4L, nowProcessedIds);
 
@@ -61,7 +64,9 @@ public class JdbcProcessedIdRepositoryTest extends TestContainersConfiguration {
 
     @Test
     public void saveAll_whenLinkContainsProcessedIds_shouldSaveAllViaLink() {
-        List<ProcessedIdDTO> nowProcessedIds = List.of(new ProcessedIdDTO(38L, ProcessedIdType.STACKOVERFLOW_ANSWER), new ProcessedIdDTO(37L, ProcessedIdType.STACKOVERFLOW_COMMENT));
+        List<ProcessedIdDTO> nowProcessedIds = List.of(
+                new ProcessedIdDTO(38L, ProcessedIdType.STACKOVERFLOW_ANSWER),
+                new ProcessedIdDTO(37L, ProcessedIdType.STACKOVERFLOW_COMMENT));
 
         repository.saveAll(2L, nowProcessedIds);
 
@@ -85,7 +90,9 @@ public class JdbcProcessedIdRepositoryTest extends TestContainersConfiguration {
 
     @Test
     public void saveAll_whenLinkIdDoesNotExist_shouldThrowException() {
-        List<ProcessedIdDTO> nowProcessedIds = List.of(new ProcessedIdDTO(34L, ProcessedIdType.STACKOVERFLOW_ANSWER), new ProcessedIdDTO(37L, ProcessedIdType.STACKOVERFLOW_COMMENT));
+        List<ProcessedIdDTO> nowProcessedIds = List.of(
+                new ProcessedIdDTO(34L, ProcessedIdType.STACKOVERFLOW_ANSWER),
+                new ProcessedIdDTO(37L, ProcessedIdType.STACKOVERFLOW_COMMENT));
 
         assertThrows(DataIntegrityViolationException.class, () -> repository.saveAll(100L, nowProcessedIds));
     }

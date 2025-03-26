@@ -8,10 +8,10 @@ import backend.academy.scrapper.model.github.mappers.GithubResponseMapper;
 import backend.academy.scrapper.model.stackoverflow.ProcessedIdDTO;
 import backend.academy.scrapper.service.updaters.links.wrappers.impl.GithubLinkService;
 import backend.academy.scrapper.service.updaters.processors.GithubRepoUpdateProcessor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import java.net.URI;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class GithubPullRequestUpdateProcessor implements GithubRepoUpdateProcessor {
@@ -27,18 +27,16 @@ public class GithubPullRequestUpdateProcessor implements GithubRepoUpdateProcess
     public List<LinkUpdateDTO> processUpdates(URI link, List<GithubResponse> updates) {
         List<Long> processedIds = githubLinkService.getProcessedPullRequestIds(link);
         List<LinkUpdateDTO> processedUpdates = updates.stream()
-            .filter(event -> event.type().equals(GithubActionType.PULL_REQUEST_EVENT.type()))
-            .filter(event -> event.payload().action().equals("opened"))
-            .filter(event -> !processedIds.contains(event.id()))
-            .map(GithubResponseMapper::mapToPullRequest)
-            .toList();
+                .filter(event -> event.type().equals(GithubActionType.PULL_REQUEST_EVENT.type()))
+                .filter(event -> event.payload().action().equals("opened"))
+                .filter(event -> !processedIds.contains(event.id()))
+                .map(GithubResponseMapper::mapToPullRequest)
+                .toList();
         githubLinkService.saveProcessedIds(
-            link,
-            processedUpdates
-                .stream()
-                .map(update -> new ProcessedIdDTO(update.id(), ProcessedIdType.GITHUB_PULL_REQUEST))
-                .toList()
-        );
+                link,
+                processedUpdates.stream()
+                        .map(update -> new ProcessedIdDTO(update.id(), ProcessedIdType.GITHUB_PULL_REQUEST))
+                        .toList());
         return processedUpdates;
     }
 }

@@ -24,7 +24,9 @@ public class JdbcLinkToChatRepository {
 
         RowCountCallbackHandler countCallbackHandler = new RowCountCallbackHandler();
         jdbcTemplate.query(
-                "insert into links_chats (chat_id, link_id) values (:chat_id, :link_id) returning 1", params, countCallbackHandler);
+                "insert into links_chats (chat_id, link_id) values (:chat_id, :link_id) returning 1",
+                params,
+                countCallbackHandler);
 
         return countCallbackHandler.getRowCount() == 1;
     }
@@ -63,7 +65,8 @@ public class JdbcLinkToChatRepository {
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("chat_id", chatId);
 
-        jdbcTemplate.query("delete from links_chats where chat_id = :chat_id returning 1", params, new RowCountCallbackHandler());
+        jdbcTemplate.query(
+                "delete from links_chats where chat_id = :chat_id returning 1", params, new RowCountCallbackHandler());
     }
 
     @Transactional(readOnly = true)
@@ -80,10 +83,6 @@ public class JdbcLinkToChatRepository {
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("linkId", linkId);
 
-        return jdbcTemplate.queryForList(
-            "select chat_id from links_chats where link_id = :linkId",
-            params,
-            Long.class
-        );
+        return jdbcTemplate.queryForList("select chat_id from links_chats where link_id = :linkId", params, Long.class);
     }
 }

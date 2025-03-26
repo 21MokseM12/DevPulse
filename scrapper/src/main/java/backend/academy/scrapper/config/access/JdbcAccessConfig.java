@@ -9,11 +9,11 @@ import backend.academy.scrapper.database.jdbc.repository.JdbcChatRepository;
 import backend.academy.scrapper.database.jdbc.repository.JdbcLinkRepository;
 import backend.academy.scrapper.database.jdbc.repository.JdbcLinkToChatRepository;
 import backend.academy.scrapper.database.jdbc.repository.JdbcProcessedIdRepository;
+import java.time.Clock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import java.time.Clock;
 
 @Configuration
 @ConditionalOnProperty(prefix = "app.database", name = "access-type", havingValue = "SQL")
@@ -31,19 +31,12 @@ public class JdbcAccessConfig {
 
     @Bean
     public LinkService linkService(
-        JdbcChatRepository chatRepository,
-        JdbcLinkRepository linkRepository,
-        JdbcLinkToChatRepository linkToChatRepository,
-        JdbcProcessedIdRepository processedIdRepository
-    ) {
+            JdbcChatRepository chatRepository,
+            JdbcLinkRepository linkRepository,
+            JdbcLinkToChatRepository linkToChatRepository,
+            JdbcProcessedIdRepository processedIdRepository) {
         return new JdbcLinkService(
-            clock,
-            config,
-            chatRepository,
-            linkRepository,
-            linkToChatRepository,
-            processedIdRepository
-        );
+                clock, config, chatRepository, linkRepository, linkToChatRepository, processedIdRepository);
     }
 
     @Bean

@@ -1,5 +1,9 @@
 package backend.academy.scrapper.factory;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import backend.academy.scrapper.service.updaters.LinkUpdater;
 import backend.academy.scrapper.service.updaters.impl.GithubUpdaterService;
 import backend.academy.scrapper.service.updaters.impl.StackOverflowUpdaterService;
@@ -10,9 +14,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import scrapper.bot.connectivity.enums.LinkUpdaterType;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class LinkUpdaterServiceFactoryTest {
@@ -40,7 +41,8 @@ public class LinkUpdaterServiceFactoryTest {
 
     @Test
     public void whenGivenStackOverflowLink_thenReturnStackOverflowUpdaterService() {
-        String link = "https://stackoverflow.com/questions/1757065/java-splitting-a-comma-separated-string-but-ignoring-commas-in-quotes";
+        String link =
+                "https://stackoverflow.com/questions/1757065/java-splitting-a-comma-separated-string-but-ignoring-commas-in-quotes";
         LinkUpdater linkUpdater = factory.get(URI.create(link));
         assertEquals(stackOverflow, linkUpdater);
     }

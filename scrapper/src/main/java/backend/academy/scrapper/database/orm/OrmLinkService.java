@@ -55,14 +55,13 @@ public class OrmLinkService implements LinkService {
 
     @Autowired
     public OrmLinkService(
-        Clock clock,
-        DatabaseConfig config,
-        OrmLinkRepository ormLinkRepository,
-        OrmChatRepository ormChatRepository,
-        OrmProcessedIdsRepository ormProcessedIdsRepository,
-        OrmTagRepository ormTagRepository,
-        OrmFilterRepository ormFilterRepository
-    ) {
+            Clock clock,
+            DatabaseConfig config,
+            OrmLinkRepository ormLinkRepository,
+            OrmChatRepository ormChatRepository,
+            OrmProcessedIdsRepository ormProcessedIdsRepository,
+            OrmTagRepository ormTagRepository,
+            OrmFilterRepository ormFilterRepository) {
         this.clock = clock;
         this.config = config;
         this.ormChatRepository = ormChatRepository;
@@ -79,7 +78,8 @@ public class OrmLinkService implements LinkService {
             return new ArrayList<>();
         }
 
-        return ormChatRepository.findById(chatId)
+        return ormChatRepository
+                .findById(chatId)
                 .map(entity -> entity.links().stream().toList())
                 .orElseGet(ArrayList::new)
                 .stream()
@@ -89,7 +89,7 @@ public class OrmLinkService implements LinkService {
 
     @Transactional
     @Override
-    //todo добавить chatId для вставки на реф в таблицы filters and tags
+    // todo добавить chatId для вставки на реф в таблицы filters and tags
     public Optional<LinkResponse> subscribe(Long chatId, AddLinkRequest link) {
         Optional<ChatEntity> chat = ormChatRepository.findById(chatId);
         if (chat.isEmpty()) {
@@ -100,21 +100,16 @@ public class OrmLinkService implements LinkService {
                 .orElseGet(() -> {
                     LinkEntity linkEntity = new LinkEntity();
                     Set<TagEntity> tagEntities = link.tags().stream()
-                        .map(tag -> new TagEntity(null, tag, linkEntity))
-                        .map(ormTagRepository::save)
-                        .collect(Collectors.toSet());
+                            .map(tag -> new TagEntity(null, tag, linkEntity))
+                            .map(ormTagRepository::save)
+                            .collect(Collectors.toSet());
                     Set<FilterEntity> filterEntities = link.filters().stream()
-                        .map(filter -> new FilterEntity(null, filter, linkEntity))
-                        .map(ormFilterRepository::save)
-                        .collect(Collectors.toSet());
+                            .map(filter -> new FilterEntity(null, filter, linkEntity))
+                            .map(ormFilterRepository::save)
+                            .collect(Collectors.toSet());
 
-                    return ormLinkRepository.save(LinkMapper.map(
-                        linkEntity,
-                        link,
-                        tagEntities,
-                        filterEntities,
-                        chat.get()
-                    ));
+                    return ormLinkRepository.save(
+                            LinkMapper.map(linkEntity, link, tagEntities, filterEntities, chat.get()));
                 });
         chat.get().links().add(linkResponse);
         ormChatRepository.save(chat.get());
@@ -144,15 +139,12 @@ public class OrmLinkService implements LinkService {
     @Override
     @Transactional(readOnly = true)
     public List<ProcessedIdDTO> findAllProcessedIds(URI link) {
-        return ormLinkRepository.findByLink(link.toString())
-            .map(linkEntity -> linkEntity.processedIds().stream()
-                .map(id -> new ProcessedIdDTO(
-                    id.processedId(),
-                    ProcessedIdType.fromString(id.type()))
-                )
-                .toList()
-            )
-            .orElseGet(ArrayList::new);
+        return ormLinkRepository
+                .findByLink(link.toString())
+                .map(linkEntity -> linkEntity.processedIds().stream()
+                        .map(id -> new ProcessedIdDTO(id.processedId(), ProcessedIdType.fromString(id.type())))
+                        .toList())
+                .orElseGet(ArrayList::new);
     }
 
     @Override
@@ -161,11 +153,8 @@ public class OrmLinkService implements LinkService {
         Optional<LinkEntity> optionalLink = ormLinkRepository.findByLink(link.toString());
         optionalLink.ifPresent(linkEntity -> {
             nowProcessedIds.forEach(id -> {
-                ProcessedIdEntity entity = ormProcessedIdsRepository.save(new ProcessedIdEntity(
-                    id.id(),
-                    id.type().type(),
-                    linkEntity
-                ));
+                ProcessedIdEntity entity = ormProcessedIdsRepository.save(
+                        new ProcessedIdEntity(id.id(), id.type().type(), linkEntity));
                 linkEntity.processedIds().add(entity);
             });
             ormLinkRepository.save(linkEntity);
@@ -180,11 +169,10 @@ public class OrmLinkService implements LinkService {
         Stream<LinkEntity> resultStream = Stream.empty();
 
         do {
-            Pageable pageable = PageRequest.of(pageNum, config.pageSize(), Sort.by("updatedAt").descending());
+            Pageable pageable = PageRequest.of(
+                    pageNum, config.pageSize(), Sort.by("updatedAt").descending());
             page = ormLinkRepository.findLinkEntitiesByUpdatedAtBefore(
-                OffsetDateTime.now(clock).minus(duration),
-                pageable
-            );
+                    OffsetDateTime.now(clock).minus(duration), pageable);
             resultStream = Stream.concat(resultStream, page.stream());
             pageNum++;
         } while (page.hasNext());
@@ -194,11 +182,12 @@ public class OrmLinkService implements LinkService {
     @Override
     @Transactional(readOnly = true)
     public List<Long> findSubscribedChats(URI link) {
-        return ormLinkRepository.findByLink(link.toString())
-            .map(entity -> entity.chats().stream().toList())
-            .orElseGet(ArrayList::new)
-            .stream()
-            .map(ChatEntity::id)
-            .toList();
+        return ormLinkRepository
+                .findByLink(link.toString())
+                .map(entity -> entity.chats().stream().toList())
+                .orElseGet(ArrayList::new)
+                .stream()
+                .map(ChatEntity::id)
+                .toList();
     }
 }

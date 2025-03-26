@@ -28,10 +28,7 @@ public class GithubUpdaterService implements LinkUpdater {
 
     @Autowired
     public GithubUpdaterService(
-        GithubLinkParser linkParser,
-        GithubClient githubClient,
-        List<GithubRepoUpdateProcessor> updateProcessors
-    ) {
+            GithubLinkParser linkParser, GithubClient githubClient, List<GithubRepoUpdateProcessor> updateProcessors) {
         this.linkParser = linkParser;
         this.githubClient = githubClient;
         this.updateProcessors = updateProcessors;
@@ -48,8 +45,8 @@ public class GithubUpdaterService implements LinkUpdater {
             List<GithubResponse> updates = events.getBody();
 
             updateProcessors.stream()
-                .map(processor -> processor.processUpdates(link, updates))
-                .forEach(resultList::addAll);
+                    .map(processor -> processor.processUpdates(link, updates))
+                    .forEach(resultList::addAll);
             return resultList;
         } else {
             return new ArrayList<>();

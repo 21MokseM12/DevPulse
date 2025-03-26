@@ -2,13 +2,13 @@ package backend.academy.scrapper.database.jdbc.repository;
 
 import backend.academy.scrapper.database.jdbc.model.ProcessedId;
 import backend.academy.scrapper.model.stackoverflow.ProcessedIdDTO;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 @Repository
 @RequiredArgsConstructor
@@ -22,16 +22,9 @@ public class JdbcProcessedIdRepository {
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("linkId", linkId);
 
-        jdbcTemplate.query(
-            "select processed_id, type from processed_ids where link_id = :linkId",
-            params,
-            rs -> {
-                resultList.add(new ProcessedId(
-                    rs.getLong("processed_id"),
-                    rs.getString("type")
-                ));
-            }
-        );
+        jdbcTemplate.query("select processed_id, type from processed_ids where link_id = :linkId", params, rs -> {
+            resultList.add(new ProcessedId(rs.getLong("processed_id"), rs.getString("type")));
+        });
         return resultList;
     }
 
@@ -45,8 +38,7 @@ public class JdbcProcessedIdRepository {
         }
 
         jdbcTemplate.batchUpdate(
-            "insert into processed_ids (link_id, processed_id, type) values (:linkId, :processedId, :type)",
-            params
-        );
+                "insert into processed_ids (link_id, processed_id, type) values (:linkId, :processedId, :type)",
+                params);
     }
 }

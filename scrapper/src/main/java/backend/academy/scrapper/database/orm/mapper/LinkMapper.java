@@ -22,12 +22,11 @@ public class LinkMapper {
     }
 
     public static LinkEntity map(
-        LinkEntity linkEntity,
-        AddLinkRequest link,
-        Set<TagEntity> tagEntities,
-        Set<FilterEntity> filterEntities,
-        ChatEntity chatEntity
-    ) {
+            LinkEntity linkEntity,
+            AddLinkRequest link,
+            Set<TagEntity> tagEntities,
+            Set<FilterEntity> filterEntities,
+            ChatEntity chatEntity) {
         linkEntity.link(link.link().toString());
         linkEntity.tags(tagEntities);
         linkEntity.filters(filterEntities);
