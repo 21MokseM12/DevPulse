@@ -1,7 +1,7 @@
 package backend.academy.scrapper.database.jdbc.repository;
 
 import backend.academy.scrapper.build.spring.annotations.SelfAutowired;
-import backend.academy.scrapper.database.model.Link;
+import backend.academy.scrapper.database.jdbc.model.Link;
 import java.net.URI;
 import java.time.Clock;
 import java.time.OffsetDateTime;
@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -219,5 +220,24 @@ public class JdbcLinkRepository {
             return new ArrayList<>();
         }
         return linkMap.values().stream().toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Set<URI> findAllLinksByUpdatedAt(
+        OffsetDateTime highestTimeLimit,
+        int offsetMultiplier,
+        Integer limit
+    ) {
+        int offset = offsetMultiplier * limit;
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("highestTimeLimit", highestTimeLimit.toLocalDateTime());
+        params.addValue("offset", offset);
+        params.addValue("limit", limit);
+
+        return jdbcTemplate.queryForList(
+            "select link from links where updated_at <= :highestTimeLimit limit :limit offset :offset",
+            params,
+            String.class
+        ).stream().map(URI::create).collect(Collectors.toSet());
     }
 }

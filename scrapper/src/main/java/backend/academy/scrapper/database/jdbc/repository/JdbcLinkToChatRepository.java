@@ -1,7 +1,7 @@
 package backend.academy.scrapper.database.jdbc.repository;
 
-import java.util.List;
 import jakarta.validation.constraints.NotNull;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.RowCountCallbackHandler;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -66,11 +66,24 @@ public class JdbcLinkToChatRepository {
         jdbcTemplate.query("delete from links_chats where chat_id = :chat_id returning 1", params, new RowCountCallbackHandler());
     }
 
+    @Transactional(readOnly = true)
     public List<Long> findAllIdByChatId(Long chatId) {
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("chat_id", chatId);
 
         return jdbcTemplate.queryForList(
                 "select link_id from links_chats where chat_id = :chat_id", params, Long.class);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Long> findAllByLinkId(Long linkId) {
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("linkId", linkId);
+
+        return jdbcTemplate.queryForList(
+            "select chat_id from links_chats where link_id = :linkId",
+            params,
+            Long.class
+        );
     }
 }
