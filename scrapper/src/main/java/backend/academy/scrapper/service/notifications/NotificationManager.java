@@ -1,9 +1,8 @@
 package backend.academy.scrapper.service.notifications;
 
-import java.net.URI;
+import backend.academy.scrapper.model.NotifyUpdateEntity;
 import java.util.List;
-import java.util.Map;
 
 public interface NotificationManager {
-    void notify(Map<URI, List<Long>> notificationsMap);
+    void notify(List<NotifyUpdateEntity> notifications);
 }
