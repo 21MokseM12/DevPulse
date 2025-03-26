@@ -3,17 +3,12 @@ package backend.academy.scrapper.database.orm;
 import backend.academy.scrapper.database.orm.entity.ChatEntity;
 import backend.academy.scrapper.database.orm.entity.FilterEntity;
 import backend.academy.scrapper.database.orm.entity.LinkEntity;
+import backend.academy.scrapper.database.orm.entity.ProcessedIdEntity;
 import backend.academy.scrapper.database.orm.entity.TagEntity;
 import backend.academy.scrapper.database.orm.repository.OrmChatRepository;
+import backend.academy.scrapper.database.orm.repository.OrmFilterRepository;
 import backend.academy.scrapper.database.orm.repository.OrmLinkRepository;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import scrapper.bot.connectivity.model.request.AddLinkRequest;
-import scrapper.bot.connectivity.model.request.RemoveLinkRequest;
-import scrapper.bot.connectivity.model.response.LinkResponse;
+import backend.academy.scrapper.database.orm.repository.OrmTagRepository;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -22,6 +17,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import scrapper.bot.connectivity.model.request.AddLinkRequest;
+import scrapper.bot.connectivity.model.request.RemoveLinkRequest;
+import scrapper.bot.connectivity.model.response.LinkResponse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -40,6 +43,12 @@ public class OrmLinkServiceTest {
     @Mock
     private OrmChatRepository ormChatRepository;
 
+    @Mock
+    private OrmTagRepository ormTagRepository;
+
+    @Mock
+    private OrmFilterRepository ormFilterRepository;
+
     @InjectMocks
     private OrmLinkService ormLinkService;
 
@@ -49,14 +58,20 @@ public class OrmLinkServiceTest {
         LinkResponse expected = new LinkResponse(1L, URI.create("link"), Set.of("tag"), Set.of("filter"));
 
         when(ormChatRepository.existsById(id)).thenReturn(true);
-        when(ormChatRepository.findAllById(id)).thenReturn(List.of(
-            new LinkEntity(
+        when(ormChatRepository.findById(id)).thenReturn(Optional.of(
+            new ChatEntity(
                 1L,
-                "link",
-                OffsetDateTime.now(),
-                Set.of(new TagEntity("tag")),
-                Set.of(new FilterEntity("filter")),
-                Set.of(new ChatEntity(1L))
+                Set.of(
+                    new LinkEntity(
+                        1L,
+                        "link",
+                        OffsetDateTime.now(),
+                        Set.of(new TagEntity("tag")),
+                        Set.of(new FilterEntity("filter")),
+                        Set.of(new ChatEntity(1L)),
+                        Set.of(new ProcessedIdEntity())
+                    )
+                )
             )
         ));
 
@@ -89,7 +104,8 @@ public class OrmLinkServiceTest {
                 OffsetDateTime.now(),
                 Set.of(new TagEntity("tag")),
                 Set.of(new FilterEntity("filter")),
-                Set.of(new ChatEntity(1L))
+                Set.of(new ChatEntity(1L)),
+                Set.of(new ProcessedIdEntity())
             )
         );
 
@@ -101,7 +117,8 @@ public class OrmLinkServiceTest {
                 OffsetDateTime.now(),
                 Set.of(new TagEntity("tag")),
                 Set.of(new FilterEntity("filter")),
-                Set.of(new ChatEntity(1L))
+                Set.of(new ChatEntity(1L)),
+                Set.of(new ProcessedIdEntity())
             )));
 
         Optional<LinkResponse> response = ormLinkService.subscribe(id, request);
@@ -123,7 +140,8 @@ public class OrmLinkServiceTest {
                 OffsetDateTime.now(),
                 Set.of(new TagEntity("tag")),
                 Set.of(new FilterEntity("filter")),
-                Set.of(new ChatEntity(1L))
+                Set.of(new ChatEntity(1L)),
+                Set.of(new ProcessedIdEntity())
             )
         );
 
@@ -131,12 +149,16 @@ public class OrmLinkServiceTest {
         when(ormLinkRepository.findByLink(request.link().toString()))
             .thenReturn(Optional.empty());
         when(ormLinkRepository.save(any())).thenReturn(set.iterator().next());
+        when(ormTagRepository.save(any())).thenReturn(new TagEntity(1L, "tag", new LinkEntity()));
+        when(ormFilterRepository.save(any())).thenReturn(new FilterEntity(1L, "filter", new LinkEntity()));
 
         Optional<LinkResponse> response = ormLinkService.subscribe(id, request);
         assertNotNull(response);
         assertTrue(response.isPresent());
         assertEquals(expected, response.get());
         verify(ormLinkRepository, times(1)).save(any());
+        verify(ormTagRepository, times(1)).save(any());
+        verify(ormFilterRepository, times(1)).save(any());
     }
 
     @Test
@@ -175,7 +197,8 @@ public class OrmLinkServiceTest {
                 OffsetDateTime.now(),
                 Set.of(new TagEntity("tag")),
                 Set.of(new FilterEntity("filter")),
-                Set.of(new ChatEntity(1L))
+                Set.of(new ChatEntity(1L)),
+                Set.of(new ProcessedIdEntity())
             )
         );
         ChatEntity chatEntity = new ChatEntity(1L, set);
@@ -201,7 +224,8 @@ public class OrmLinkServiceTest {
                 OffsetDateTime.now(),
                 Set.of(new TagEntity("tag")),
                 Set.of(new FilterEntity("filter")),
-                Set.of(new ChatEntity(1L))
+                Set.of(new ChatEntity(1L)),
+                Set.of(new ProcessedIdEntity())
             )
         );
         ChatEntity chatEntity = new ChatEntity(1L, set);
@@ -211,7 +235,8 @@ public class OrmLinkServiceTest {
             OffsetDateTime.now(),
             Set.of(new TagEntity("tag")),
             Set.of(new FilterEntity("filter")),
-            Set.of(new ChatEntity(1L))
+            Set.of(new ChatEntity(1L)),
+            Set.of(new ProcessedIdEntity())
         );
 
         when(ormChatRepository.findById(id)).thenReturn(Optional.of(chatEntity));
@@ -235,7 +260,8 @@ public class OrmLinkServiceTest {
                 OffsetDateTime.of(LocalDateTime.MAX, ZoneOffset.UTC),
                 Set.of(new TagEntity("tag")),
                 Set.of(new FilterEntity("filter")),
-                Set.of(new ChatEntity(1L))
+                Set.of(new ChatEntity(1L)),
+                Set.of(new ProcessedIdEntity())
             )
         );
         ChatEntity chatEntity = new ChatEntity(1L, set);
@@ -245,7 +271,8 @@ public class OrmLinkServiceTest {
             OffsetDateTime.of(LocalDateTime.MAX, ZoneOffset.UTC),
             Set.of(new TagEntity("tag")),
             Set.of(new FilterEntity("filter")),
-            Set.of(new ChatEntity(1L))
+            Set.of(new ChatEntity(1L)),
+            Set.of(new ProcessedIdEntity())
         );
         LinkResponse expected = new LinkResponse(1L, URI.create("link"), Set.of("tag"), Set.of("filter"));
 

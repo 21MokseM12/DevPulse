@@ -2,12 +2,14 @@ package backend.academy.scrapper.database.jdbc.repository;
 
 import backend.academy.scrapper.config.ApplicationConfig;
 import backend.academy.scrapper.database.TestContainersConfiguration;
-import backend.academy.scrapper.database.model.Link;
+import backend.academy.scrapper.database.jdbc.model.Link;
 import java.net.URI;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -165,6 +167,38 @@ public class JdbcLinkRepositoryTest extends TestContainersConfiguration {
         List<Link> allLinks = repository.findAllLinks(new ArrayList<>());
         assertNotNull(allLinks);
         assertTrue(allLinks.isEmpty());
+    }
+
+    @Test
+    public void findAllLinksByUpdateAt_whenAllLinksNeededUpdate_shouldReturnSetOfUris() {
+        OffsetDateTime time = OffsetDateTime.of(LocalDate.of(2025, 3, 19), LocalTime.of(10, 35, 0), ZoneOffset.UTC);
+
+        Set<URI> allLinksByUpdatedAt = repository.findAllLinksByUpdatedAt(time.minus(Duration.of(1, ChronoUnit.MINUTES)), 0, 5);
+
+        assertNotNull(allLinksByUpdatedAt);
+        assertFalse(allLinksByUpdatedAt.isEmpty());
+        assertEquals(3, allLinksByUpdatedAt.size());
+    }
+
+    @Test
+    public void findAllLinksByUpdateAt_whenLinksNeededUpdateExists_shouldReturnSetOfUris() {
+        OffsetDateTime time = OffsetDateTime.of(LocalDate.of(2025, 3, 19), LocalTime.of(10, 32, 0), ZoneOffset.UTC);
+
+        Set<URI> allLinksByUpdatedAt = repository.findAllLinksByUpdatedAt(time.minus(Duration.of(1, ChronoUnit.MINUTES)), 0, 5);
+
+        assertNotNull(allLinksByUpdatedAt);
+        assertFalse(allLinksByUpdatedAt.isEmpty());
+        assertEquals(2, allLinksByUpdatedAt.size());
+    }
+
+    @Test
+    public void findAllLinksByUpdateAt_whenLinkNeededUpdateDoesNotExist_shouldReturnEmptySet() {
+        OffsetDateTime time = OffsetDateTime.of(LocalDate.of(2025, 3, 19), LocalTime.of(10, 30, 0), ZoneOffset.UTC);
+
+        Set<URI> allLinksByUpdatedAt = repository.findAllLinksByUpdatedAt(time.minus(Duration.of(1, ChronoUnit.MINUTES)), 0, 5);
+
+        assertNotNull(allLinksByUpdatedAt);
+        assertTrue(allLinksByUpdatedAt.isEmpty());
     }
 
 }
