@@ -1,5 +1,12 @@
 package backend.academy.scrapper.service.updaters.impl;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import backend.academy.scrapper.client.StackOverflowClient;
 import backend.academy.scrapper.model.LinkUpdateDTO;
 import backend.academy.scrapper.model.stackoverflow.StackOverflowQuestionItem;
@@ -12,12 +19,6 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class StackOverflowUpdaterServiceTest {
 
@@ -44,7 +45,7 @@ public class StackOverflowUpdaterServiceTest {
     @Test
     public void getUpdates_whenStatusCodeNotSuccessful_shouldReturnEmptyList() {
         when(stackOverflowClient.getQuestionById(1L, "stackoverflow"))
-            .thenReturn(ResponseEntity.badRequest().body(new StackOverflowResponse<>(List.of())));
+                .thenReturn(ResponseEntity.badRequest().body(new StackOverflowResponse<>(List.of())));
 
         List<LinkUpdateDTO> updates = updaterService.getUpdates(link);
         assertNotNull(updates);
@@ -57,9 +58,8 @@ public class StackOverflowUpdaterServiceTest {
         LinkUpdateDTO expected = new LinkUpdateDTO(1L, "title", "owner", OffsetDateTime.now(), "desc");
 
         when(stackOverflowClient.getQuestionById(1L, "stackoverflow"))
-            .thenReturn(ResponseEntity.ok().body(new StackOverflowResponse<>(List.of(questionItem))));
-        when(processor.processUpdates(link, 1L, questionItem))
-            .thenReturn(List.of(expected));
+                .thenReturn(ResponseEntity.ok().body(new StackOverflowResponse<>(List.of(questionItem))));
+        when(processor.processUpdates(link, 1L, questionItem)).thenReturn(List.of(expected));
 
         List<LinkUpdateDTO> updates = updaterService.getUpdates(link);
         assertNotNull(updates);

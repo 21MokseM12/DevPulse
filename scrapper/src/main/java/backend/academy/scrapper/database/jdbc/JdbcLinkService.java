@@ -81,17 +81,22 @@ public class JdbcLinkService implements LinkService {
         if (!chatRepository.isClient(chatId)) {
             return Optional.empty();
         }
-        Optional<Long> linkId = linkRepository.findByLink(linkRequest.link().toString());
+        Optional<Long> optionalLinkId =
+                linkRepository.findByLink(linkRequest.link().toString());
         Link link;
-        if (linkId.isEmpty()) {
+        if (optionalLinkId.isEmpty()) {
             link = linkRepository.save(linkRequest);
             linkToChatRepository.subscribeChatOnLink(chatId, link.id());
         } else {
-            link = linkRepository.findById(linkId.get()).get();
-            if (linkToChatRepository.chatIsSubscribedOnLink(chatId, linkId.get())) {
+            Long linkId = optionalLinkId.orElseThrow(
+                    () -> new LinkNotFoundException("Link " + linkRequest.link() + " was not found"));
+            link = linkRepository
+                    .findById(linkId)
+                    .orElseThrow(() -> new LinkNotFoundException("Link with id" + linkId + " was not found"));
+            if (linkToChatRepository.chatIsSubscribedOnLink(chatId, linkId)) {
                 return Optional.of(new LinkResponse(link.id(), link.url(), link.tags(), link.filters()));
             }
-            linkToChatRepository.subscribeChatOnLink(chatId, linkId.get());
+            linkToChatRepository.subscribeChatOnLink(chatId, linkId);
         }
         log.info("Subscribed to link {}", link.url().toString());
         return Optional.of(new LinkResponse(link.id(), link.url(), link.tags(), link.filters()));
@@ -123,7 +128,8 @@ public class JdbcLinkService implements LinkService {
             return new ArrayList<>();
         }
 
-        Set<ProcessedId> processedIds = processedIdRepository.findAll(optionalLinkId.get());
+        Long linkId = optionalLinkId.orElseThrow(() -> new LinkNotFoundException("Link " + link + " was not found"));
+        Set<ProcessedId> processedIds = processedIdRepository.findAll(linkId);
         return processedIds.stream()
                 .map(id -> new ProcessedIdDTO(id.processedId(), ProcessedIdType.fromString(id.type())))
                 .toList();
@@ -134,7 +140,8 @@ public class JdbcLinkService implements LinkService {
     public void saveProcessedIds(URI link, List<ProcessedIdDTO> nowProcessedIds) {
         Optional<Long> optionalLinkId = linkRepository.findByLink(link.toString());
         if (optionalLinkId.isPresent()) {
-            Long linkId = optionalLinkId.get();
+            Long linkId =
+                    optionalLinkId.orElseThrow(() -> new LinkNotFoundException("Link " + link + " was not found"));
             processedIdRepository.saveAll(linkId, nowProcessedIds);
         }
     }
@@ -160,7 +167,7 @@ public class JdbcLinkService implements LinkService {
         if (optional.isEmpty()) {
             return new ArrayList<>();
         }
-        Long linkId = optional.get();
+        Long linkId = optional.orElseThrow();
         return linkToChatRepository.findAllByLinkId(linkId);
     }
 }

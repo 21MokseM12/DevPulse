@@ -1,5 +1,16 @@
 package backend.academy.scrapper.database.jdbc;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import backend.academy.scrapper.config.DatabaseConfig;
 import backend.academy.scrapper.database.jdbc.model.Link;
 import backend.academy.scrapper.database.jdbc.model.ProcessedId;
@@ -27,16 +38,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import scrapper.bot.connectivity.model.request.AddLinkRequest;
 import scrapper.bot.connectivity.model.request.RemoveLinkRequest;
 import scrapper.bot.connectivity.model.response.LinkResponse;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class JdbcLinkServiceTest {
@@ -173,25 +174,22 @@ public class JdbcLinkServiceTest {
     public void findAllProcessedIds_whenLinkExists_shouldReturnProcessedIdsByLink() {
         URI link = URI.create("link");
         Set<ProcessedId> processedIds = Set.of(
-            new ProcessedId(1L, ProcessedIdType.GITHUB_PULL_REQUEST.type()),
-            new ProcessedId(2L, ProcessedIdType.STACKOVERFLOW_COMMENT.type()),
-            new ProcessedId(3L, ProcessedIdType.STACKOVERFLOW_ANSWER.type()),
-            new ProcessedId(4L, ProcessedIdType.GITHUB_ISSUE.type())
-        );
+                new ProcessedId(1L, ProcessedIdType.GITHUB_PULL_REQUEST.type()),
+                new ProcessedId(2L, ProcessedIdType.STACKOVERFLOW_COMMENT.type()),
+                new ProcessedId(3L, ProcessedIdType.STACKOVERFLOW_ANSWER.type()),
+                new ProcessedId(4L, ProcessedIdType.GITHUB_ISSUE.type()));
         List<ProcessedIdDTO> expected = List.of(
-            new ProcessedIdDTO(1L, ProcessedIdType.GITHUB_PULL_REQUEST),
-            new ProcessedIdDTO(2L, ProcessedIdType.STACKOVERFLOW_COMMENT),
-            new ProcessedIdDTO(3L, ProcessedIdType.STACKOVERFLOW_ANSWER),
-            new ProcessedIdDTO(4L, ProcessedIdType.GITHUB_ISSUE)
-        );
+                new ProcessedIdDTO(1L, ProcessedIdType.GITHUB_PULL_REQUEST),
+                new ProcessedIdDTO(2L, ProcessedIdType.STACKOVERFLOW_COMMENT),
+                new ProcessedIdDTO(3L, ProcessedIdType.STACKOVERFLOW_ANSWER),
+                new ProcessedIdDTO(4L, ProcessedIdType.GITHUB_ISSUE));
 
         when(linkRepository.findByLink(link.toString())).thenReturn(Optional.of(1L));
         when(processedIdRepository.findAll(1L)).thenReturn(processedIds);
 
-        List<ProcessedIdDTO> allProcessedIds = linkService.findAllProcessedIds(link)
-            .stream()
-            .sorted(Comparator.comparing(ProcessedIdDTO::id))
-            .toList();
+        List<ProcessedIdDTO> allProcessedIds = linkService.findAllProcessedIds(link).stream()
+                .sorted(Comparator.comparing(ProcessedIdDTO::id))
+                .toList();
 
         assertNotNull(allProcessedIds);
         assertFalse(allProcessedIds.isEmpty());
@@ -230,14 +228,14 @@ public class JdbcLinkServiceTest {
         when(config.pageSize()).thenReturn(1);
 
         when(linkRepository.findAllLinksByUpdatedAt(fixed.minus(duration), 0, 1))
-            .thenReturn(new HashSet<>());
+                .thenReturn(new HashSet<>());
         when(config.pageSize()).thenReturn(1);
 
-        List<URI> allLinksByForceCheckDelay = linkService.findAllLinksByForceCheckDelay(duration).toList();
+        List<URI> allLinksByForceCheckDelay =
+                linkService.findAllLinksByForceCheckDelay(duration).toList();
         assertNotNull(allLinksByForceCheckDelay);
         assertTrue(allLinksByForceCheckDelay.isEmpty());
-        verify(linkRepository, times(1))
-            .findAllLinksByUpdatedAt(fixed.minus(duration), 0, 1);
+        verify(linkRepository, times(1)).findAllLinksByUpdatedAt(fixed.minus(duration), 0, 1);
     }
 
     @Test
@@ -250,16 +248,16 @@ public class JdbcLinkServiceTest {
         when(config.pageSize()).thenReturn(1);
 
         when(linkRepository.findAllLinksByUpdatedAt(fixed.minus(duration), 0, 1))
-            .thenReturn(Set.of(URI.create("link")));
+                .thenReturn(Set.of(URI.create("link")));
         when(linkRepository.findAllLinksByUpdatedAt(fixed.minus(duration), 1, 1))
-            .thenReturn(Set.of());
+                .thenReturn(Set.of());
         when(config.pageSize()).thenReturn(1);
 
-        List<URI> allLinksByForceCheckDelay = linkService.findAllLinksByForceCheckDelay(duration).toList();
+        List<URI> allLinksByForceCheckDelay =
+                linkService.findAllLinksByForceCheckDelay(duration).toList();
         assertNotNull(allLinksByForceCheckDelay);
         assertFalse(allLinksByForceCheckDelay.isEmpty());
-        verify(linkRepository)
-            .findAllLinksByUpdatedAt(fixed.minus(duration), 0, 1);
+        verify(linkRepository).findAllLinksByUpdatedAt(fixed.minus(duration), 0, 1);
     }
 
     @Test

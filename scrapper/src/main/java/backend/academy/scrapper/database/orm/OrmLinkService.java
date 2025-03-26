@@ -14,6 +14,8 @@ import backend.academy.scrapper.database.orm.repository.OrmLinkRepository;
 import backend.academy.scrapper.database.orm.repository.OrmProcessedIdsRepository;
 import backend.academy.scrapper.database.orm.repository.OrmTagRepository;
 import backend.academy.scrapper.enums.ProcessedIdType;
+import backend.academy.scrapper.exceptions.ChatNotFoundException;
+import backend.academy.scrapper.exceptions.LinkNotFoundException;
 import backend.academy.scrapper.model.stackoverflow.ProcessedIdDTO;
 import java.net.URI;
 import java.time.Clock;
@@ -95,6 +97,7 @@ public class OrmLinkService implements LinkService {
         if (chat.isEmpty()) {
             return Optional.empty();
         }
+        ChatEntity chatEntity = chat.orElseThrow(() -> new ChatNotFoundException("Chat " + chatId + " not found"));
         LinkEntity linkResponse = ormLinkRepository
                 .findByLink(link.link().toString())
                 .orElseGet(() -> {
@@ -109,10 +112,10 @@ public class OrmLinkService implements LinkService {
                             .collect(Collectors.toSet());
 
                     return ormLinkRepository.save(
-                            LinkMapper.map(linkEntity, link, tagEntities, filterEntities, chat.get()));
+                            LinkMapper.map(linkEntity, link, tagEntities, filterEntities, chatEntity));
                 });
-        chat.get().links().add(linkResponse);
-        ormChatRepository.save(chat.get());
+        chatEntity.links().add(linkResponse);
+        ormChatRepository.save(chatEntity);
         return Optional.of(LinkMapper.map(linkResponse));
     }
 
@@ -123,17 +126,20 @@ public class OrmLinkService implements LinkService {
         if (chat.isEmpty()) {
             return Optional.empty();
         }
-        Optional<LinkEntity> linkEntity =
+        Optional<LinkEntity> optionalLink =
                 ormLinkRepository.findByLink(removeLinkRequest.link().toString());
-        if (linkEntity.isEmpty()) {
+        if (optionalLink.isEmpty()) {
             return Optional.empty();
         }
-        if (!chat.get().links().contains(linkEntity.get())) {
+        ChatEntity chatEntity = chat.orElseThrow(() -> new ChatNotFoundException("Chat " + chatId + " not found"));
+        LinkEntity linkEntity = optionalLink.orElseThrow(
+                () -> new LinkNotFoundException("Link " + removeLinkRequest.link() + " not found"));
+        if (!chatEntity.links().contains(linkEntity)) {
             return Optional.empty();
         }
-        chat.get().links().remove(linkEntity.get());
-        ormChatRepository.save(chat.get());
-        return Optional.of(LinkMapper.map(linkEntity.get()));
+        chatEntity.links().remove(linkEntity);
+        ormChatRepository.save(chatEntity);
+        return Optional.of(LinkMapper.map(linkEntity));
     }
 
     @Override
