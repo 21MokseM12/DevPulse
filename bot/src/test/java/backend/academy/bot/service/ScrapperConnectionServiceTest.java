@@ -15,6 +15,7 @@ import backend.academy.bot.enums.Messages;
 import backend.academy.bot.exceptions.ChatNotFoundException;
 import java.net.URI;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -108,7 +109,7 @@ public class ScrapperConnectionServiceTest {
     @Test
     void getAllLinks_Success() throws BadRequestException {
         ListLinkResponse listLinkResponse = new ListLinkResponse(
-                List.of(new LinkResponse(1L, URI.create("https://example.com"), List.of(), List.of())), 1);
+                List.of(new LinkResponse(1L, URI.create("https://example.com"), Set.of(), Set.of())), 1);
         doReturn(ResponseEntity.ok().body(listLinkResponse)).when(linkClient).getAllLinks(chatId);
 
         List<LinkResponse> result = scrapperConnectionService.getAllLinks(chatId);
@@ -190,13 +191,13 @@ public class ScrapperConnectionServiceTest {
 
     @Test
     void unsubscribeLink_Success() {
-        LinkResponse linkResponse = new LinkResponse(1L, URI.create("https://example.com"), List.of(), List.of());
+        LinkResponse linkResponse = new LinkResponse(1L, URI.create("https://example.com"), Set.of(), Set.of());
         List<LinkResponse> subscribedLinks = List.of(linkResponse);
         RemoveLinkRequest removeLinkRequest = new RemoveLinkRequest(URI.create("https://example.com"));
 
         doReturn(ResponseEntity.ok(linkResponse)).when(linkClient).unsubscribeLink(chatId, removeLinkRequest);
 
-        boolean result = scrapperConnectionService.unsubscribeLink(chatId, subscribedLinks, 1);
+        boolean result = scrapperConnectionService.unsubscribeLink(chatId, subscribedLinks, 1L);
 
         assertTrue(result);
         verify(linkClient, times(1)).unsubscribeLink(chatId, removeLinkRequest);
@@ -204,7 +205,7 @@ public class ScrapperConnectionServiceTest {
 
     @Test
     void unsubscribeLink_BadRequestException() {
-        LinkResponse linkResponse = new LinkResponse(1L, URI.create("https://example.com"), List.of(), List.of());
+        LinkResponse linkResponse = new LinkResponse(1L, URI.create("https://example.com"), Set.of(), Set.of());
         List<LinkResponse> subscribedLinks = List.of(linkResponse);
         ApiErrorResponse errorResponse =
                 new ApiErrorResponse("Invalid request", "400", "BadRequestException", "Bad request", List.of());
@@ -214,7 +215,7 @@ public class ScrapperConnectionServiceTest {
                 .when(linkClient)
                 .unsubscribeLink(chatId, removeLinkRequest);
 
-        boolean result = scrapperConnectionService.unsubscribeLink(chatId, subscribedLinks, 1);
+        boolean result = scrapperConnectionService.unsubscribeLink(chatId, subscribedLinks, 1L);
 
         assertFalse(result);
         verify(linkClient, times(1)).unsubscribeLink(chatId, removeLinkRequest);
@@ -222,7 +223,7 @@ public class ScrapperConnectionServiceTest {
 
     @Test
     void unsubscribeLink_LinkNotFound() {
-        LinkResponse linkResponse = new LinkResponse(1L, URI.create("https://example.com"), List.of(), List.of());
+        LinkResponse linkResponse = new LinkResponse(1L, URI.create("https://example.com"), Set.of(), Set.of());
         List<LinkResponse> subscribedLinks = List.of(linkResponse);
         ApiErrorResponse errorResponse =
                 new ApiErrorResponse("Link not found", "404", "NotFoundException", "Not found", List.of());
@@ -232,7 +233,7 @@ public class ScrapperConnectionServiceTest {
                 .when(linkClient)
                 .unsubscribeLink(chatId, removeLinkRequest);
 
-        boolean result = scrapperConnectionService.unsubscribeLink(chatId, subscribedLinks, 1);
+        boolean result = scrapperConnectionService.unsubscribeLink(chatId, subscribedLinks, 1L);
 
         assertFalse(result);
         verify(linkClient, times(1)).unsubscribeLink(chatId, removeLinkRequest);
