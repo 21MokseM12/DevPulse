@@ -20,6 +20,7 @@ import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.request.SendMessage;
 import java.net.URI;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -60,9 +61,9 @@ class UntrackCommandManagerTest {
 
         when(scrapperConnectionService.getAllLinks(1L))
                 .thenReturn(List.of(
-                        new LinkResponse(1L, URI.create("https://example.com"), List.of("tag1"), List.of("filter1")),
-                        new LinkResponse(2L, URI.create("https://example.ru"), List.of("tag2"), List.of("filter2")),
-                        new LinkResponse(3L, URI.create("https://example.en"), List.of("tag3"), List.of("filter3"))));
+                        new LinkResponse(1L, URI.create("https://example.com"), Set.of("tag1"), Set.of("filter1")),
+                        new LinkResponse(2L, URI.create("https://example.ru"), Set.of("tag2"), Set.of("filter2")),
+                        new LinkResponse(3L, URI.create("https://example.en"), Set.of("tag3"), Set.of("filter3"))));
 
         SendMessage response = untrackCommandManager.createReply(update);
 
@@ -78,8 +79,8 @@ class UntrackCommandManagerTest {
 
         when(scrapperConnectionService.getAllLinks(2L))
                 .thenReturn(List.of(
-                        new LinkResponse(1L, URI.create("https://example.com"), List.of("tag1"), List.of("filter1")),
-                        new LinkResponse(2L, URI.create("https://example.ru"), List.of("tag2"), List.of("filter2"))));
+                        new LinkResponse(1L, URI.create("https://example.com"), Set.of("tag1"), Set.of("filter1")),
+                        new LinkResponse(2L, URI.create("https://example.ru"), Set.of("tag2"), Set.of("filter2"))));
 
         SendMessage response = untrackCommandManager.createReply(update);
 
@@ -110,8 +111,8 @@ class UntrackCommandManagerTest {
         when(update.callbackQuery().data()).thenReturn("4_1");
         when(scrapperConnectionService.getAllLinks(4L))
                 .thenReturn(List.of(
-                        new LinkResponse(1L, URI.create("https://example.com"), List.of("tag1"), List.of("filter1"))));
-        when(scrapperConnectionService.unsubscribeLink(eq(4L), anyList(), eq(1)))
+                        new LinkResponse(1L, URI.create("https://example.com"), Set.of("tag1"), Set.of("filter1"))));
+        when(scrapperConnectionService.unsubscribeLink(eq(4L), anyList(), eq(1L)))
                 .thenReturn(true);
 
         SendMessage response = untrackCommandManager.createReply(update);
@@ -128,7 +129,7 @@ class UntrackCommandManagerTest {
         when(chat.id()).thenReturn(4L);
         when(scrapperConnectionService.getAllLinks(4L))
                 .thenReturn(List.of(
-                        new LinkResponse(1L, URI.create("https://example.com"), List.of("tag1"), List.of("filter1"))));
+                        new LinkResponse(1L, URI.create("https://example.com"), Set.of("tag1"), Set.of("filter1"))));
 
         untrackCommandManager.createReply(update);
         assertTrue(untrackCommandManager.hasState(4L));
