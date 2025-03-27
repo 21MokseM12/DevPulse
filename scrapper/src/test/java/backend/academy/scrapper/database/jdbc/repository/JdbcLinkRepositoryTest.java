@@ -31,7 +31,7 @@ import scrapper.bot.connectivity.model.request.AddLinkRequest;
 @JdbcTest
 @Testcontainers
 @ActiveProfiles("test")
-@Import({JdbcLinkRepository.class, ApplicationConfig.class})
+@Import({JdbcLinkRepository.class, ApplicationConfig.class, JdbcFilterRepository.class, JdbcTagRepository.class})
 @Sql("classpath:test-init.sql")
 public class JdbcLinkRepositoryTest extends TestContainersConfiguration {
 
