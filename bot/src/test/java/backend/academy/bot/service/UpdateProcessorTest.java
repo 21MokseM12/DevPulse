@@ -1,6 +1,5 @@
 package backend.academy.bot.service;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
@@ -9,81 +8,52 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import backend.academy.bot.exceptions.InvalidCommandException;
-import backend.academy.bot.factory.StatefulCommandManagerFactory;
-import backend.academy.bot.factory.StatelessCommandManagerFactory;
-import backend.academy.bot.service.managers.stateful.StatefulCommandManager;
-import backend.academy.bot.service.managers.stateless.StatelessCommandManager;
-import com.pengrad.telegrambot.model.Message;
+import backend.academy.bot.model.requests.Request;
+import backend.academy.bot.service.commands.CommandController;
+import backend.academy.bot.service.requests.mapper.RequestMapperFactory;
 import com.pengrad.telegrambot.model.Update;
-import com.pengrad.telegrambot.request.SendMessage;
 import java.util.Optional;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 public class UpdateProcessorTest {
 
+    @Mock
+    private CommandController commandController;
+
+    @Mock
+    private RequestMapperFactory requestMapperFactory;
+
+    @InjectMocks
     private UpdateProcessor updateProcessor;
-
-    private final StatelessCommandManagerFactory statelessCommandManagerFactory =
-            mock(StatelessCommandManagerFactory.class);
-
-    private final StatefulCommandManagerFactory statefulCommandManagerFactory =
-            mock(StatefulCommandManagerFactory.class);
-
-    private final Message message = mock(Message.class);
 
     private final Update update = mock(Update.class);
 
-    private final SendMessage message1 = new SendMessage(123L, "Hello World1");
+    @Test
+    public void whenRequestMap_isSuccess_thenCommandControllerIsCalled() {
+        Request request = mock(Request.class);
 
-    private final SendMessage message2 = new SendMessage(456L, "Hello World2");
+        when(requestMapperFactory.map(update)).thenReturn(Optional.of(request));
 
-    @BeforeEach
-    public void setUp() {
-        when(update.message()).thenReturn(message);
-        when(message.text()).thenReturn("Simple message text");
-
-        updateProcessor = new UpdateProcessor(statefulCommandManagerFactory, statelessCommandManagerFactory);
+        updateProcessor.createReply(update);
+        verify(commandController).process(request);
     }
 
     @Test
-    public void testStatefulCommandManagerCreateReply() {
-        StatefulCommandManager statefulCommandManager = mock(StatefulCommandManager.class);
-        when(statefulCommandManagerFactory.get(update)).thenReturn(Optional.of(statefulCommandManager));
-        when(statefulCommandManager.createReply(update)).thenReturn(message1);
+    public void whenRequestMap_isFailure_thenThrowsInvalidCommandException() {
+        Request request = mock(Request.class);
 
-        SendMessage reply = updateProcessor.createReply(update);
-
-        assertThat(reply).isNotNull();
-        assertEquals(message1, reply);
-        verify(statefulCommandManagerFactory, times(1)).get(update);
-        verify(statefulCommandManager, times(1)).createReply(update);
-    }
-
-    @Test
-    public void testStatelessCommandManagerCreateReply() {
-        StatelessCommandManager statelessCommandManager = mock(StatelessCommandManager.class);
-        when(statelessCommandManagerFactory.get(message)).thenReturn(Optional.of(statelessCommandManager));
-        when(statelessCommandManager.createReply(update)).thenReturn(message2);
-
-        SendMessage reply = updateProcessor.createReply(update);
-
-        assertThat(reply).isNotNull();
-        assertEquals(message2, reply);
-        verify(statelessCommandManagerFactory, times(1)).get(message);
-        verify(statelessCommandManager, times(1)).createReply(update);
-    }
-
-    @Test
-    public void testThrowsInvalidCommandException() {
-        when(statefulCommandManagerFactory.get(update)).thenReturn(Optional.empty());
-        when(statelessCommandManagerFactory.get(message)).thenReturn(Optional.empty());
+        when(requestMapperFactory.map(update)).thenReturn(Optional.empty());
 
         InvalidCommandException exception =
                 assertThrows(InvalidCommandException.class, () -> updateProcessor.createReply(update));
 
-        assertEquals("Invalid command: Simple message text", exception.getMessage());
-        verify(statelessCommandManagerFactory, times(1)).get(message);
-        verify(statefulCommandManagerFactory, times(1)).get(update);
+        verify(commandController, times(0)).process(request);
+        assertEquals(InvalidCommandException.class, exception.getClass());
+        assertEquals("Cannot map request", exception.getMessage());
     }
 }

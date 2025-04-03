@@ -6,9 +6,9 @@ import backend.academy.scrapper.model.StackOverflowResponse;
 import backend.academy.scrapper.service.parsers.StackOverflowLinkParser;
 import backend.academy.scrapper.service.updaters.LinkUpdater;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -26,20 +26,20 @@ public class StackOverflowUpdaterService implements LinkUpdater {
     private StackOverflowLinkParser stackOverflowLinkParser;
 
     @Override
-    public Optional<List<LinkUpdateDTO>> getUpdates(URI link) {
+    public List<LinkUpdateDTO> getUpdates(URI link) {
         ResponseEntity<StackOverflowResponse> events = stackOverflowClient.getEvents(
                 stackOverflowLinkParser.parseQuestionId(link.toString()), "desc", "activity", "stackoverflow");
         if (events.getStatusCode().is2xxSuccessful()
                 && !Objects.requireNonNull(events.getBody()).items().isEmpty()) {
-            return Optional.of(Objects.requireNonNull(events.getBody()).items().stream()
+            return Objects.requireNonNull(events.getBody()).items().stream()
                     .filter(Objects::nonNull)
                     .map(update -> new LinkUpdateDTO(
                             updateId++,
                             update.postLink(),
                             "Last activity date: ".concat(update.lastActivity().toString())))
-                    .toList());
+                    .toList();
         }
-        return Optional.empty();
+        return new ArrayList<>();
     }
 
     @Override
