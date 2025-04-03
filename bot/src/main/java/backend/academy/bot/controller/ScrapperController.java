@@ -18,7 +18,7 @@ public class ScrapperController {
     private BotNotificationManager notificationManager;
 
     @PostMapping
-    public ResponseEntity<Void> getUpdatedLink(@RequestBody LinkUpdate update) throws BadRequestException {
+    public ResponseEntity<Void> notifyLinkUpdate(@RequestBody LinkUpdate update) throws BadRequestException {
         if (update.tgChatIds().isEmpty() || update.url() == null) {
             throw new BadRequestException("Некорректные параметры запроса");
         }

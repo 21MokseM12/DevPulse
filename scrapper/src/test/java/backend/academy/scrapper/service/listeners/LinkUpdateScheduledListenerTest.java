@@ -18,7 +18,6 @@ import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -71,7 +70,7 @@ public class LinkUpdateScheduledListenerTest {
         when(clientRepository.findAllLinksByForceCheckDelay(any())).thenReturn(linksMap);
         when(updaterFactory.get(linkUri)).thenReturn(updater);
         when(updater.getUpdates(linkUri))
-                .thenReturn(Optional.of(List.of(new LinkUpdateDTO(1L, URI.create("update"), "description"))));
+                .thenReturn(List.of(new LinkUpdateDTO(1L, URI.create("update"), "description")));
 
         Thread.sleep(16000);
 

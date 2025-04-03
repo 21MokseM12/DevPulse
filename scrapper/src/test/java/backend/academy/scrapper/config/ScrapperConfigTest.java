@@ -29,7 +29,7 @@ public class ScrapperConfigTest {
         assertThat(applicationConfig.github().url()).isEqualTo("https://example.ru");
         assertThat(applicationConfig.github().token()).isEqualTo("github-token");
 
-        assertThat(applicationConfig.stackOverflow().url()).isEqualTo("https://example.com");
+        assertThat(applicationConfig.stackOverflow().url()).isEqualTo("https://api.stackexchange.com/2.3");
         assertThat(applicationConfig.stackOverflow().accessToken()).isEqualTo("stackoverflow-access-token");
         assertThat(applicationConfig.stackOverflow().key()).isEqualTo("stackoverflow-key");
     }

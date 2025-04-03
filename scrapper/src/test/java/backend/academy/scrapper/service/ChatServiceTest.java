@@ -30,34 +30,34 @@ class ChatServiceTest {
     @Test
     public void testRegistrationClientSuccess() {
         long id = 1L;
-        when(clientRepository.isClient(id)).thenReturn(false);
+        when(clientRepository.existsChat(id)).thenReturn(false);
 
         assertThat(chatService.register(id)).isTrue();
-        verify(clientRepository, times(1)).register(id);
+        verify(clientRepository, times(1)).saveChat(id);
     }
 
     @Test
     public void testRegistrationClientFailure() {
         long id = 1L;
-        when(clientRepository.isClient(id)).thenReturn(true);
+        when(clientRepository.existsChat(id)).thenReturn(true);
 
         assertThat(chatService.register(id)).isFalse();
-        verify(clientRepository, times(0)).register(id);
+        verify(clientRepository, times(0)).saveChat(id);
     }
 
     @Test
     public void testUnregisterClientSuccess() {
         long id = 1L;
-        when(clientRepository.isClient(id)).thenReturn(true);
+        when(clientRepository.existsChat(id)).thenReturn(true);
         assertThat(chatService.unregister(id)).isTrue();
-        verify(clientRepository, times(1)).unregister(id);
+        verify(clientRepository, times(1)).deleteChat(id);
     }
 
     @Test
     public void testUnregisterClientFailure() {
         long id = 1L;
-        when(clientRepository.isClient(id)).thenReturn(false);
+        when(clientRepository.existsChat(id)).thenReturn(false);
         assertThat(chatService.unregister(id)).isFalse();
-        verify(clientRepository, times(0)).unregister(id);
+        verify(clientRepository, times(0)).deleteChat(id);
     }
 }

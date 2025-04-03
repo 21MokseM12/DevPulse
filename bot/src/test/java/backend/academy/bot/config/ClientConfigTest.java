@@ -7,32 +7,30 @@ import backend.academy.bot.client.LinkClient;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 
 @SpringBootTest
 @RunWith(SpringRunner.class)
 @ActiveProfiles("test")
+@EnableConfigurationProperties
 public class ClientConfigTest {
 
     @Autowired
-    private ClientConfig clientConfig;
+    private ChatClient chatClient;
 
-    @MockitoBean
-    private HttpServiceProxyFactory httpServiceProxyFactory;
+    @Autowired
+    private LinkClient linkClient;
 
     @Test
     public void testChatClientBean() {
-        ChatClient client = clientConfig.chatClient(httpServiceProxyFactory);
-        assertThat(client).isNotNull();
+        assertThat(chatClient).isNotNull();
     }
 
     @Test
     public void testLinkClientBean() {
-        LinkClient client = clientConfig.linkClient(httpServiceProxyFactory);
-        assertThat(client).isNotNull();
+        assertThat(linkClient).isNotNull();
     }
 }

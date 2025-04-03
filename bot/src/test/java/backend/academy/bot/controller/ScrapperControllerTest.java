@@ -29,7 +29,7 @@ public class ScrapperControllerTest {
     private final ObjectMapper mapper = new ObjectMapper();
 
     @Test
-    public void testGetUpdatedLinkSuccess() throws Exception {
+    public void testNotifyLinkUpdateSuccess() throws Exception {
         LinkUpdate update = new LinkUpdate(1L, URI.create("uri"), "description", List.of(1L, 2L));
         mockMvc.perform(post("/updates")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -40,7 +40,7 @@ public class ScrapperControllerTest {
     }
 
     @Test
-    public void testGetUpdatedLinkBadRequestExceptionViaEmptyIdsList() throws Exception {
+    public void testNotifyLinkUpdateBadRequestExceptionViaEmptyIdsList() throws Exception {
         LinkUpdate update = new LinkUpdate(1L, URI.create("uri"), "description", List.of());
         mockMvc.perform(post("/updates")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -51,7 +51,7 @@ public class ScrapperControllerTest {
     }
 
     @Test
-    public void testGetUpdatedLinkBadRequestExceptionViaLinkISNull() throws Exception {
+    public void testNotifyLinkBadRequestExceptionViaLinkUpdateISNull() throws Exception {
         LinkUpdate update = new LinkUpdate(1L, null, "description", List.of(1L));
         mockMvc.perform(post("/updates")
                         .contentType(MediaType.APPLICATION_JSON)
