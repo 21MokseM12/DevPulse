@@ -2,7 +2,6 @@ package backend.academy.scrapper.repository;
 
 import backend.academy.scrapper.model.Link;
 import jakarta.validation.constraints.NotEmpty;
-import java.time.Clock;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -21,11 +20,11 @@ public class ClientRepository {
 
     private static final Map<Long, List<Link>> clients;
 
-    private final Clock clock;
+    private final ClockProvider clockProvider;
 
     @Autowired
-    public ClientRepository(Clock clock) {
-        this.clock = clock;
+    public ClientRepository(ClockProvider clockProvider) {
+        this.clockProvider = clockProvider;
     }
 
     static {
@@ -52,7 +51,7 @@ public class ClientRepository {
         UUID uuid = UUID.nameUUIDFromBytes(link.link().toString().getBytes());
 
         Link entity = new Link(
-                uuid.getMostSignificantBits(), link.link(), link.tags(), link.filters(), OffsetDateTime.now(clock));
+                uuid.getMostSignificantBits(), link.link(), link.tags(), link.filters(), OffsetDateTime.now(clockProvider.getClock()));
         if (!clients.get(chatId).contains(entity)) {
             clients.get(chatId).add(entity);
         }
@@ -73,9 +72,9 @@ public class ClientRepository {
         for (Map.Entry<Long, List<Link>> entry : clients.entrySet()) {
             List<Link> clientLinksUpdate = new ArrayList<>();
             entry.getValue().stream()
-                    .filter(link -> !OffsetDateTime.now(clock).minus(duration).isBefore(link.createdAt()))
+                    .filter(link -> !OffsetDateTime.now(clockProvider.getClock()).minus(duration).isBefore(link.createdAt()))
                     .forEach(link -> {
-                        link.createdAt(OffsetDateTime.now(clock));
+                        link.createdAt(OffsetDateTime.now(clockProvider.getClock()));
                         clientLinksUpdate.add(link);
                     });
             neededUpdatesClients.put(entry.getKey(), new ArrayList<>(clientLinksUpdate));

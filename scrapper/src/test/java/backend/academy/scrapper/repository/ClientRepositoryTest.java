@@ -1,7 +1,5 @@
 package backend.academy.scrapper.repository;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import backend.academy.scrapper.model.Link;
 import java.net.URI;
 import java.time.Clock;
@@ -12,14 +10,36 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import scrapper.bot.connectivity.model.request.AddLinkRequest;
 import scrapper.bot.connectivity.model.request.RemoveLinkRequest;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class ClientRepositoryTest {
 
+    static class TestClockProvider implements ClockProvider {
+
+        private Clock clock;
+
+        TestClockProvider(Clock clock) {
+            this.clock = clock;
+        }
+
+        public void offset(Duration duration) {
+            clock = Clock.offset(clock, duration);
+        }
+
+        @Override
+        public Clock getClock() {
+            return clock;
+        }
+    }
+
     private ClientRepository repository;
+
+    private TestClockProvider clockProvider;
 
     @BeforeEach
     void setUp() {
-        repository = new ClientRepository(Clock.systemDefaultZone());
+        clockProvider = new TestClockProvider(Clock.systemUTC());
+        repository = new ClientRepository(clockProvider);
     }
 
     @Test
@@ -89,7 +109,8 @@ class ClientRepositoryTest {
                 new AddLinkRequest(URI.create("https://example.com"), List.of("tag1"), List.of("filter1"));
         repository.saveLink(chatId, request);
 
-        Thread.sleep(2);
+        clockProvider.offset(Duration.ofMillis(2));
+
         Map<Long, List<Link>> result = repository.findAllLinksByForceCheckDelay(Duration.ofMillis(1));
         assertThat(result).containsKey(chatId);
         assertThat(result.get(chatId)).hasSize(1);
