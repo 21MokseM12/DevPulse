@@ -51,7 +51,11 @@ public class ClientRepository {
         UUID uuid = UUID.nameUUIDFromBytes(link.link().toString().getBytes());
 
         Link entity = new Link(
-                uuid.getMostSignificantBits(), link.link(), link.tags(), link.filters(), OffsetDateTime.now(clockProvider.getClock()));
+                uuid.getMostSignificantBits(),
+                link.link(),
+                link.tags(),
+                link.filters(),
+                OffsetDateTime.now(clockProvider.getClock()));
         if (!clients.get(chatId).contains(entity)) {
             clients.get(chatId).add(entity);
         }
@@ -72,7 +76,9 @@ public class ClientRepository {
         for (Map.Entry<Long, List<Link>> entry : clients.entrySet()) {
             List<Link> clientLinksUpdate = new ArrayList<>();
             entry.getValue().stream()
-                    .filter(link -> !OffsetDateTime.now(clockProvider.getClock()).minus(duration).isBefore(link.createdAt()))
+                    .filter(link -> !OffsetDateTime.now(clockProvider.getClock())
+                            .minus(duration)
+                            .isBefore(link.createdAt()))
                     .forEach(link -> {
                         link.createdAt(OffsetDateTime.now(clockProvider.getClock()));
                         clientLinksUpdate.add(link);
