@@ -18,6 +18,7 @@ import backend.academy.bot.service.commands.impl.stateful.sessions.UntrackSessio
 import com.pengrad.telegrambot.request.SendMessage;
 import java.net.URI;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -71,7 +72,7 @@ class UntrackCommandManagerTest {
         UntrackRequest request = mock(UntrackRequest.class);
         when(request.getChatId()).thenReturn(chatId);
         when(scrapperConnectionService.getAllLinks(chatId))
-                .thenReturn(List.of(new LinkResponse(1L, URI.create("http://example.com"), List.of(), List.of())));
+                .thenReturn(List.of(new LinkResponse(1L, URI.create("http://example.com"), Set.of(), Set.of())));
         SendMessage response = untrackCommandManager.createReply(request);
         assertEquals(
                 Messages.SEND_LINK_MESSAGE_UNTRACK.toString(),
@@ -95,7 +96,7 @@ class UntrackCommandManagerTest {
         when(request.getChatId()).thenReturn(chatId);
         when(request.isCallbackQuery()).thenReturn(true);
         when(request.getData()).thenReturn("1_0");
-        when(scrapperConnectionService.unsubscribeLink(1L, List.of(), 0)).thenReturn(true);
+        when(scrapperConnectionService.unsubscribeLink(1L, List.of(), 0L)).thenReturn(true);
         SendMessage response = untrackCommandManager.createReply(request);
         assertEquals(
                 Messages.DELETE_SUBSCRIBE_MESSAGE.toString(),

@@ -1,7 +1,7 @@
 package backend.academy.scrapper.controller;
 
+import backend.academy.scrapper.database.ChatService;
 import backend.academy.scrapper.exceptions.ResourceNotFoundException;
-import backend.academy.scrapper.service.ChatService;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import org.apache.logging.log4j.LogManager;
