@@ -1,5 +1,7 @@
 package backend.academy.scrapper.config;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.time.Duration;
@@ -15,7 +17,10 @@ public record ScrapperConfig(
         @NotEmpty String botUrl,
         @NotNull @Bean SchedulerCredentials scheduler) {
 
-    public record SchedulerCredentials(@NotEmpty Duration interval, @NotEmpty Duration forceCheckDelay) {}
+    public record SchedulerCredentials(
+            @NotEmpty Duration interval,
+            @NotEmpty Duration forceCheckDelay,
+            @NotEmpty @Min(1) @Max(15) int threadPoolSize) {}
 
     public record GitHubCredentials(@NotEmpty String token, @NotEmpty String url) {}
 

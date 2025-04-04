@@ -1,4 +1,4 @@
-package backend.academy.scrapper.repository;
+package backend.academy.scrapper.utils;
 
 import java.time.Clock;
 import org.springframework.beans.factory.annotation.Autowired;

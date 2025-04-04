@@ -26,9 +26,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -169,20 +167,15 @@ public class OrmLinkService implements LinkService {
 
     @Override
     @Transactional(readOnly = true)
-    public Stream<URI> findAllLinksByForceCheckDelay(Duration duration) {
-        int pageNum = 0;
-        Page<LinkEntity> page;
-        Stream<LinkEntity> resultStream = Stream.empty();
+    public Set<URI> findAllLinksByForceCheckDelay(Duration duration, int pageNum) {
+        Pageable pageable =
+                PageRequest.of(pageNum, config.pageSize(), Sort.by("updatedAt").descending());
 
-        do {
-            Pageable pageable = PageRequest.of(
-                    pageNum, config.pageSize(), Sort.by("updatedAt").descending());
-            page = ormLinkRepository.findLinkEntitiesByUpdatedAtBefore(
-                    OffsetDateTime.now(clock).minus(duration), pageable);
-            resultStream = Stream.concat(resultStream, page.stream());
-            pageNum++;
-        } while (page.hasNext());
-        return resultStream.map(entity -> URI.create(entity.link()));
+        return ormLinkRepository
+                .findLinkEntitiesByUpdatedAtBefore(OffsetDateTime.now(clock).minus(duration), pageable)
+                .stream()
+                .map(entity -> URI.create(entity.link()))
+                .collect(Collectors.toSet());
     }
 
     @Override

@@ -361,8 +361,7 @@ public class OrmLinkServiceTest {
                 .thenReturn(Page.empty());
         when(config.pageSize()).thenReturn(1);
 
-        List<URI> allLinksByForceCheckDelay =
-                linkService.findAllLinksByForceCheckDelay(duration).toList();
+        Set<URI> allLinksByForceCheckDelay = linkService.findAllLinksByForceCheckDelay(duration, 0);
         assertNotNull(allLinksByForceCheckDelay);
         assertTrue(allLinksByForceCheckDelay.isEmpty());
         verify(linkRepository, times(1)).findLinkEntitiesByUpdatedAtBefore(fixed.minus(duration), pageable);
