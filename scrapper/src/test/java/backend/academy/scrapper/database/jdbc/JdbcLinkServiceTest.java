@@ -231,8 +231,7 @@ public class JdbcLinkServiceTest {
                 .thenReturn(new HashSet<>());
         when(config.pageSize()).thenReturn(1);
 
-        List<URI> allLinksByForceCheckDelay =
-                linkService.findAllLinksByForceCheckDelay(duration).toList();
+        Set<URI> allLinksByForceCheckDelay = linkService.findAllLinksByForceCheckDelay(duration, 0);
         assertNotNull(allLinksByForceCheckDelay);
         assertTrue(allLinksByForceCheckDelay.isEmpty());
         verify(linkRepository, times(1)).findAllLinksByUpdatedAt(fixed.minus(duration), 0, 1);
@@ -249,12 +248,9 @@ public class JdbcLinkServiceTest {
 
         when(linkRepository.findAllLinksByUpdatedAt(fixed.minus(duration), 0, 1))
                 .thenReturn(Set.of(URI.create("link")));
-        when(linkRepository.findAllLinksByUpdatedAt(fixed.minus(duration), 1, 1))
-                .thenReturn(Set.of());
         when(config.pageSize()).thenReturn(1);
 
-        List<URI> allLinksByForceCheckDelay =
-                linkService.findAllLinksByForceCheckDelay(duration).toList();
+        Set<URI> allLinksByForceCheckDelay = linkService.findAllLinksByForceCheckDelay(duration, 0);
         assertNotNull(allLinksByForceCheckDelay);
         assertFalse(allLinksByForceCheckDelay.isEmpty());
         verify(linkRepository).findAllLinksByUpdatedAt(fixed.minus(duration), 0, 1);

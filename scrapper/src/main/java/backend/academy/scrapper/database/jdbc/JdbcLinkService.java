@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -147,18 +146,9 @@ public class JdbcLinkService implements LinkService {
     }
 
     @Override
-    public Stream<URI> findAllLinksByForceCheckDelay(Duration duration) {
-        int pageNum = 0;
-        Stream<URI> resultStream = Stream.empty();
-        Set<URI> uris;
-
-        do {
-            uris = linkRepository.findAllLinksByUpdatedAt(
-                    OffsetDateTime.now(clock).minus(duration), pageNum, config.pageSize());
-            resultStream = Stream.concat(resultStream, uris.stream());
-            pageNum++;
-        } while (!uris.isEmpty());
-        return resultStream;
+    public Set<URI> findAllLinksByForceCheckDelay(Duration duration, int pageNum) {
+        return linkRepository.findAllLinksByUpdatedAt(
+                OffsetDateTime.now(clock).minus(duration), pageNum, config.pageSize());
     }
 
     @Override
