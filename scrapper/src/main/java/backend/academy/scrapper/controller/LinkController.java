@@ -35,14 +35,9 @@ public class LinkController {
     }
 
     @GetMapping
-    public ResponseEntity<ListLinkResponse> findAll(@RequestHeader(name = "Tg-Chat-Id") Long chatId)
-            throws BadRequestException {
-        List<LinkResponse> links = linkService.findAllByChatId(chatId);
-        if (!links.isEmpty()) {
-            return ResponseEntity.ok(new ListLinkResponse(links, links.size()));
-        } else {
-            throw new BadRequestException("Некорректные параметры запроса");
-        }
+    public ResponseEntity<ListLinkResponse> findAll(@RequestHeader(name = "Tg-Chat-Id") Long chatId) {
+        List<LinkResponse> allByChatId = linkService.findAllByChatId(chatId);
+        return ResponseEntity.ok(new ListLinkResponse(allByChatId, allByChatId.size()));
     }
 
     @PostMapping
