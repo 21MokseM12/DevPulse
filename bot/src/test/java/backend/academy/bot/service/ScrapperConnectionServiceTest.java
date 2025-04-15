@@ -134,61 +134,6 @@ public class ScrapperConnectionServiceTest {
         verify(linkClient, times(1)).getAllLinks(chatId);
     }
 
-    //    @Test
-    //    void subscribeLink_Success() throws BadRequestException {
-    //        LinkDTO linkDTO = new LinkDTO (
-    //            TrackCommandStates.LINK,
-    //            "https://example.com",
-    //            List.of(),
-    //            List.of()
-    //        );
-    //        AddLinkRequest addLinkRequest = new AddLinkRequest(
-    //            "https://example.com",
-    //            List.of(),
-    //            List.of()
-    //        );
-    //        LinkResponse linkResponse = new LinkResponse(
-    //            1L,
-    //            "https://example.com",
-    //            List.of(),
-    //            List.of()
-    //        );
-    //        doReturn(ResponseEntity.ok().body(linkResponse))
-    //            .when(linkClient.subscribeLink(chatId, eq(addLinkRequest)));
-    //
-    //        LinkResponse response = scrapperConnectionService.subscribeLink(chatId, linkDTO);
-    //
-    //        verify(linkClient, times(1)).subscribeLink(anyLong(), any());
-    //        assertEquals(linkResponse, response);
-    //    }
-
-    //    @Test
-    //    void subscribeLink_BadRequestException() {
-    //        LinkDTO linkDTO = new LinkDTO (
-    //            TrackCommandStates.LINK,
-    //            "https://example.com",
-    //            List.of(),
-    //            List.of()
-    //        );
-    //        ApiErrorResponse errorResponse = new ApiErrorResponse(
-    //            "Invalid request",
-    //            "400",
-    //            "BadRequestException",
-    //            "Bad request",
-    //            List.of()
-    //        );
-    //
-    //        doReturn(ResponseEntity.badRequest().body(errorResponse))
-    //            .when(linkClient.subscribeLink(anyLong(), any()));
-    //
-    //        BadRequestException exception = assertThrows(BadRequestException.class, () ->
-    //            scrapperConnectionService.subscribeLink(chatId, linkDTO)
-    //        );
-    //
-    //        assertEquals(Messages.INVALID_MESSAGE.toString(), exception.getMessage());
-    //        verify(linkClient, times(1)).subscribeLink(anyLong(), any());
-    //    }
-
     @Test
     void unsubscribeLink_Success() {
         LinkResponse linkResponse = new LinkResponse(1L, URI.create("https://example.com"), Set.of(), Set.of());
