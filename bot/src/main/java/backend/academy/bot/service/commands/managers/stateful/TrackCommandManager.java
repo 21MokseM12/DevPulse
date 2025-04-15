@@ -58,13 +58,13 @@ public class TrackCommandManager implements StatefulCommandManager {
                         }
                         trackSessionManager.updateSession(trackRequest.getChatId(), TrackCommandStates.TAGS);
                         trackLinks.get(trackRequest.getChatId()).uri(trackRequest.getData());
-                        return new SendMessage(trackRequest.getChatId(), state.successMessage());
+                        return new SendMessage(trackRequest.getChatId(), TrackCommandStates.TAGS.successMessage());
                     case TAGS:
                         trackSessionManager.updateSession(trackRequest.getChatId(), TrackCommandStates.FILTERS);
                         trackLinks
                                 .get(trackRequest.getChatId())
                                 .tags(LinkSettingsParser.parseSettings(trackRequest.getData()));
-                        return new SendMessage(trackRequest.getChatId(), state.successMessage());
+                        return new SendMessage(trackRequest.getChatId(), TrackCommandStates.FILTERS.successMessage());
                     case FILTERS:
                         try {
                             trackLinks
