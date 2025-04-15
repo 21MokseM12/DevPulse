@@ -73,13 +73,12 @@ public class LinkUpdateScheduledListener {
                     scrapperConfig.scheduler().forceCheckDelay(), pageNum);
             List<CompletableFuture<List<NotifyUpdateEntity>>> futures = new ArrayList<>();
             ListUtils.partition(new ArrayList<>(batch), batchSize).forEach(part -> {
-                futures.add(CompletableFuture.supplyAsync(
-                        () -> processLink(part), executor)
-                    .completeOnTimeout(Collections.emptyList(), 10, TimeUnit.SECONDS)
-                    .exceptionally(ex -> {
-                        log.error("Error processing batch", ex);
-                        return Collections.emptyList();
-                    }));
+                futures.add(CompletableFuture.supplyAsync(() -> processLink(part), executor)
+                        .completeOnTimeout(Collections.emptyList(), 10, TimeUnit.SECONDS)
+                        .exceptionally(ex -> {
+                            log.error("Error processing batch", ex);
+                            return Collections.emptyList();
+                        }));
             });
 
             CompletableFuture<Void> allFutures = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));

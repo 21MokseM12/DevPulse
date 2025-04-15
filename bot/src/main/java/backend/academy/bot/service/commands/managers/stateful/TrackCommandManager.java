@@ -54,7 +54,7 @@ public class TrackCommandManager implements StatefulCommandManager {
                 switch (state) {
                     case LINK:
                         if (!LinkValidator.isValid(trackRequest.getData())) {
-                            return new SendMessage(request.getChatId(), state.errorMessage());
+                            return new SendMessage(request.getChatId(), TrackCommandStates.LINK.errorMessage());
                         }
                         trackSessionManager.updateSession(trackRequest.getChatId(), TrackCommandStates.TAGS);
                         trackLinks.get(trackRequest.getChatId()).uri(trackRequest.getData());
