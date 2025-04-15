@@ -19,6 +19,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -70,19 +71,16 @@ public class LinkUpdateScheduledListener {
         do {
             batch = linkService.findAllLinksByForceCheckDelay(
                     scrapperConfig.scheduler().forceCheckDelay(), pageNum);
-            List<URI> batchList = new ArrayList<>(batch);
-
             List<CompletableFuture<List<NotifyUpdateEntity>>> futures = new ArrayList<>();
-            for (int i = 0; i < scrapperConfig.scheduler().threadPoolSize(); i++) {
-                int skip = i * batchSize;
+            ListUtils.partition(new ArrayList<>(batch), batchSize).forEach(part -> {
                 futures.add(CompletableFuture.supplyAsync(
-                                () -> processLink(batchList.subList(skip, skip + batchSize)), executor)
-                        .completeOnTimeout(Collections.emptyList(), 10, TimeUnit.SECONDS)
-                        .exceptionally(ex -> {
-                            log.error("Error processing batch", ex);
-                            return Collections.emptyList();
-                        }));
-            }
+                        () -> processLink(part), executor)
+                    .completeOnTimeout(Collections.emptyList(), 10, TimeUnit.SECONDS)
+                    .exceptionally(ex -> {
+                        log.error("Error processing batch", ex);
+                        return Collections.emptyList();
+                    }));
+            });
 
             CompletableFuture<Void> allFutures = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
 
