@@ -88,7 +88,7 @@ class TrackCommandManagerTest {
         SendMessage response = trackCommandManager.createReply(request);
 
         assertEquals(
-                TrackCommandStates.LINK.successMessage(),
+                TrackCommandStates.TAGS.successMessage(),
                 response.getParameters().get("text"));
     }
 

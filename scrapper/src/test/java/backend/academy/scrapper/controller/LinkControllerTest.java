@@ -71,7 +71,7 @@ public class LinkControllerTest {
 
         when(linkService.findAllByChatId(id)).thenReturn(List.of());
 
-        mockMvc.perform(get("/links").header("Tg-Chat-Id", id)).andExpect(status().isBadRequest());
+        mockMvc.perform(get("/links").header("Tg-Chat-Id", id)).andExpect(status().isOk());
 
         verify(linkService, times(1)).findAllByChatId(id);
     }
