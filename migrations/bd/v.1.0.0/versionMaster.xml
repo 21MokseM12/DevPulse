@@ -7,11 +7,11 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.14.xsd
         http://www.liquibase.org/xml/ns/dbchangelog-ext https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
 
-    <include relativeToChangelogFile="true" file="createTableChats.sql"/>
-    <include relativeToChangelogFile="true" file="createTableLinks.sql"/>
-    <include relativeToChangelogFile="true" file="createTableLinksChats.sql"/>
-    <include relativeToChangelogFile="true" file="createTableTags.sql"/>
-    <include relativeToChangelogFile="true" file="createTableFilters.sql"/>
-    <include relativeToChangelogFile="true" file="createProcessedIds.sql"/>
+    <include relativeToChangelogFile="true" file="001_createTableChats.sql"/>
+    <include relativeToChangelogFile="true" file="002_createTableLinks.sql"/>
+    <include relativeToChangelogFile="true" file="003_createTableLinksChats.sql"/>
+    <include relativeToChangelogFile="true" file="004_createTableTags.sql"/>
+    <include relativeToChangelogFile="true" file="005_createTableFilters.sql"/>
+    <include relativeToChangelogFile="true" file="006_createProcessedIds.sql"/>
 
 </databaseChangeLog>
