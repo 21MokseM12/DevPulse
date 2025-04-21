@@ -16,6 +16,7 @@ import backend.academy.bot.service.commands.impl.stateless.ListCommand;
 import com.pengrad.telegrambot.request.SendMessage;
 import java.net.URI;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -39,7 +40,7 @@ public class ListCommandManagerTest {
     @Test
     public void testFullListCommandSuccess() {
         StatelessRequest request = new StatelessRequest(123L, "/list");
-        LinkResponse link = new LinkResponse(1L, URI.create("link"), List.of("tag"), List.of("filter"));
+        LinkResponse link = new LinkResponse(1L, URI.create("link"), Set.of("tag"), Set.of("filter"));
         when(scrapperConnectionService.getAllLinks(request.getChatId())).thenReturn(List.of(link));
 
         SendMessage reply = listCommandManager.createReply(request);

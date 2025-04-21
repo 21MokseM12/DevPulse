@@ -1,0 +1,74 @@
+version: '3.1'
+
+services:
+  bot:
+    build:
+      context: ./bot
+      args:
+        - RUNTIME_IMAGE=openjdk:23
+    environment:
+      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+      - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
+      - SCRAPPER_URL=http://scrapper:8081
+    ports:
+      - "15005:5005"
+    depends_on:
+      scrapper:
+        condition: service_healthy
+    healthcheck:
+      test: "curl --fail --silent localhost:8080/actuator/health | grep UP || exit 1"
+      interval: 20s
+      timeout: 5s
+      retries: 5
+
+  scrapper:
+    build:
+      context: ./scrapper
+      args:
+        - RUNTIME_IMAGE=openjdk:23
+    environment:
+      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+      - BOT_URL=http://bot:8080
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_URL=jdbc:postgresql://postgres-db:5432/${POSTGRES_DB_NAME}
+      - SO_TOKEN_KEY=${SO_TOKEN_KEY}
+      - SO_ACCESS_TOKEN=${SO_ACCESS_TOKEN}
+    depends_on:
+      - postgres-db
+    ports:
+      - "25005:5005"
+    healthcheck:
+      test: "curl --fail --silent localhost:8081/actuator/health | grep UP || exit 1"
+      interval: 20s
+      timeout: 5s
+      retries: 5
+
+  postgres-db:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB_NAME}
+    ports:
+      - "5432:5432"
+
+  liquibase:
+    image: liquibase/liquibase
+    container_name: liquibase-migrations
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB_NAME}
+    depends_on:
+      - postgres-db
+    volumes:
+      - ./migrations:/liquibase/changelog
+    command: >
+      update
+      --url=jdbc:postgresql://postgres-db:5432/${POSTGRES_DB_NAME}
+      --username=${POSTGRES_USER}
+      --password=${POSTGRES_PASSWORD}
+      --changeLogFile=./changelog/master.xml

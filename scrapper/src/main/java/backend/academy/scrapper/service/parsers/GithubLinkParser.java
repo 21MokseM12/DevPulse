@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 public class GithubLinkParser {
 
     public String parseRepo(String link) {
-        return link.replace("//", "/").split("/")[3];
+        return link.replace("//", "/").replace(".git", "").split("/")[3];
     }
 
     public String parseUsername(String link) {

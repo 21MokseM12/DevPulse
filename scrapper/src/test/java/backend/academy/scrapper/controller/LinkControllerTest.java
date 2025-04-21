@@ -10,17 +10,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import backend.academy.scrapper.service.LinkService;
+import backend.academy.scrapper.database.LinkService;
 import backend.academy.scrapper.service.validators.LinkValidatorManager;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -31,6 +33,7 @@ import scrapper.bot.connectivity.model.response.ListLinkResponse;
 
 @WebMvcTest(controllers = LinkController.class)
 @RunWith(SpringRunner.class)
+@ActiveProfiles("test")
 public class LinkControllerTest {
 
     @Autowired
@@ -49,10 +52,10 @@ public class LinkControllerTest {
         Long id = 123L;
 
         List<LinkResponse> links =
-                List.of(new LinkResponse(1L, URI.create("simple-uri"), List.of("tag"), List.of("filter")));
+                List.of(new LinkResponse(1L, URI.create("simple-uri"), Set.of("tag"), Set.of("filter")));
         ListLinkResponse expected = new ListLinkResponse(links, 1);
 
-        when(linkService.findAllByChatId(id)).thenReturn(Optional.of(links));
+        when(linkService.findAllByChatId(id)).thenReturn(links);
 
         mockMvc.perform(get("/links").header("Tg-Chat-Id", id))
                 .andExpect(status().isOk())
@@ -66,9 +69,9 @@ public class LinkControllerTest {
     public void testFindAllLinksBadRequestException() throws Exception {
         Long id = 123L;
 
-        when(linkService.findAllByChatId(id)).thenReturn(Optional.empty());
+        when(linkService.findAllByChatId(id)).thenReturn(List.of());
 
-        mockMvc.perform(get("/links").header("Tg-Chat-Id", id)).andExpect(status().isBadRequest());
+        mockMvc.perform(get("/links").header("Tg-Chat-Id", id)).andExpect(status().isOk());
 
         verify(linkService, times(1)).findAllByChatId(id);
     }
@@ -76,8 +79,8 @@ public class LinkControllerTest {
     @Test
     public void testSubscribeLinkSuccessfully() throws Exception {
         Long id = 123L;
-        LinkResponse response = new LinkResponse(1L, URI.create("simple-uri"), List.of("tag"), List.of("filter"));
-        AddLinkRequest linkRequest = new AddLinkRequest(URI.create("uri"), List.of("tag"), List.of("filter"));
+        LinkResponse response = new LinkResponse(1L, URI.create("simple-uri"), Set.of("tag"), Set.of("filter"));
+        AddLinkRequest linkRequest = new AddLinkRequest(URI.create("uri"), Set.of("tag"), Set.of("filter"));
 
         when(linkValidatorManager.isValidLink(linkRequest.link().toString())).thenReturn(true);
         when(linkService.subscribe(id, linkRequest)).thenReturn(Optional.of(response));
@@ -96,7 +99,7 @@ public class LinkControllerTest {
     @Test
     public void testSubscribeLinkBadRequestExceptionViaInvalidLink() throws Exception {
         Long id = 123L;
-        AddLinkRequest linkRequest = new AddLinkRequest(URI.create("uri"), List.of("tag"), List.of("filter"));
+        AddLinkRequest linkRequest = new AddLinkRequest(URI.create("uri"), Set.of("tag"), Set.of("filter"));
 
         when(linkValidatorManager.isValidLink(linkRequest.link().toString())).thenReturn(false);
 
@@ -113,7 +116,7 @@ public class LinkControllerTest {
     @Test
     public void testSubscribeLinkBadRequestExceptionViaOptionalIsEmpty() throws Exception {
         Long id = 123L;
-        AddLinkRequest linkRequest = new AddLinkRequest(URI.create("uri"), List.of("tag"), List.of("filter"));
+        AddLinkRequest linkRequest = new AddLinkRequest(URI.create("uri"), Set.of("tag"), Set.of("filter"));
 
         when(linkValidatorManager.isValidLink(linkRequest.link().toString())).thenReturn(true);
         when(linkService.subscribe(id, linkRequest)).thenReturn(Optional.empty());
@@ -132,7 +135,7 @@ public class LinkControllerTest {
     public void testUnsubscribeLinkSuccessfully() throws Exception {
         Long id = 123L;
         RemoveLinkRequest removeLinkRequest = new RemoveLinkRequest(URI.create("uri"));
-        LinkResponse response = new LinkResponse(1L, URI.create("uri"), List.of("tag"), List.of("filter"));
+        LinkResponse response = new LinkResponse(1L, URI.create("uri"), Set.of("tag"), Set.of("filter"));
 
         when(linkValidatorManager.isValidLink(removeLinkRequest.link().toString()))
                 .thenReturn(true);

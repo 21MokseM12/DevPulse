@@ -1,6 +1,6 @@
 package scrapper.bot.connectivity.model.request;
 
 import java.net.URI;
-import java.util.List;
+import java.util.Set;
 
-public record AddLinkRequest(URI link, List<String> tags, List<String> filters) {}
+public record AddLinkRequest(URI link, Set<String> tags, Set<String> filters) {}

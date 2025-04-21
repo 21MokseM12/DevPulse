@@ -1,5 +1,6 @@
 package backend.academy.scrapper.model;
 
-import java.net.URI;
+import java.time.OffsetDateTime;
 
-public record LinkUpdateDTO(Long id, URI url, String description) {}
+public record LinkUpdateDTO(
+        Long id, String title, String updateOwner, OffsetDateTime creationDate, String descriptionPreview) {}
