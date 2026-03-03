@@ -1,25 +1,14 @@
-package backend.academy.scrapper.database.jdbc;
+package backend.academy.scrapper.db.impl;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import backend.academy.scrapper.config.DatabaseConfig;
-import backend.academy.scrapper.database.jdbc.model.Link;
-import backend.academy.scrapper.database.jdbc.model.ProcessedId;
-import backend.academy.scrapper.database.jdbc.repository.JdbcChatRepository;
-import backend.academy.scrapper.database.jdbc.repository.JdbcLinkRepository;
-import backend.academy.scrapper.database.jdbc.repository.JdbcLinkToChatRepository;
-import backend.academy.scrapper.database.jdbc.repository.JdbcProcessedIdRepository;
+import backend.academy.scrapper.config.properties.DatabaseProperty;
+import backend.academy.scrapper.db.model.Link;
+import backend.academy.scrapper.db.model.ProcessedId;
+import backend.academy.scrapper.db.repository.ChatRepository;
+import backend.academy.scrapper.db.repository.LinkToChatRepository;
+import backend.academy.scrapper.db.repository.ProcessedIdRepository;
 import backend.academy.scrapper.enums.ProcessedIdType;
 import backend.academy.scrapper.model.stackoverflow.ProcessedIdDTO;
+import backend.academy.scrapper.service.impl.LinkOperationProcessorImpl;
 import java.net.URI;
 import java.time.Clock;
 import java.time.Duration;
@@ -38,47 +27,54 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import scrapper.bot.connectivity.model.request.AddLinkRequest;
 import scrapper.bot.connectivity.model.request.RemoveLinkRequest;
 import scrapper.bot.connectivity.model.response.LinkResponse;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class JdbcLinkServiceTest {
+public class LinkOperationProcessorTest {
 
     @Mock
     private Clock clock;
-
     @Mock
-    private DatabaseConfig config;
-
+    private DatabaseProperty config;
     @Mock
-    private JdbcChatRepository chatRepository;
-
+    private ChatRepository chatRepository;
     @Mock
-    private JdbcLinkRepository linkRepository;
-
+    private LinkToChatRepository linkToChatRepository;
     @Mock
-    private JdbcLinkToChatRepository linkToChatRepository;
-
+    private ProcessedIdRepository processedIdRepository;
     @Mock
-    private JdbcProcessedIdRepository processedIdRepository;
-
+    private DbLinkServiceImpl dbLinkService;
     @InjectMocks
-    private JdbcLinkService linkService;
+    private LinkOperationProcessorImpl linkOperationProcessor;
 
     @Test
     public void testGetAllLinksSuccess() {
         Long id = 1L;
-        List<Link> links =
-                List.of(new Link(1L, URI.create("uri"), Set.of("tag"), Set.of("filter"), OffsetDateTime.now()));
-        List<LinkResponse> response = List.of(new LinkResponse(1L, URI.create("uri"), Set.of("tag"), Set.of("filter")));
-
+        List<Link> links = List.of(
+            new Link(1L, URI.create("uri"), Set.of("tag"), Set.of("filter"), OffsetDateTime.now())
+        );
+        List<LinkResponse> expectedResponse = List.of(
+            new LinkResponse(1L, URI.create("uri"), Set.of("tag"), Set.of("filter"))
+        );
         when(chatRepository.isClient(id)).thenReturn(true);
         when(linkToChatRepository.findAllIdByChatId(id)).thenReturn(List.of(id));
-        when(linkRepository.findAllLinks(List.of(id))).thenReturn(links);
-        List<LinkResponse> byChatId = linkService.findAllByChatId(id);
+        when(dbLinkService.findAllLinks(List.of(id))).thenReturn(links);
+
+        List<LinkResponse> byChatId = linkOperationProcessor.findAllByChatId(id);
 
         assertThat(!byChatId.isEmpty()).isTrue();
         assertThat(byChatId.size()).isEqualTo(links.size());
-        assertThat(byChatId.getFirst()).isEqualTo(response.getFirst());
-        verify(linkRepository).findAllLinks(List.of(id));
+        assertThat(byChatId.getFirst()).isEqualTo(expectedResponse.getFirst());
+        verify(dbLinkService).findAllLinks(List.of(id));
         verify(chatRepository).isClient(id);
         verify(linkToChatRepository).findAllIdByChatId(id);
     }
@@ -88,13 +84,13 @@ public class JdbcLinkServiceTest {
         Long id = 1L;
         List<Long> list = List.of(id);
         when(linkToChatRepository.findAllIdByChatId(id)).thenReturn(list);
-        when(linkRepository.findAllLinks(list)).thenReturn(List.of());
+        when(dbLinkService.findAllLinks(list)).thenReturn(List.of());
         when(chatRepository.isClient(id)).thenReturn(true);
 
-        List<LinkResponse> byChatId = linkService.findAllByChatId(id);
+        List<LinkResponse> byChatId = linkOperationProcessor.findAllByChatId(id);
 
         assertThat(byChatId.isEmpty()).isTrue();
-        verify(linkRepository).findAllLinks(list);
+        verify(dbLinkService).findAllLinks(list);
         verify(chatRepository).isClient(id);
         verify(linkToChatRepository).findAllIdByChatId(id);
     }
@@ -108,15 +104,15 @@ public class JdbcLinkServiceTest {
         LinkResponse expected = new LinkResponse(link.id(), link.url(), link.tags(), link.filters());
 
         when(chatRepository.isClient(id)).thenReturn(true);
-        when(linkRepository.findByLink(addLinkRequest.link().toString())).thenReturn(Optional.empty());
-        when(linkRepository.save(addLinkRequest)).thenReturn(link);
+        when(dbLinkService.findIdByLink(addLinkRequest.link().toString())).thenReturn(Optional.empty());
+        when(dbLinkService.saveLink(addLinkRequest)).thenReturn(link);
 
-        Optional<LinkResponse> linkResponse = linkService.subscribe(id, addLinkRequest);
-        assertThat(linkResponse.isPresent()).isTrue();
+        Optional<LinkResponse> linkResponse = linkOperationProcessor.subscribe(id, addLinkRequest);
+        assertTrue(linkResponse.isPresent());
         assertEquals(expected, linkResponse.get());
         verify(chatRepository).isClient(id);
-        verify(linkRepository).findByLink(addLinkRequest.link().toString());
-        verify(linkRepository).save(addLinkRequest);
+        verify(dbLinkService).findIdByLink(addLinkRequest.link().toString());
+        verify(dbLinkService).saveLink(addLinkRequest);
         verify(linkToChatRepository).subscribeChatOnLink(id, link.id());
     }
 
@@ -129,15 +125,15 @@ public class JdbcLinkServiceTest {
         LinkResponse expected = new LinkResponse(link.id(), link.url(), link.tags(), link.filters());
 
         when(chatRepository.isClient(id)).thenReturn(true);
-        when(linkRepository.findByLink(addLinkRequest.link().toString())).thenReturn(Optional.of(linkId));
-        when(linkRepository.findById(linkId)).thenReturn(Optional.of(link));
+        when(dbLinkService.findIdByLink(addLinkRequest.link().toString())).thenReturn(Optional.of(linkId));
+        when(dbLinkService.findById(linkId)).thenReturn(Optional.of(link));
 
-        Optional<LinkResponse> linkResponse = linkService.subscribe(id, addLinkRequest);
-        assertThat(linkResponse.isPresent()).isTrue();
+        Optional<LinkResponse> linkResponse = linkOperationProcessor.subscribe(id, addLinkRequest);
+        assertTrue(linkResponse.isPresent());
         assertEquals(expected, linkResponse.get());
         verify(chatRepository).isClient(id);
-        verify(linkRepository).findByLink(addLinkRequest.link().toString());
-        verify(linkRepository).findById(linkId);
+        verify(dbLinkService).findIdByLink(addLinkRequest.link().toString());
+        verify(dbLinkService).findById(linkId);
         verify(linkToChatRepository).subscribeChatOnLink(id, linkId);
     }
 
@@ -149,22 +145,22 @@ public class JdbcLinkServiceTest {
         LinkResponse linkResponse = new LinkResponse(1L, URI.create("uri"), Set.of(), Set.of());
 
         when(chatRepository.isClient(id)).thenReturn(true);
-        when(linkRepository.existsLink(removeLinkRequest.link().toString())).thenReturn(true);
-        when(linkRepository.delete(removeLinkRequest.link().toString())).thenReturn(Optional.of(link));
-        Optional<LinkResponse> response = linkService.unsubscribe(id, removeLinkRequest);
+        when(dbLinkService.existsLink(removeLinkRequest.link().toString())).thenReturn(true);
+        when(dbLinkService.delete(removeLinkRequest.link().toString())).thenReturn(Optional.of(link));
+        Optional<LinkResponse> response = linkOperationProcessor.unsubscribe(id, removeLinkRequest);
 
-        assertThat(response.isPresent()).isTrue();
+        assertTrue(response.isPresent());
         assertThat(response.get()).isEqualTo(linkResponse);
-        verify(linkRepository).delete(removeLinkRequest.link().toString());
+        verify(dbLinkService).delete(removeLinkRequest.link().toString());
     }
 
     @Test
     public void findAllProcessedIds_whenLinkIsNoExists_shouldReturnEmptyList() {
         URI link = URI.create("link");
 
-        when(linkRepository.findByLink(link.toString())).thenReturn(Optional.empty());
+        when(dbLinkService.findIdByLink(link.toString())).thenReturn(Optional.empty());
 
-        List<ProcessedIdDTO> allProcessedIds = linkService.findAllProcessedIds(link);
+        List<ProcessedIdDTO> allProcessedIds = linkOperationProcessor.findAllProcessedIds(link);
 
         assertNotNull(allProcessedIds);
         assertTrue(allProcessedIds.isEmpty());
@@ -174,22 +170,22 @@ public class JdbcLinkServiceTest {
     public void findAllProcessedIds_whenLinkExists_shouldReturnProcessedIdsByLink() {
         URI link = URI.create("link");
         Set<ProcessedId> processedIds = Set.of(
-                new ProcessedId(1L, ProcessedIdType.GITHUB_PULL_REQUEST.type()),
-                new ProcessedId(2L, ProcessedIdType.STACKOVERFLOW_COMMENT.type()),
-                new ProcessedId(3L, ProcessedIdType.STACKOVERFLOW_ANSWER.type()),
-                new ProcessedId(4L, ProcessedIdType.GITHUB_ISSUE.type()));
+            new ProcessedId(1L, ProcessedIdType.GITHUB_PULL_REQUEST.type()),
+            new ProcessedId(2L, ProcessedIdType.STACKOVERFLOW_COMMENT.type()),
+            new ProcessedId(3L, ProcessedIdType.STACKOVERFLOW_ANSWER.type()),
+            new ProcessedId(4L, ProcessedIdType.GITHUB_ISSUE.type()));
         List<ProcessedIdDTO> expected = List.of(
-                new ProcessedIdDTO(1L, ProcessedIdType.GITHUB_PULL_REQUEST),
-                new ProcessedIdDTO(2L, ProcessedIdType.STACKOVERFLOW_COMMENT),
-                new ProcessedIdDTO(3L, ProcessedIdType.STACKOVERFLOW_ANSWER),
-                new ProcessedIdDTO(4L, ProcessedIdType.GITHUB_ISSUE));
+            new ProcessedIdDTO(1L, ProcessedIdType.GITHUB_PULL_REQUEST),
+            new ProcessedIdDTO(2L, ProcessedIdType.STACKOVERFLOW_COMMENT),
+            new ProcessedIdDTO(3L, ProcessedIdType.STACKOVERFLOW_ANSWER),
+            new ProcessedIdDTO(4L, ProcessedIdType.GITHUB_ISSUE));
 
-        when(linkRepository.findByLink(link.toString())).thenReturn(Optional.of(1L));
+        when(dbLinkService.findIdByLink(link.toString())).thenReturn(Optional.of(1L));
         when(processedIdRepository.findAll(1L)).thenReturn(processedIds);
 
-        List<ProcessedIdDTO> allProcessedIds = linkService.findAllProcessedIds(link).stream()
-                .sorted(Comparator.comparing(ProcessedIdDTO::id))
-                .toList();
+        List<ProcessedIdDTO> allProcessedIds = linkOperationProcessor.findAllProcessedIds(link).stream()
+            .sorted(Comparator.comparing(ProcessedIdDTO::id))
+            .toList();
 
         assertNotNull(allProcessedIds);
         assertFalse(allProcessedIds.isEmpty());
@@ -200,9 +196,9 @@ public class JdbcLinkServiceTest {
     public void saveProcessedIds_whenLinkIsNoExists_shouldNotSaveProcessedIds() {
         URI link = URI.create("link");
 
-        when(linkRepository.findByLink(link.toString())).thenReturn(Optional.empty());
+        when(dbLinkService.findIdByLink(link.toString())).thenReturn(Optional.empty());
 
-        linkService.saveProcessedIds(link, List.of());
+        linkOperationProcessor.saveProcessedIds(link, List.of());
 
         verify(processedIdRepository, times(0)).saveAll(anyLong(), any());
     }
@@ -211,9 +207,9 @@ public class JdbcLinkServiceTest {
     public void saveProcessedIds_whenLinkExists_shouldSaveProcessedIds() {
         URI link = URI.create("link");
 
-        when(linkRepository.findByLink(link.toString())).thenReturn(Optional.of(1L));
+        when(dbLinkService.findIdByLink(link.toString())).thenReturn(Optional.of(1L));
 
-        linkService.saveProcessedIds(link, List.of());
+        linkOperationProcessor.saveProcessedIds(link, List.of());
 
         verify(processedIdRepository, times(1)).saveAll(anyLong(), any());
     }
@@ -227,14 +223,14 @@ public class JdbcLinkServiceTest {
         when(clock.getZone()).thenReturn(ZoneOffset.UTC);
         when(config.pageSize()).thenReturn(1);
 
-        when(linkRepository.findAllLinksByUpdatedAt(fixed.minus(duration), 0, 1))
-                .thenReturn(new HashSet<>());
+        when(dbLinkService.findAllLinksByUpdatedAt(fixed.minus(duration), 0, 1))
+            .thenReturn(new HashSet<>());
         when(config.pageSize()).thenReturn(1);
 
-        Set<URI> allLinksByForceCheckDelay = linkService.findAllLinksByForceCheckDelay(duration, 0);
+        Set<URI> allLinksByForceCheckDelay = linkOperationProcessor.findAllLinksByForceCheckDelay(duration, 0);
         assertNotNull(allLinksByForceCheckDelay);
         assertTrue(allLinksByForceCheckDelay.isEmpty());
-        verify(linkRepository, times(1)).findAllLinksByUpdatedAt(fixed.minus(duration), 0, 1);
+        verify(dbLinkService, times(1)).findAllLinksByUpdatedAt(fixed.minus(duration), 0, 1);
     }
 
     @Test
@@ -246,24 +242,24 @@ public class JdbcLinkServiceTest {
         when(clock.getZone()).thenReturn(ZoneOffset.UTC);
         when(config.pageSize()).thenReturn(1);
 
-        when(linkRepository.findAllLinksByUpdatedAt(fixed.minus(duration), 0, 1))
-                .thenReturn(Set.of(URI.create("link")));
+        when(dbLinkService.findAllLinksByUpdatedAt(fixed.minus(duration), 0, 1))
+            .thenReturn(Set.of(URI.create("link")));
         when(config.pageSize()).thenReturn(1);
 
-        Set<URI> allLinksByForceCheckDelay = linkService.findAllLinksByForceCheckDelay(duration, 0);
+        Set<URI> allLinksByForceCheckDelay = linkOperationProcessor.findAllLinksByForceCheckDelay(duration, 0);
         assertNotNull(allLinksByForceCheckDelay);
         assertFalse(allLinksByForceCheckDelay.isEmpty());
-        verify(linkRepository).findAllLinksByUpdatedAt(fixed.minus(duration), 0, 1);
+        verify(dbLinkService).findAllLinksByUpdatedAt(fixed.minus(duration), 0, 1);
     }
 
     @Test
     public void findSubscribedChats_whenLinkSubscribed_shouldReturnSubscribedChats() {
         URI link = URI.create("link");
 
-        when(linkRepository.findByLink(link.toString())).thenReturn(Optional.of(1L));
+        when(dbLinkService.findIdByLink(link.toString())).thenReturn(Optional.of(1L));
         when(linkToChatRepository.findAllByLinkId(1L)).thenReturn(List.of(1L));
 
-        List<Long> subscribedChats = linkService.findSubscribedChats(link);
+        List<Long> subscribedChats = linkOperationProcessor.findSubscribedChats(link);
         assertNotNull(subscribedChats);
         assertFalse(subscribedChats.isEmpty());
         verify(linkToChatRepository, times(1)).findAllByLinkId(1L);
@@ -273,9 +269,9 @@ public class JdbcLinkServiceTest {
     public void findSubscribedChats_whenLinkIsNotSubscribed_shouldReturnEmptyList() {
         URI link = URI.create("link");
 
-        when(linkRepository.findByLink(link.toString())).thenReturn(Optional.empty());
+        when(dbLinkService.findIdByLink(link.toString())).thenReturn(Optional.empty());
 
-        List<Long> subscribedChats = linkService.findSubscribedChats(link);
+        List<Long> subscribedChats = linkOperationProcessor.findSubscribedChats(link);
         assertNotNull(subscribedChats);
         assertTrue(subscribedChats.isEmpty());
         verify(linkToChatRepository, times(0)).findAllByLinkId(1L);

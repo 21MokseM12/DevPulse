@@ -1,4 +1,4 @@
-package backend.academy.scrapper.database;
+package backend.academy.scrapper.service;
 
 import backend.academy.scrapper.model.stackoverflow.ProcessedIdDTO;
 import java.net.URI;
@@ -10,7 +10,7 @@ import scrapper.bot.connectivity.model.request.AddLinkRequest;
 import scrapper.bot.connectivity.model.request.RemoveLinkRequest;
 import scrapper.bot.connectivity.model.response.LinkResponse;
 
-public interface LinkService {
+public interface LinkOperationProcessor {
     List<LinkResponse> findAllByChatId(Long chatId);
 
     Optional<LinkResponse> subscribe(Long chatId, AddLinkRequest link);

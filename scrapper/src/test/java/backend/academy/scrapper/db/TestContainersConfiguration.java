@@ -1,6 +1,5 @@
-package backend.academy.scrapper.database;
+package backend.academy.scrapper.db;
 
-import backend.academy.scrapper.build.spring.processors.SelfAutowiredBeanPostProcessor;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.nio.file.Path;
@@ -15,23 +14,22 @@ import liquibase.database.DatabaseFactory;
 import liquibase.database.jvm.JdbcConnection;
 import liquibase.exception.LiquibaseException;
 import liquibase.resource.DirectoryResourceAccessor;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
-@Import(SelfAutowiredBeanPostProcessor.class)
 public class TestContainersConfiguration {
 
     public static PostgreSQLContainer<?> postgres;
 
     static {
         postgres = new PostgreSQLContainer<>("postgres:17")
-                .withDatabaseName("scrapper")
-                .withUsername("postgres")
-                .withPassword("postgres");
+            .withDatabaseName("scrapper")
+            .withUsername("postgres")
+            .withPassword("postgres")
+            .withCommand("postgres", "-c", "timezone=UTC");
         postgres.start();
 
         try {
@@ -42,14 +40,14 @@ public class TestContainersConfiguration {
     }
 
     private static void runLiquibaseMigrations(PostgreSQLContainer<?> postgres)
-            throws FileNotFoundException, SQLException, LiquibaseException {
+        throws FileNotFoundException, SQLException, LiquibaseException {
         Connection connection =
-                DriverManager.getConnection(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
+            DriverManager.getConnection(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
 
         Database database =
-                DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(connection));
+            DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(connection));
         Path path =
-                new File(".").toPath().toAbsolutePath().getParent().getParent().resolve("migrations");
+            new File(".").toPath().toAbsolutePath().getParent().getParent().resolve("migrations");
         Liquibase liquibase = new Liquibase("master.xml", new DirectoryResourceAccessor(path), database);
         liquibase.update(new Contexts("test"), new LabelExpression());
     }

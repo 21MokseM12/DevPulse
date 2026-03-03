@@ -1,8 +1,8 @@
 package backend.academy.scrapper.service.listeners;
 
-import backend.academy.scrapper.config.DatabaseConfig;
+import backend.academy.scrapper.config.properties.DatabaseProperty;
 import backend.academy.scrapper.config.ScrapperConfig;
-import backend.academy.scrapper.database.LinkService;
+import backend.academy.scrapper.service.LinkOperationProcessor;
 import backend.academy.scrapper.factory.LinkUpdaterServiceFactory;
 import backend.academy.scrapper.model.LinkUpdateDTO;
 import backend.academy.scrapper.model.NotifyUpdateEntity;
@@ -30,11 +30,11 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class LinkUpdateScheduledListener {
 
-    private final LinkService linkService;
+    private final LinkOperationProcessor linkOperationProcessor;
 
     private final ScrapperConfig scrapperConfig;
 
-    private final DatabaseConfig databaseConfig;
+    private final DatabaseProperty databaseProperty;
 
     private final LinkUpdaterServiceFactory updaterFactory;
 
@@ -44,14 +44,14 @@ public class LinkUpdateScheduledListener {
 
     @Autowired
     public LinkUpdateScheduledListener(
-            LinkService linkService,
+            LinkOperationProcessor linkOperationProcessor,
             ScrapperConfig scrapperConfig,
-            DatabaseConfig databaseConfig,
+            DatabaseProperty databaseProperty,
             LinkUpdaterServiceFactory updaterFactory,
             ScrapperHttpNotificationManager notificationManager) {
-        this.linkService = linkService;
+        this.linkOperationProcessor = linkOperationProcessor;
         this.scrapperConfig = scrapperConfig;
-        this.databaseConfig = databaseConfig;
+        this.databaseProperty = databaseProperty;
         this.updaterFactory = updaterFactory;
         this.notificationManager = notificationManager;
     }
@@ -66,10 +66,10 @@ public class LinkUpdateScheduledListener {
         Set<URI> batch;
         int pageNum = 0,
                 batchSize =
-                        databaseConfig.pageSize() / scrapperConfig.scheduler().threadPoolSize();
+                        databaseProperty.pageSize() / scrapperConfig.scheduler().threadPoolSize();
 
         do {
-            batch = linkService.findAllLinksByForceCheckDelay(
+            batch = linkOperationProcessor.findAllLinksByForceCheckDelay(
                     scrapperConfig.scheduler().forceCheckDelay(), pageNum);
             List<CompletableFuture<List<NotifyUpdateEntity>>> futures = new ArrayList<>();
             ListUtils.partition(new ArrayList<>(batch), batchSize).forEach(part -> {
@@ -99,7 +99,7 @@ public class LinkUpdateScheduledListener {
         links.forEach(link -> {
             List<LinkUpdateDTO> response = updaterFactory.get(link).getUpdates(link);
             if (!response.isEmpty()) {
-                List<Long> chatIdsNeededNotify = linkService.findSubscribedChats(link);
+                List<Long> chatIdsNeededNotify = linkOperationProcessor.findSubscribedChats(link);
                 notifyList.add(new NotifyUpdateEntity(link, response, chatIdsNeededNotify));
             }
         });

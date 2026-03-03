@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
-import backend.academy.scrapper.database.LinkService;
+import backend.academy.scrapper.service.LinkOperationProcessor;
 import backend.academy.scrapper.enums.ProcessedIdType;
 import backend.academy.scrapper.model.stackoverflow.ProcessedIdDTO;
 import java.net.URI;
@@ -18,10 +18,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class StackOverflowLinkServiceTest {
+public class StackOverflowLinkOperationProcessorTest {
 
     @Mock
-    private LinkService linkService;
+    private LinkOperationProcessor linkOperationProcessor;
 
     @InjectMocks
     private StackOverflowLinkService stackOverflowLinkService;
@@ -36,7 +36,7 @@ public class StackOverflowLinkServiceTest {
                 new ProcessedIdDTO(3L, ProcessedIdType.STACKOVERFLOW_COMMENT),
                 new ProcessedIdDTO(4L, ProcessedIdType.STACKOVERFLOW_COMMENT));
 
-        when(linkService.findAllProcessedIds(link)).thenReturn(processedIds);
+        when(linkOperationProcessor.findAllProcessedIds(link)).thenReturn(processedIds);
 
         List<Long> processedPullRequestIds = stackOverflowLinkService.getProcessedCommentsIds(link);
         assertNotNull(processedPullRequestIds);
@@ -52,7 +52,7 @@ public class StackOverflowLinkServiceTest {
                 new ProcessedIdDTO(3L, ProcessedIdType.GITHUB_PULL_REQUEST),
                 new ProcessedIdDTO(4L, ProcessedIdType.STACKOVERFLOW_COMMENT));
 
-        when(linkService.findAllProcessedIds(link)).thenReturn(processedIds);
+        when(linkOperationProcessor.findAllProcessedIds(link)).thenReturn(processedIds);
 
         List<Long> processedPullRequestIds = stackOverflowLinkService.getProcessedCommentsIds(link);
         assertNotNull(processedPullRequestIds);
@@ -68,7 +68,7 @@ public class StackOverflowLinkServiceTest {
                 new ProcessedIdDTO(3L, ProcessedIdType.GITHUB_ISSUE),
                 new ProcessedIdDTO(4L, ProcessedIdType.GITHUB_ISSUE));
 
-        when(linkService.findAllProcessedIds(link)).thenReturn(processedIds);
+        when(linkOperationProcessor.findAllProcessedIds(link)).thenReturn(processedIds);
 
         List<Long> processedPullRequestIds = stackOverflowLinkService.getProcessedCommentsIds(link);
         assertNotNull(processedPullRequestIds);
@@ -83,7 +83,7 @@ public class StackOverflowLinkServiceTest {
                 new ProcessedIdDTO(3L, ProcessedIdType.STACKOVERFLOW_ANSWER),
                 new ProcessedIdDTO(4L, ProcessedIdType.STACKOVERFLOW_ANSWER));
 
-        when(linkService.findAllProcessedIds(link)).thenReturn(processedIds);
+        when(linkOperationProcessor.findAllProcessedIds(link)).thenReturn(processedIds);
 
         List<Long> processedPullRequestIds = stackOverflowLinkService.getProcessedAnswersIds(link);
         assertNotNull(processedPullRequestIds);
@@ -99,7 +99,7 @@ public class StackOverflowLinkServiceTest {
                 new ProcessedIdDTO(3L, ProcessedIdType.STACKOVERFLOW_COMMENT),
                 new ProcessedIdDTO(4L, ProcessedIdType.STACKOVERFLOW_ANSWER));
 
-        when(linkService.findAllProcessedIds(link)).thenReturn(processedIds);
+        when(linkOperationProcessor.findAllProcessedIds(link)).thenReturn(processedIds);
 
         List<Long> processedPullRequestIds = stackOverflowLinkService.getProcessedAnswersIds(link);
         assertNotNull(processedPullRequestIds);
@@ -115,7 +115,7 @@ public class StackOverflowLinkServiceTest {
                 new ProcessedIdDTO(3L, ProcessedIdType.GITHUB_PULL_REQUEST),
                 new ProcessedIdDTO(4L, ProcessedIdType.GITHUB_PULL_REQUEST));
 
-        when(linkService.findAllProcessedIds(link)).thenReturn(processedIds);
+        when(linkOperationProcessor.findAllProcessedIds(link)).thenReturn(processedIds);
 
         List<Long> processedPullRequestIds = stackOverflowLinkService.getProcessedAnswersIds(link);
         assertNotNull(processedPullRequestIds);

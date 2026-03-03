@@ -1,10 +1,11 @@
-package backend.academy.scrapper.database.jdbc.repository;
+package backend.academy.scrapper.db.impl.repository;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import backend.academy.scrapper.database.TestContainersConfiguration;
+import backend.academy.scrapper.db.TestContainersConfiguration;
+import backend.academy.scrapper.db.repository.ChatRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
@@ -16,13 +17,13 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
 @JdbcTest
-@Import(JdbcChatRepository.class)
+@Import(ChatRepository.class)
 @ActiveProfiles("test")
 @Sql("classpath:test-init.sql")
-public class JdbcChatRepositoryTest extends TestContainersConfiguration {
+public class ChatRepositoryTest extends TestContainersConfiguration {
 
     @Autowired
-    private JdbcChatRepository repo;
+    private ChatRepository repo;
 
     @Test
     public void whenClientExists_thenReturnTrue() {
