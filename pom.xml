@@ -41,6 +41,9 @@
         <java-telegram-bot-api.version>7.11.0</java-telegram-bot-api.version>
         <wiremock.version>3.10.0</wiremock.version>
 
+        <org.mapstruct.version>1.5.5.Final</org.mapstruct.version>
+        <lombok.version>1.18.36</lombok.version>
+
         <!-- annotations -->
         <jetbrains-annotations.version>26.0.1</jetbrains-annotations.version>
         <checker-qual.version>3.48.3</checker-qual.version>
@@ -192,7 +195,7 @@
                             <path>
                                 <groupId>org.projectlombok</groupId>
                                 <artifactId>lombok</artifactId>
-                                <version>1.18.36</version>
+                                <version>${lombok.version}</version>
                             </path>
                             <path>
                                 <groupId>com.google.errorprone</groupId>
@@ -433,6 +436,38 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <source>23</source>
+                    <target>23</target>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.mapstruct</groupId>
+                            <artifactId>mapstruct-processor</artifactId>
+                            <version>${org.mapstruct.version}</version>
+                        </path>
+
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok-mapstruct-binding</artifactId>
+                            <version>0.2.0</version>
+                        </path>
+                    </annotationProcessorPaths>
+
+                    <compilerArgs>
+                        <arg>-Amapstruct.defaultComponentModel=spring</arg> <!-- для Spring интеграции -->
+                    </compilerArgs>
+                </configuration>
             </plugin>
         </plugins>
     </build>

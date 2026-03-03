@@ -13,7 +13,6 @@ app:
       access-token: ${SO_ACCESS_TOKEN}
     bot-url: http://localhost:8080
   database:
-    access-type: SQL
     page-size: 1000
 
 spring:

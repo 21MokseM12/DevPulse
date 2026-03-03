@@ -11,8 +11,6 @@ app:
       key: stackoverflow-key
       access-token: stackoverflow-access-token
     bot-url: https://example.eu
-  database:
-    access-type: SQL
 
 spring:
   datasource:

@@ -3,7 +3,7 @@ package backend.academy.scrapper.config;
 import backend.academy.scrapper.client.BotClient;
 import backend.academy.scrapper.client.GithubClient;
 import backend.academy.scrapper.client.StackOverflowClient;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestClient;
@@ -11,6 +11,7 @@ import org.springframework.web.client.support.RestClientAdapter;
 import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 
 @Configuration
+@RequiredArgsConstructor
 public class ClientConfig {
 
     private static final String BASE_GITHUB_URL = "https://api.github.com";
@@ -19,8 +20,7 @@ public class ClientConfig {
 
     private static final String BASE_STACKOVERFLOW_URL = "https://api.stackexchange.com/2.3";
 
-    @Autowired
-    private ScrapperConfig scrapperConfig;
+    private final ScrapperConfig scrapperConfig;
 
     @Bean
     public GithubClient githubClient(RestClient.Builder builder) {
