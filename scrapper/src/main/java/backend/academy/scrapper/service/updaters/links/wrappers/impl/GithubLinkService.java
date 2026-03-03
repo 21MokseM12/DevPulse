@@ -1,6 +1,6 @@
 package backend.academy.scrapper.service.updaters.links.wrappers.impl;
 
-import backend.academy.scrapper.database.LinkService;
+import backend.academy.scrapper.service.LinkOperationProcessor;
 import backend.academy.scrapper.enums.ProcessedIdType;
 import backend.academy.scrapper.model.stackoverflow.ProcessedIdDTO;
 import backend.academy.scrapper.service.updaters.links.wrappers.ApiLinkService;
@@ -12,22 +12,22 @@ import org.springframework.stereotype.Service;
 @Service
 public class GithubLinkService implements ApiLinkService {
 
-    private final LinkService linkService;
+    private final LinkOperationProcessor linkOperationProcessor;
 
     @Autowired
-    public GithubLinkService(LinkService linkService) {
-        this.linkService = linkService;
+    public GithubLinkService(LinkOperationProcessor linkOperationProcessor) {
+        this.linkOperationProcessor = linkOperationProcessor;
     }
 
     public List<Long> getProcessedPullRequestIds(URI link) {
-        return linkService.findAllProcessedIds(link).stream()
+        return linkOperationProcessor.findAllProcessedIds(link).stream()
                 .filter(id -> id.type() == ProcessedIdType.GITHUB_PULL_REQUEST)
                 .map(ProcessedIdDTO::id)
                 .toList();
     }
 
     public List<Long> getProcessedIssueIds(URI link) {
-        return linkService.findAllProcessedIds(link).stream()
+        return linkOperationProcessor.findAllProcessedIds(link).stream()
                 .filter(id -> id.type() == ProcessedIdType.GITHUB_ISSUE)
                 .map(ProcessedIdDTO::id)
                 .toList();
@@ -35,6 +35,6 @@ public class GithubLinkService implements ApiLinkService {
 
     @Override
     public void saveProcessedIds(URI link, List<ProcessedIdDTO> nowProcessedIds) {
-        linkService.saveProcessedIds(link, nowProcessedIds);
+        linkOperationProcessor.saveProcessedIds(link, nowProcessedIds);
     }
 }

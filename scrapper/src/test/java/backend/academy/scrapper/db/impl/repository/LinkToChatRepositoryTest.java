@@ -1,4 +1,4 @@
-package backend.academy.scrapper.database.jdbc.repository;
+package backend.academy.scrapper.db.impl.repository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -6,8 +6,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import backend.academy.scrapper.database.TestContainersConfiguration;
+import backend.academy.scrapper.db.TestContainersConfiguration;
 import java.util.List;
+
+import backend.academy.scrapper.db.repository.LinkToChatRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
@@ -19,13 +21,13 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 @JdbcTest
 @Testcontainers
-@Import(JdbcLinkToChatRepository.class)
+@Import(LinkToChatRepository.class)
 @ActiveProfiles("test")
 @Sql("classpath:test-init.sql")
-public class JdbcLinkToChatRepositoryTest extends TestContainersConfiguration {
+public class LinkToChatRepositoryTest extends TestContainersConfiguration {
 
     @Autowired
-    private JdbcLinkToChatRepository repository;
+    private LinkToChatRepository repository;
 
     @Test
     public void subscribeChatOnLink_whenChatIsNotSubscribed_thenReturnTrue() {

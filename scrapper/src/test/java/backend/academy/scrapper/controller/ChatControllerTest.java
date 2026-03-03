@@ -7,7 +7,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import backend.academy.scrapper.database.ChatService;
+import backend.academy.scrapper.service.ChatOperationProcessor;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,16 +26,16 @@ public class ChatControllerTest {
     MockMvc mockMvc;
 
     @MockitoBean
-    private ChatService chatService;
+    private ChatOperationProcessor chatOperationProcessor;
 
     @Test
     public void testRegisterChatSuccessfully() throws Exception {
         Long id = 123L;
-        when(chatService.register(id)).thenReturn(true);
+        when(chatOperationProcessor.register(id)).thenReturn(true);
 
         mockMvc.perform(post("/tg-chat/{id}", id)).andExpect(status().isOk());
 
-        verify(chatService, times(1)).register(id);
+        verify(chatOperationProcessor, times(1)).register(id);
     }
 
     @Test
@@ -43,17 +43,17 @@ public class ChatControllerTest {
         Long id = -1L;
         mockMvc.perform(post("/tg-chat/{id}", id)).andExpect(status().isBadRequest());
 
-        verify(chatService, times(0)).register(id);
+        verify(chatOperationProcessor, times(0)).register(id);
     }
 
     @Test
     public void testUnregisterChatSuccessfully() throws Exception {
         Long id = 123L;
-        when(chatService.unregister(id)).thenReturn(true);
+        when(chatOperationProcessor.unregister(id)).thenReturn(true);
 
         mockMvc.perform(delete("/tg-chat/{id}", id)).andExpect(status().isOk());
 
-        verify(chatService, times(1)).unregister(id);
+        verify(chatOperationProcessor, times(1)).unregister(id);
     }
 
     @Test
@@ -61,15 +61,15 @@ public class ChatControllerTest {
         Long id = -1L;
         mockMvc.perform(delete("/tg-chat/{id}", id)).andExpect(status().isBadRequest());
 
-        verify(chatService, times(0)).unregister(id);
+        verify(chatOperationProcessor, times(0)).unregister(id);
     }
 
     @Test
     public void testUnregisterChatResourceNotFoundException() throws Exception {
         Long id = 123L;
-        when(chatService.unregister(id)).thenReturn(false);
+        when(chatOperationProcessor.unregister(id)).thenReturn(false);
         mockMvc.perform(delete("/tg-chat/{id}", id)).andExpect(status().isNotFound());
 
-        verify(chatService, times(1)).unregister(id);
+        verify(chatOperationProcessor, times(1)).unregister(id);
     }
 }

@@ -1,12 +1,13 @@
-package backend.academy.scrapper.database.jdbc;
+package backend.academy.scrapper.db.impl;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import backend.academy.scrapper.database.jdbc.repository.JdbcChatRepository;
-import backend.academy.scrapper.database.jdbc.repository.JdbcLinkToChatRepository;
+import backend.academy.scrapper.db.repository.ChatRepository;
+import backend.academy.scrapper.db.repository.LinkToChatRepository;
+import backend.academy.scrapper.service.impl.ChatOperationProcessorImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -14,16 +15,16 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class JdbcChatServiceTest {
+class ChatOperationProcessorTest {
 
     @Mock
-    private JdbcChatRepository chatRepository;
+    private ChatRepository chatRepository;
 
     @Mock
-    private JdbcLinkToChatRepository linkToChatRepository;
+    private LinkToChatRepository linkToChatRepository;
 
     @InjectMocks
-    private JdbcChatService chatService;
+    private ChatOperationProcessorImpl chatService;
 
     @Test
     public void testRegistrationClientSuccess() {

@@ -1,11 +1,11 @@
 package backend.academy.scrapper.controller;
 
-import backend.academy.scrapper.database.LinkService;
+import backend.academy.scrapper.service.LinkOperationProcessor;
 import backend.academy.scrapper.exceptions.ResourceNotFoundException;
 import backend.academy.scrapper.service.validators.LinkValidatorManager;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,32 +22,28 @@ import scrapper.bot.connectivity.model.response.ListLinkResponse;
 
 @RestController
 @RequestMapping("/links")
+@RequiredArgsConstructor
 public class LinkController {
 
-    private final LinkService linkService;
+    private static final String CHAT_ID_REQUEST_HEADER = "Tg-Chat-Id";
 
+    private final LinkOperationProcessor linkOperationProcessor;
     private final LinkValidatorManager linkValidatorManager;
 
-    @Autowired
-    public LinkController(LinkService linkService, LinkValidatorManager linkValidatorManager) {
-        this.linkService = linkService;
-        this.linkValidatorManager = linkValidatorManager;
-    }
-
     @GetMapping
-    public ResponseEntity<ListLinkResponse> findAll(@RequestHeader(name = "Tg-Chat-Id") Long chatId) {
-        List<LinkResponse> allByChatId = linkService.findAllByChatId(chatId);
+    public ResponseEntity<ListLinkResponse> findAll(@RequestHeader(name = CHAT_ID_REQUEST_HEADER) Long chatId) {
+        List<LinkResponse> allByChatId = linkOperationProcessor.findAllByChatId(chatId);
         return ResponseEntity.ok(new ListLinkResponse(allByChatId, allByChatId.size()));
     }
 
     @PostMapping
     public ResponseEntity<LinkResponse> subscribeLink(
-            @RequestHeader(name = "Tg-Chat-Id") Long chatId, @RequestBody AddLinkRequest link)
+            @RequestHeader(name = CHAT_ID_REQUEST_HEADER) Long chatId, @RequestBody AddLinkRequest link)
             throws BadRequestException {
         if (!linkValidatorManager.isValidLink(link.link().toString())) {
             throw new BadRequestException("Некорректные параметры запроса");
         }
-        Optional<LinkResponse> optionalLink = linkService.subscribe(chatId, link);
+        Optional<LinkResponse> optionalLink = linkOperationProcessor.subscribe(chatId, link);
         if (optionalLink.isPresent()) {
             return ResponseEntity.ok(
                     optionalLink.orElseThrow(() -> new BadRequestException("Некорректные параметры запроса")));
@@ -58,12 +54,12 @@ public class LinkController {
 
     @DeleteMapping
     public ResponseEntity<LinkResponse> unsubscribeLink(
-            @RequestHeader(name = "Tg-Chat-Id") Long chatId, @RequestBody RemoveLinkRequest uri)
+            @RequestHeader(name = CHAT_ID_REQUEST_HEADER) Long chatId, @RequestBody RemoveLinkRequest uri)
             throws ResourceNotFoundException, BadRequestException {
         if (!linkValidatorManager.isValidLink(uri.link().toString())) {
             throw new BadRequestException("Некорректные параметры запроса");
         }
-        Optional<LinkResponse> optionalLink = linkService.unsubscribe(chatId, uri);
+        Optional<LinkResponse> optionalLink = linkOperationProcessor.unsubscribe(chatId, uri);
         if (optionalLink.isEmpty()) {
             throw new ResourceNotFoundException("Ссылка не найдена");
         }

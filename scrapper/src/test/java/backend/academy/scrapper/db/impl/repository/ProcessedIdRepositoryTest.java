@@ -1,4 +1,4 @@
-package backend.academy.scrapper.database.jdbc.repository;
+package backend.academy.scrapper.db.impl.repository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -6,8 +6,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import backend.academy.scrapper.database.TestContainersConfiguration;
-import backend.academy.scrapper.database.jdbc.model.ProcessedId;
+import backend.academy.scrapper.db.TestContainersConfiguration;
+import backend.academy.scrapper.db.model.ProcessedId;
+import backend.academy.scrapper.db.repository.ProcessedIdRepository;
 import backend.academy.scrapper.enums.ProcessedIdType;
 import backend.academy.scrapper.model.stackoverflow.ProcessedIdDTO;
 import java.util.List;
@@ -24,12 +25,12 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @JdbcTest
 @Testcontainers
 @ActiveProfiles("test")
-@Import({JdbcProcessedIdRepository.class})
+@Import({ProcessedIdRepository.class})
 @Sql("classpath:test-init.sql")
-public class JdbcProcessedIdRepositoryTest extends TestContainersConfiguration {
+public class ProcessedIdRepositoryTest extends TestContainersConfiguration {
 
     @Autowired
-    private JdbcProcessedIdRepository repository;
+    private ProcessedIdRepository repository;
 
     @Test
     public void findAll_whenLinkContainsProcessedIds_shouldReturnProcessedIdsSet() {
