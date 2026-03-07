@@ -14,24 +14,17 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class StackOverflowAnswerUpdateProcessor implements StackOverflowQuestionUpdateProcessor {
 
     private final StackOverflowLinkService linkService;
-
     private final StackOverflowClient stackOverflowClient;
-
-    @Autowired
-    public StackOverflowAnswerUpdateProcessor(
-            StackOverflowLinkService linkService, StackOverflowClient stackOverflowClient) {
-        this.linkService = linkService;
-        this.stackOverflowClient = stackOverflowClient;
-    }
 
     @Override
     public List<LinkUpdateDTO> processUpdates(URI link, Long questionId, StackOverflowQuestionItem question) {

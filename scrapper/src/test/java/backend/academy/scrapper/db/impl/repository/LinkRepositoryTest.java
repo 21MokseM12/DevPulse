@@ -69,21 +69,28 @@ public class LinkRepositoryTest extends TestContainersConfiguration {
 
     @Test
     public void findIdByLink_thatExists_shouldReturnLink() {
-        Optional<Long> linkId = repository.findIdByLink(existingLink);
+        Link expected = new Link(
+            1L,
+            URI.create("https://github.com/21MokseM12/Log-analyzer-Tbank-project"),
+            Set.of(),
+            Set.of(),
+            OffsetDateTime.of(2025, 3, 19, 10, 30, 0, 0, ZoneOffset.UTC)
+        );
+        Optional<Link> linkId = repository.findIdByLink(existingLink);
         assertTrue(linkId.isPresent());
         assertNotNull(linkId.get());
-        assertEquals(1L, linkId.get());
+        assertEquals(expected, linkId.get());
     }
 
     @Test
     public void findIdByLink_thatDoesNotExist_shouldReturnNegativeValue() {
-        Optional<Long> linkId = repository.findIdByLink(notExistingLink);
+        Optional<Link> linkId = repository.findIdByLink(notExistingLink);
         assertTrue(linkId.isEmpty());
     }
 
     @Test
     public void findIdByLink_thatIsNull_shouldReturnEmptyOptional() {
-        Optional<Long> linkId = repository.findIdByLink(null);
+        Optional<Link> linkId = repository.findIdByLink(null);
         assertTrue(linkId.isEmpty());
     }
 

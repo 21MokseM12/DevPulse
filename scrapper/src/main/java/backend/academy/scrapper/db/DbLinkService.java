@@ -11,7 +11,7 @@ import java.util.Set;
 public interface DbLinkService {
     Link saveLink(AddLinkRequest request);
 
-    Optional<Long> findIdByLink(String link);
+    Optional<Link> findByLink(String link);
 
     Optional<Link> findById(Long id);
 

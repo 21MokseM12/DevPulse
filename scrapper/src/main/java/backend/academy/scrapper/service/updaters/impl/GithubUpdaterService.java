@@ -10,29 +10,20 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import scrapper.bot.connectivity.enums.LinkUpdaterType;
 
-@Service
 @Slf4j
+@Service
+@RequiredArgsConstructor
 public class GithubUpdaterService implements LinkUpdater {
 
-    private final GithubLinkParser linkParser;
-
     private final GithubClient githubClient;
-
+    private final GithubLinkParser linkParser;
     private final List<GithubRepoUpdateProcessor> updateProcessors;
-
-    @Autowired
-    public GithubUpdaterService(
-            GithubLinkParser linkParser, GithubClient githubClient, List<GithubRepoUpdateProcessor> updateProcessors) {
-        this.linkParser = linkParser;
-        this.githubClient = githubClient;
-        this.updateProcessors = updateProcessors;
-    }
 
     @Override
     public List<LinkUpdateDTO> getUpdates(URI link) {

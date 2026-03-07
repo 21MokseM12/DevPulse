@@ -11,30 +11,19 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import scrapper.bot.connectivity.enums.LinkUpdaterType;
 
 @Service
+@RequiredArgsConstructor
 public class StackOverflowUpdaterService implements LinkUpdater {
 
     private final StackOverflowClient stackOverflowClient;
-
     private final StackOverflowLinkParser stackOverflowLinkParser;
-
     private final List<StackOverflowQuestionUpdateProcessor> questionUpdateProcessors;
-
-    @Autowired
-    public StackOverflowUpdaterService(
-            StackOverflowClient stackOverflowClient,
-            StackOverflowLinkParser stackOverflowLinkParser,
-            List<StackOverflowQuestionUpdateProcessor> questionUpdateProcessors) {
-        this.stackOverflowClient = stackOverflowClient;
-        this.stackOverflowLinkParser = stackOverflowLinkParser;
-        this.questionUpdateProcessors = questionUpdateProcessors;
-    }
 
     @Override
     public List<LinkUpdateDTO> getUpdates(URI link) {

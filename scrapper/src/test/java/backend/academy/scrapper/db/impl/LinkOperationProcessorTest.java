@@ -104,14 +104,14 @@ public class LinkOperationProcessorTest {
         LinkResponse expected = new LinkResponse(link.id(), link.url(), link.tags(), link.filters());
 
         when(chatRepository.isClient(id)).thenReturn(true);
-        when(dbLinkService.findIdByLink(addLinkRequest.link().toString())).thenReturn(Optional.empty());
+        when(dbLinkService.findByLink(addLinkRequest.link().toString())).thenReturn(Optional.empty());
         when(dbLinkService.saveLink(addLinkRequest)).thenReturn(link);
 
         Optional<LinkResponse> linkResponse = linkOperationProcessor.subscribe(id, addLinkRequest);
         assertTrue(linkResponse.isPresent());
         assertEquals(expected, linkResponse.get());
         verify(chatRepository).isClient(id);
-        verify(dbLinkService).findIdByLink(addLinkRequest.link().toString());
+        verify(dbLinkService).findByLink(addLinkRequest.link().toString());
         verify(dbLinkService).saveLink(addLinkRequest);
         verify(linkToChatRepository).subscribeChatOnLink(id, link.id());
     }
@@ -125,14 +125,14 @@ public class LinkOperationProcessorTest {
         LinkResponse expected = new LinkResponse(link.id(), link.url(), link.tags(), link.filters());
 
         when(chatRepository.isClient(id)).thenReturn(true);
-        when(dbLinkService.findIdByLink(addLinkRequest.link().toString())).thenReturn(Optional.of(linkId));
+        when(dbLinkService.findByLink(addLinkRequest.link().toString())).thenReturn(Optional.of(link));
         when(dbLinkService.findById(linkId)).thenReturn(Optional.of(link));
 
         Optional<LinkResponse> linkResponse = linkOperationProcessor.subscribe(id, addLinkRequest);
         assertTrue(linkResponse.isPresent());
         assertEquals(expected, linkResponse.get());
         verify(chatRepository).isClient(id);
-        verify(dbLinkService).findIdByLink(addLinkRequest.link().toString());
+        verify(dbLinkService).findByLink(addLinkRequest.link().toString());
         verify(dbLinkService).findById(linkId);
         verify(linkToChatRepository).subscribeChatOnLink(id, linkId);
     }
@@ -158,7 +158,7 @@ public class LinkOperationProcessorTest {
     public void findAllProcessedIds_whenLinkIsNoExists_shouldReturnEmptyList() {
         URI link = URI.create("link");
 
-        when(dbLinkService.findIdByLink(link.toString())).thenReturn(Optional.empty());
+        when(dbLinkService.findByLink(link.toString())).thenReturn(Optional.empty());
 
         List<ProcessedIdDTO> allProcessedIds = linkOperationProcessor.findAllProcessedIds(link);
 
@@ -168,7 +168,7 @@ public class LinkOperationProcessorTest {
 
     @Test
     public void findAllProcessedIds_whenLinkExists_shouldReturnProcessedIdsByLink() {
-        URI link = URI.create("link");
+        Link link = new Link(1L, URI.create("link"), Set.of(), Set.of(), OffsetDateTime.MIN);
         Set<ProcessedId> processedIds = Set.of(
             new ProcessedId(1L, ProcessedIdType.GITHUB_PULL_REQUEST.type()),
             new ProcessedId(2L, ProcessedIdType.STACKOVERFLOW_COMMENT.type()),
@@ -180,10 +180,10 @@ public class LinkOperationProcessorTest {
             new ProcessedIdDTO(3L, ProcessedIdType.STACKOVERFLOW_ANSWER),
             new ProcessedIdDTO(4L, ProcessedIdType.GITHUB_ISSUE));
 
-        when(dbLinkService.findIdByLink(link.toString())).thenReturn(Optional.of(1L));
+        when(dbLinkService.findByLink(link.toString())).thenReturn(Optional.of(link));
         when(processedIdRepository.findAll(1L)).thenReturn(processedIds);
 
-        List<ProcessedIdDTO> allProcessedIds = linkOperationProcessor.findAllProcessedIds(link).stream()
+        List<ProcessedIdDTO> allProcessedIds = linkOperationProcessor.findAllProcessedIds(link.url()).stream()
             .sorted(Comparator.comparing(ProcessedIdDTO::id))
             .toList();
 
@@ -196,7 +196,7 @@ public class LinkOperationProcessorTest {
     public void saveProcessedIds_whenLinkIsNoExists_shouldNotSaveProcessedIds() {
         URI link = URI.create("link");
 
-        when(dbLinkService.findIdByLink(link.toString())).thenReturn(Optional.empty());
+        when(dbLinkService.findByLink(link.toString())).thenReturn(Optional.empty());
 
         linkOperationProcessor.saveProcessedIds(link, List.of());
 
@@ -205,11 +205,11 @@ public class LinkOperationProcessorTest {
 
     @Test
     public void saveProcessedIds_whenLinkExists_shouldSaveProcessedIds() {
-        URI link = URI.create("link");
+        Link link = new Link(1L, URI.create("link"), Set.of(), Set.of(), OffsetDateTime.now());
 
-        when(dbLinkService.findIdByLink(link.toString())).thenReturn(Optional.of(1L));
+        when(dbLinkService.findByLink(link.toString())).thenReturn(Optional.of(link));
 
-        linkOperationProcessor.saveProcessedIds(link, List.of());
+        linkOperationProcessor.saveProcessedIds(link.url(), List.of());
 
         verify(processedIdRepository, times(1)).saveAll(anyLong(), any());
     }
@@ -254,12 +254,12 @@ public class LinkOperationProcessorTest {
 
     @Test
     public void findSubscribedChats_whenLinkSubscribed_shouldReturnSubscribedChats() {
-        URI link = URI.create("link");
+        Link link = new Link(1L, URI.create("link"), Set.of(), Set.of(), OffsetDateTime.now());
 
-        when(dbLinkService.findIdByLink(link.toString())).thenReturn(Optional.of(1L));
+        when(dbLinkService.findByLink(link.toString())).thenReturn(Optional.of(link));
         when(linkToChatRepository.findAllByLinkId(1L)).thenReturn(List.of(1L));
 
-        List<Long> subscribedChats = linkOperationProcessor.findSubscribedChats(link);
+        List<Long> subscribedChats = linkOperationProcessor.findSubscribedChats(link.url());
         assertNotNull(subscribedChats);
         assertFalse(subscribedChats.isEmpty());
         verify(linkToChatRepository, times(1)).findAllByLinkId(1L);
@@ -269,7 +269,7 @@ public class LinkOperationProcessorTest {
     public void findSubscribedChats_whenLinkIsNotSubscribed_shouldReturnEmptyList() {
         URI link = URI.create("link");
 
-        when(dbLinkService.findIdByLink(link.toString())).thenReturn(Optional.empty());
+        when(dbLinkService.findByLink(link.toString())).thenReturn(Optional.empty());
 
         List<Long> subscribedChats = linkOperationProcessor.findSubscribedChats(link);
         assertNotNull(subscribedChats);

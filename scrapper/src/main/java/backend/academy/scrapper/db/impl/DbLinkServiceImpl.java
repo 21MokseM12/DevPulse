@@ -25,10 +25,10 @@ import scrapper.bot.connectivity.model.request.AddLinkRequest;
 public class DbLinkServiceImpl implements DbLinkService {
 
     private final Clock clock;
-    private final LinkRepository linkRepository;
-    private final TagRepository tagRepository;
-    private final FilterRepository filterRepository;
     private final LinkMapper mapper;
+    private final TagRepository tagRepository;
+    private final LinkRepository linkRepository;
+    private final FilterRepository filterRepository;
 
     @Override
     @Transactional(rollbackFor = DataAccessException.class)
@@ -43,7 +43,7 @@ public class DbLinkServiceImpl implements DbLinkService {
     }
 
     @Override
-    public Optional<Long> findIdByLink(String link) {
+    public Optional<Link> findByLink(String link) {
         return linkRepository.findIdByLink(link);
     }
 
@@ -61,9 +61,9 @@ public class DbLinkServiceImpl implements DbLinkService {
     @Transactional(rollbackFor = DataAccessException.class)
     public Optional<Link> delete(String link) {
         log.info("Начинается удаление ссылки: {}", link);
-        Optional<Long> optId = linkRepository.findIdByLink(link);
+        Optional<Link> optId = linkRepository.findIdByLink(link);
         if (optId.isPresent()) {
-            Long id = optId.get();
+            Long id = optId.get().id();
             Set<String> tags = tagRepository.deleteByLinkId(id);
             Set<String> filters = filterRepository.deleteByLinkId(id);
             return linkRepository.delete(id)
