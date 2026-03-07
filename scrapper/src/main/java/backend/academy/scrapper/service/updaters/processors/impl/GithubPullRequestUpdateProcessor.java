@@ -10,18 +10,14 @@ import backend.academy.scrapper.service.updaters.links.wrappers.impl.GithubLinkS
 import backend.academy.scrapper.service.updaters.processors.GithubRepoUpdateProcessor;
 import java.net.URI;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class GithubPullRequestUpdateProcessor implements GithubRepoUpdateProcessor {
 
     private final GithubLinkService githubLinkService;
-
-    @Autowired
-    public GithubPullRequestUpdateProcessor(GithubLinkService githubLinkService) {
-        this.githubLinkService = githubLinkService;
-    }
 
     @Override
     public List<LinkUpdateDTO> processUpdates(URI link, List<GithubResponse> updates) {

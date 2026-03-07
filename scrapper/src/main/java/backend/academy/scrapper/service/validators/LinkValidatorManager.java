@@ -1,14 +1,14 @@
 package backend.academy.scrapper.service.validators;
 
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class LinkValidatorManager {
 
-    @Autowired
-    private List<APILinkValidator> validators;
+    private final List<APILinkValidator> validators;
 
     public boolean isValidLink(String link) {
         for (APILinkValidator validator : validators) {

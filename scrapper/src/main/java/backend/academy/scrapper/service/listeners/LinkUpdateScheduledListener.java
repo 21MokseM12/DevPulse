@@ -1,11 +1,11 @@
 package backend.academy.scrapper.service.listeners;
 
-import backend.academy.scrapper.config.properties.DatabaseProperty;
 import backend.academy.scrapper.config.ScrapperConfig;
-import backend.academy.scrapper.service.LinkOperationProcessor;
+import backend.academy.scrapper.config.properties.DatabaseProperty;
 import backend.academy.scrapper.factory.LinkUpdaterServiceFactory;
 import backend.academy.scrapper.model.LinkUpdateDTO;
 import backend.academy.scrapper.model.NotifyUpdateEntity;
+import backend.academy.scrapper.service.LinkOperationProcessor;
 import backend.academy.scrapper.service.notifications.impl.ScrapperHttpNotificationManager;
 import jakarta.annotation.PostConstruct;
 import java.net.URI;
@@ -18,43 +18,26 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @EnableScheduling
-@Slf4j
+@RequiredArgsConstructor
 public class LinkUpdateScheduledListener {
 
-    private final LinkOperationProcessor linkOperationProcessor;
-
     private final ScrapperConfig scrapperConfig;
-
     private final DatabaseProperty databaseProperty;
-
     private final LinkUpdaterServiceFactory updaterFactory;
-
+    private final LinkOperationProcessor linkOperationProcessor;
     private final ScrapperHttpNotificationManager notificationManager;
 
     private ExecutorService executor;
-
-    @Autowired
-    public LinkUpdateScheduledListener(
-            LinkOperationProcessor linkOperationProcessor,
-            ScrapperConfig scrapperConfig,
-            DatabaseProperty databaseProperty,
-            LinkUpdaterServiceFactory updaterFactory,
-            ScrapperHttpNotificationManager notificationManager) {
-        this.linkOperationProcessor = linkOperationProcessor;
-        this.scrapperConfig = scrapperConfig;
-        this.databaseProperty = databaseProperty;
-        this.updaterFactory = updaterFactory;
-        this.notificationManager = notificationManager;
-    }
 
     @PostConstruct
     public void init() {

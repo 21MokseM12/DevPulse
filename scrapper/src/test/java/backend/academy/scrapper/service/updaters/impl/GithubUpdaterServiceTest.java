@@ -37,7 +37,7 @@ public class GithubUpdaterServiceTest {
         githubClient = mock(GithubClient.class);
         processor = mock(GithubRepoUpdateProcessor.class);
         List<GithubRepoUpdateProcessor> processors = List.of(processor);
-        githubUpdaterService = new GithubUpdaterService(githubLinkParser, githubClient, processors);
+        githubUpdaterService = new GithubUpdaterService(githubClient, githubLinkParser, processors);
     }
 
     @Test

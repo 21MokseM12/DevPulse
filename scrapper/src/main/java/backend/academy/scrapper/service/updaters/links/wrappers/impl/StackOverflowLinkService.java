@@ -1,23 +1,19 @@
 package backend.academy.scrapper.service.updaters.links.wrappers.impl;
 
-import backend.academy.scrapper.service.LinkOperationProcessor;
 import backend.academy.scrapper.enums.ProcessedIdType;
 import backend.academy.scrapper.model.stackoverflow.ProcessedIdDTO;
+import backend.academy.scrapper.service.LinkOperationProcessor;
 import backend.academy.scrapper.service.updaters.links.wrappers.ApiLinkService;
 import java.net.URI;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class StackOverflowLinkService implements ApiLinkService {
 
     private final LinkOperationProcessor linkOperationProcessor;
-
-    @Autowired
-    public StackOverflowLinkService(LinkOperationProcessor linkOperationProcessor) {
-        this.linkOperationProcessor = linkOperationProcessor;
-    }
 
     public List<Long> getProcessedCommentsIds(URI link) {
         return linkOperationProcessor.findAllProcessedIds(link).stream()
