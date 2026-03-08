@@ -1,8 +1,8 @@
 package backend.academy.scrapper.db.repository.impl;
 
 import backend.academy.scrapper.db.query.ChatQuery;
-import java.util.Optional;
 import backend.academy.scrapper.db.repository.ChatRepository;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.RowCountCallbackHandler;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;

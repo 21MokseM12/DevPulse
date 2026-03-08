@@ -33,44 +33,69 @@ public class DbLinkServiceImpl implements DbLinkService {
     @Override
     @Transactional(rollbackFor = DataAccessException.class)
     public Link saveLink(AddLinkRequest request) {
-        log.info("Начинается сохранение ссылки по запросу: {}", request);
-        OffsetDateTime createdTime = OffsetDateTime.now(clock);
-        Long linkId = linkRepository.save(request.link().toString(), createdTime);
-        tagRepository.save(request.tags(), linkId);
-        filterRepository.save(request.filters(), linkId);
-        log.info("Ссылка успешно сохранена с id: {}", linkId);
-        return mapper.toLink(request, linkId, createdTime);
+        try {
+            log.info("Начинается сохранение ссылки по запросу: {}", request);
+            OffsetDateTime createdTime = OffsetDateTime.now(clock);
+            Long linkId = linkRepository.save(request.link().toString(), createdTime);
+            tagRepository.save(request.tags(), linkId);
+            filterRepository.save(request.filters(), linkId);
+            log.info("Ссылка успешно сохранена с id: {}", linkId);
+            return mapper.toLink(request, linkId, createdTime);
+        } catch (DataAccessException e) {
+            log.warn("Ошибка при сохранении ссылки по запросу: {}", request);
+            throw e;
+        }
     }
 
     @Override
     public Optional<Link> findByLink(String link) {
-        return linkRepository.findIdByLink(link);
+        try {
+            return linkRepository.findIdByLink(link);
+        } catch (DataAccessException e) {
+            log.warn("Произошла ошибка при поиске ссылки {}: {}", link, e.getMessage());
+            return Optional.empty();
+        }
     }
 
     @Override
     public Optional<Link> findById(Long id) {
-        return linkRepository.findById(id);
+        try {
+            return linkRepository.findById(id);
+        } catch (DataAccessException e) {
+            log.warn("Произошла ошибка при поиске ссылки по id {}: {}", id, e.getMessage());
+            return Optional.empty();
+        }
     }
 
     @Override
     public boolean existsLink(String link) {
-        return linkRepository.existsLink(link);
+        try {
+            return linkRepository.existsLink(link);
+        } catch (DataAccessException e) {
+            log.warn("Произошла ошибка при проверке существования ссылки: {}", link);
+            return false;
+        }
     }
 
     @Override
     @Transactional(rollbackFor = DataAccessException.class)
     public Optional<Link> delete(String link) {
-        log.info("Начинается удаление ссылки: {}", link);
-        Optional<Link> optId = linkRepository.findIdByLink(link);
-        if (optId.isPresent()) {
-            Long id = optId.get().id();
-            Set<String> tags = tagRepository.deleteByLinkId(id);
-            Set<String> filters = filterRepository.deleteByLinkId(id);
-            return linkRepository.delete(id)
-                .map(linkEntity -> mapper.toLink(linkEntity, tags, filters));
+        try {
+            log.info("Начинается удаление ссылки: {}", link);
+            Optional<Link> optId = linkRepository.findIdByLink(link);
+            if (optId.isPresent()) {
+                Long id = optId.get().id();
+                Set<String> tags = tagRepository.deleteByLinkId(id);
+                Set<String> filters = filterRepository.deleteByLinkId(id);
+                return linkRepository.delete(id)
+                    .map(linkEntity -> mapper.toLink(linkEntity, tags, filters));
+            }
+            log.warn("id для ссылки {} не найден", link);
+            return Optional.empty();
+        } catch (DataAccessException e) {
+            log.warn("Произошла ошибка при удалении ссылки {}: {}", link, e.getMessage());
+            return Optional.empty();
         }
-        log.warn("id для ссылки {} не найден", link);
-        return Optional.empty();
     }
 
     @Override
@@ -88,7 +113,12 @@ public class DbLinkServiceImpl implements DbLinkService {
 
     @Override
     public Set<URI> findAllLinksByUpdatedAt(OffsetDateTime highestTimeLimit, int offsetMultiplier, Integer limit) {
-        int offset = offsetMultiplier * limit;
-        return linkRepository.findAllLinksByUpdatedAt(highestTimeLimit, offset, limit);
+        try {
+            int offset = offsetMultiplier * limit;
+            return linkRepository.findAllLinksByUpdatedAt(highestTimeLimit, offset, limit);
+        } catch (DataAccessException e) {
+            log.warn("Произошла ошибка при поиске ссылок по дате обновления: {}", e.getMessage());
+            return Set.of();
+        }
     }
 }

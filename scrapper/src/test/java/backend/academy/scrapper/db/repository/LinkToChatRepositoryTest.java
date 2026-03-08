@@ -1,15 +1,8 @@
-package backend.academy.scrapper.db.impl.repository;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+package backend.academy.scrapper.db.repository;
 
 import backend.academy.scrapper.db.TestContainersConfiguration;
+import backend.academy.scrapper.db.repository.impl.LinkToChatRepositoryImpl;
 import java.util.List;
-
-import backend.academy.scrapper.db.repository.LinkToChatRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
@@ -18,12 +11,17 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @JdbcTest
 @Testcontainers
-@Import(LinkToChatRepository.class)
 @ActiveProfiles("test")
 @Sql("classpath:test-init.sql")
+@Import(LinkToChatRepositoryImpl.class)
 public class LinkToChatRepositoryTest extends TestContainersConfiguration {
 
     @Autowired

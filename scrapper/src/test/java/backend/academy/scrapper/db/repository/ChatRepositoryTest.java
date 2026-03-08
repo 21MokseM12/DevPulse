@@ -1,7 +1,7 @@
-package backend.academy.scrapper.db.impl.repository;
+package backend.academy.scrapper.db.repository;
 
 import backend.academy.scrapper.db.TestContainersConfiguration;
-import backend.academy.scrapper.db.repository.ChatRepository;
+import backend.academy.scrapper.db.repository.impl.ChatRepositoryImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers
 @JdbcTest
-@Import(ChatRepository.class)
+@Import(ChatRepositoryImpl.class)
 @ActiveProfiles("test")
 @Sql("classpath:test-init.sql")
 public class ChatRepositoryTest extends TestContainersConfiguration {

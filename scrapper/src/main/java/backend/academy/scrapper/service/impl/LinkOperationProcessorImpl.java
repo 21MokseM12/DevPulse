@@ -53,25 +53,34 @@ public class LinkOperationProcessorImpl implements LinkOperationProcessor {
     @Transactional
     // todo добавить chatId для вставки на реф в таблицы filters and tags
     public Optional<LinkResponse> subscribe(Long chatId, AddLinkRequest linkRequest) {
-        if (!chatService.isClient(chatId)) {
+        try {
+            if (!chatService.isClient(chatId)) {
+                return Optional.empty();
+            }
+            Optional<Link> optionalLink = linkService.findByLink(linkRequest.link().toString());
+            Link link;
+            if (optionalLink.isEmpty()) {
+                link = linkService.saveLink(linkRequest);
+                chatService.subscribeChatOnLink(chatId, link.id());
+                log.info("Пользователь с id {} подписался на ссылку {}, ссылка добавлена", chatId, link.url().toString());
+            } else {
+                link = optionalLink.get();
+                if (chatService.chatIsSubscribedOnLink(chatId, link.id())) {
+                    log.info("Пользователь с id {} уже подписан на ссылку {}", chatId, link);
+                    return Optional.of(mapper.toLinkResponse(link));
+                }
+                chatService.subscribeChatOnLink(chatId, link.id());
+                log.info("Пользователь с id {} подписался на ссылку {}", chatId, link.url().toString());
+            }
+            return Optional.of(mapper.toLinkResponse(link));
+        } catch (Exception e) {
+            log.error(
+                "Произошла ошибка при подписке на ссылку с клиентом по id {} по запросу: {}",
+                chatId,
+                linkRequest
+            );
             return Optional.empty();
         }
-        Optional<Link> optionalLink = linkService.findByLink(linkRequest.link().toString());
-        Link link;
-        if (optionalLink.isEmpty()) {
-            link = linkService.saveLink(linkRequest);
-            chatService.subscribeChatOnLink(chatId, link.id());
-            log.info("Пользователь с id {} подписался на ссылку {}, ссылка добавлена", chatId, link.url().toString());
-        } else {
-            link = optionalLink.get();
-            if (chatService.chatIsSubscribedOnLink(chatId, link.id())) {
-                log.info("Пользователь с id {} уже подписан на ссылку {}", chatId, link);
-                return Optional.of(mapper.toLinkResponse(link));
-            }
-            chatService.subscribeChatOnLink(chatId, link.id());
-            log.info("Пользователь с id {} подписался на ссылку {}", chatId, link.url().toString());
-        }
-        return Optional.of(mapper.toLinkResponse(link));
     }
 
     @Override

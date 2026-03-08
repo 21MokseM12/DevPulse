@@ -1,8 +1,7 @@
-package backend.academy.scrapper.db.impl;
+package backend.academy.scrapper.service.impl;
 
 import backend.academy.scrapper.db.repository.ChatRepository;
 import backend.academy.scrapper.db.repository.LinkToChatRepository;
-import backend.academy.scrapper.service.impl.ChatOperationProcessorImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

@@ -12,7 +12,6 @@ import scrapper.bot.connectivity.exceptions.BadRequestException;
 import scrapper.bot.connectivity.model.request.AddLinkRequest;
 import scrapper.bot.connectivity.model.request.RemoveLinkRequest;
 import scrapper.bot.connectivity.model.response.LinkResponse;
-import scrapper.bot.connectivity.model.response.ListLinkResponse;
 
 @Slf4j
 @Service
@@ -26,10 +25,9 @@ public class LinkProcessorImpl implements LinkProcessor {
     private final LinkValidatorManager linkValidatorManager;
 
     @Override
-    public ListLinkResponse findAll(Long chatId) {
+    public List<LinkResponse> findAll(Long chatId) {
         log.info("Начинается обработка запроса на поиск ссылок по id чата: {}", chatId);
-        List<LinkResponse> allByChatId = linkOperationProcessor.findAllByChatId(chatId);
-        return new ListLinkResponse(allByChatId, allByChatId.size());
+        return linkOperationProcessor.findAllByChatId(chatId);
     }
 
     @Override

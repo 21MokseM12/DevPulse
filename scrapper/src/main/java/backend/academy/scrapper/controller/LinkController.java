@@ -1,6 +1,7 @@
 package backend.academy.scrapper.controller;
 
 import backend.academy.scrapper.service.LinkProcessor;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -13,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 import scrapper.bot.connectivity.model.request.AddLinkRequest;
 import scrapper.bot.connectivity.model.request.RemoveLinkRequest;
 import scrapper.bot.connectivity.model.response.LinkResponse;
-import scrapper.bot.connectivity.model.response.ListLinkResponse;
 
 @RestController
 @RequestMapping("/links")
@@ -25,7 +25,7 @@ public class LinkController {
     private final LinkProcessor processor;
 
     @GetMapping
-    public ResponseEntity<ListLinkResponse> findAll(@RequestHeader(name = CHAT_ID_REQUEST_HEADER) Long chatId) {
+    public ResponseEntity<List<LinkResponse>> findAll(@RequestHeader(name = CHAT_ID_REQUEST_HEADER) Long chatId) {
         return ResponseEntity.ok(processor.findAll(chatId));
     }
 
