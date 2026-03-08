@@ -6,6 +6,7 @@ import backend.academy.scrapper.service.ChatOperationProcessor;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,7 +47,12 @@ public class ChatOperationProcessorImpl implements ChatOperationProcessor {
 
     @Override
     public boolean isClient(Long id) {
-        return chatRepository.isClient(id);
+        try {
+            return chatRepository.isClient(id);
+        } catch (DataAccessException e) {
+            log.warn("Произошла ошибка при попытке поиска клиента с id {}", id);
+            return false;
+        }
     }
 
     @Override

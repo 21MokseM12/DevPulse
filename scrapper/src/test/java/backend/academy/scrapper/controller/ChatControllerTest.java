@@ -17,9 +17,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(controllers = ChatController.class)
-@RunWith(SpringRunner.class)
 @ActiveProfiles("test")
+@RunWith(SpringRunner.class)
+@WebMvcTest(controllers = ChatController.class)
 public class ChatControllerTest {
 
     @Autowired

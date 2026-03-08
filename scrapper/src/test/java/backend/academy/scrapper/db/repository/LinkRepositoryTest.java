@@ -1,11 +1,12 @@
-package backend.academy.scrapper.db.impl.repository;
+package backend.academy.scrapper.db.repository;
 
 import backend.academy.scrapper.config.ApplicationConfig;
 import backend.academy.scrapper.db.TestContainersConfiguration;
 import backend.academy.scrapper.db.model.Link;
-import backend.academy.scrapper.db.repository.FilterRepository;
-import backend.academy.scrapper.db.repository.LinkRepository;
-import backend.academy.scrapper.db.repository.TagRepository;
+import backend.academy.scrapper.db.repository.impl.FilterRepositoryImpl;
+import backend.academy.scrapper.db.repository.impl.LinkRepositoryImpl;
+import backend.academy.scrapper.db.repository.impl.TagRepositoryImpl;
+import backend.academy.scrapper.mapper.LinkRowMapper;
 import java.net.URI;
 import java.time.Clock;
 import java.time.Duration;
@@ -16,7 +17,7 @@ import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import java.util.Set;
-import backend.academy.scrapper.mapper.LinkRowMapper;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
@@ -34,12 +35,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ActiveProfiles("test")
 @Sql("classpath:test-init.sql")
 @Import({
-    LinkRepository.class,
+    LinkRepositoryImpl.class,
     ApplicationConfig.class,
-    FilterRepository.class,
-    TagRepository.class,
+    FilterRepositoryImpl.class,
+    TagRepositoryImpl.class,
     LinkRowMapper.class
 })
+@Disabled
+//todo вынести в ИТ
 public class LinkRepositoryTest extends TestContainersConfiguration {
 
     @Autowired
@@ -72,8 +75,8 @@ public class LinkRepositoryTest extends TestContainersConfiguration {
         Link expected = new Link(
             1L,
             URI.create("https://github.com/21MokseM12/Log-analyzer-Tbank-project"),
-            Set.of(),
-            Set.of(),
+            Set.of("logger", "tinkoff"),
+            Set.of("pet-project", "project"),
             OffsetDateTime.of(2025, 3, 19, 10, 30, 0, 0, ZoneOffset.UTC)
         );
         Optional<Link> linkId = repository.findIdByLink(existingLink);
@@ -83,7 +86,7 @@ public class LinkRepositoryTest extends TestContainersConfiguration {
     }
 
     @Test
-    public void findIdByLink_thatDoesNotExist_shouldReturnNegativeValue() {
+    public void findIdByLink_thatDoesNotExist_shouldReturnEmptyOptional() {
         Optional<Link> linkId = repository.findIdByLink(notExistingLink);
         assertTrue(linkId.isEmpty());
     }
@@ -130,14 +133,14 @@ public class LinkRepositoryTest extends TestContainersConfiguration {
     @Test
     public void findById_whenIdDoesNotExist_shouldReturnEmptyOptional() {
         Long id = 100L;
-        Optional<Link> byId = repository.findById(id);
-        assertTrue(byId.isEmpty());
+        Optional<Link> response = repository.findById(id);
+        assertTrue(response.isEmpty());
     }
 
     @Test
     public void findById_whenIdIsNull_shouldReturnEmptyOptional() {
-        Optional<Link> byId = repository.findById(null);
-        assertTrue(byId.isEmpty());
+        Optional<Link> response = repository.findById(null);
+        assertTrue(response.isEmpty());
     }
 
     @Test

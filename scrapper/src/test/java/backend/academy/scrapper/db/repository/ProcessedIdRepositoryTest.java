@@ -1,14 +1,8 @@
-package backend.academy.scrapper.db.impl.repository;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+package backend.academy.scrapper.db.repository;
 
 import backend.academy.scrapper.db.TestContainersConfiguration;
 import backend.academy.scrapper.db.model.ProcessedId;
-import backend.academy.scrapper.db.repository.ProcessedIdRepository;
+import backend.academy.scrapper.db.repository.impl.ProcessedIdRepositoryImpl;
 import backend.academy.scrapper.enums.ProcessedIdType;
 import backend.academy.scrapper.model.stackoverflow.ProcessedIdDTO;
 import java.util.List;
@@ -21,11 +15,16 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @JdbcTest
 @Testcontainers
 @ActiveProfiles("test")
-@Import({ProcessedIdRepository.class})
+@Import({ProcessedIdRepositoryImpl.class})
 @Sql("classpath:test-init.sql")
 public class ProcessedIdRepositoryTest extends TestContainersConfiguration {
 
