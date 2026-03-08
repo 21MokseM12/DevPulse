@@ -22,6 +22,9 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers
 public class TestContainersConfiguration {
 
+    private static final String MIGRATIONS_PATH = "scrapper/src/main/resources/db/migrations/";
+    private static final String MIGRATIONS_FILE_NAME = "master.xml";
+
     public static PostgreSQLContainer<?> postgres;
 
     static {
@@ -47,8 +50,8 @@ public class TestContainersConfiguration {
         Database database =
             DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(connection));
         Path path =
-            new File(".").toPath().toAbsolutePath().getParent().getParent().resolve("migrations");
-        Liquibase liquibase = new Liquibase("master.xml", new DirectoryResourceAccessor(path), database);
+            new File(".").toPath().toAbsolutePath().getParent().getParent().resolve(MIGRATIONS_PATH);
+        Liquibase liquibase = new Liquibase(MIGRATIONS_FILE_NAME, new DirectoryResourceAccessor(path), database);
         liquibase.update(new Contexts("test"), new LabelExpression());
     }
 

@@ -1,3 +1,11 @@
+server:
+  port: 8081
+
+springdoc:
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui
+
 app:
   scrapper:
     scheduler:
@@ -5,7 +13,7 @@ app:
       force-check-delay: 30s
       thread-pool-size: 4
     github:
-      token: ${GITHUB_TOKEN} # env variable
+      token: ${GITHUB_TOKEN}
       url: https://api.github.com
     stackoverflow:
       url: https://api.stackexchange.com/2.3
@@ -20,19 +28,9 @@ spring:
     username: ${POSTGRES_USER}
     password: ${POSTGRES_PASSWORD}
     url: ${POSTGRES_URL}
+    driver-class-name: org.postgresql.Driver
   application:
-    name: Scrapper
+    name: backend-processor
   liquibase:
-    enabled: false
-  jpa:
-    hibernate:
-      ddl-auto: validate
-    open-in-view: false
-
-server:
-  port: 8081
-
-springdoc:
-  swagger-ui:
     enabled: true
-    path: /swagger-ui
+    change-log: classpath:db/migrations/master.xml
