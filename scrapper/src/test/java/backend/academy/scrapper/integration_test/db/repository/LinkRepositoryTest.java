@@ -1,7 +1,8 @@
-package backend.academy.scrapper.db.repository;
+package backend.academy.scrapper.integration_test.db.repository;
 
 import backend.academy.scrapper.config.ApplicationConfig;
-import backend.academy.scrapper.db.TestContainersConfiguration;
+import backend.academy.scrapper.db.repository.LinkRepository;
+import backend.academy.scrapper.integration_test.config.TestContainersConfiguration;
 import backend.academy.scrapper.db.model.Link;
 import backend.academy.scrapper.db.repository.impl.FilterRepositoryImpl;
 import backend.academy.scrapper.db.repository.impl.LinkRepositoryImpl;
