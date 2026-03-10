@@ -1,4 +1,4 @@
-package backend.academy.scrapper.db;
+package backend.academy.scrapper.integration_test.config;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -28,13 +28,16 @@ public class TestContainersConfiguration {
     public static PostgreSQLContainer<?> postgres;
 
     static {
+        runPostgres();
+    }
+
+    private static void runPostgres() {
         postgres = new PostgreSQLContainer<>("postgres:17")
             .withDatabaseName("scrapper")
             .withUsername("postgres")
             .withPassword("postgres")
             .withCommand("postgres", "-c", "timezone=UTC");
         postgres.start();
-
         try {
             runLiquibaseMigrations(postgres);
         } catch (LiquibaseException | SQLException | FileNotFoundException e) {
