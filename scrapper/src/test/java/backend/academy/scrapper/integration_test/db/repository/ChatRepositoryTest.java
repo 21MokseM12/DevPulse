@@ -49,7 +49,7 @@ public class ChatRepositoryTest extends TestContainersConfiguration {
     @Test
     public void testSaveClientFailure() {
         Long id = 1L;
-        DuplicateKeyException exception = assertThrows(DuplicateKeyException.class, () -> repo.save(id));
+        assertThrows(DuplicateKeyException.class, () -> repo.save(id));
     }
 
     @Test
