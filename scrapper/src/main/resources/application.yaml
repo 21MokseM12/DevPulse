@@ -23,6 +23,37 @@ app:
   database:
     page-size: 1000
 
+kafka:
+  properties:
+    bootstrap-servers: localhost:9092
+    retry-policy:
+      interval: 1000
+      multiplier: 2.0
+      maxDelay: 10000
+      max-attempts: 3
+      auto-create-topics: true
+    consumer:
+      enable-auto-commit: false
+      ack-mode: manual
+      auto-offset-reset: earliest
+      trusted-packages: "*"
+    producer:
+      client-id: common-kafka-sender
+      enable-idempotence-config: true
+      acks-config: all
+  consumers:
+    client-listener:
+      group-id: client-consumer-group
+      topic: client-listener-topic-request
+      concurrency: 2
+    link-listener:
+      group-id: link-consumer-group
+      topic: link-listener-topic-request
+      concurrency: 2
+  producers:
+    common-sender:
+      topic: link-topic-response
+
 spring:
   datasource:
     username: ${POSTGRES_USER}

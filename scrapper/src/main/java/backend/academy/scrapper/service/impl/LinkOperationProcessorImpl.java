@@ -89,10 +89,12 @@ public class LinkOperationProcessorImpl implements LinkOperationProcessor {
         if (!chatService.isClient(chatId) || !linkService.existsLink(uri.link().toString())) {
             return Optional.empty();
         }
+        Link link = linkService.findByLink(uri.link().toString())
+            .orElseThrow(() -> new LinkNotFoundException("Ссылка " + uri.link() + " не найдена"));
+        chatService.unsubscribe(chatId, link.id());
         Link deletedLink = linkService
             .delete(uri.link().toString())
             .orElseThrow(() -> new LinkNotFoundException("Ссылка " + uri.link() + " не найдена"));
-        chatService.unsubscribe(chatId, deletedLink.id());
         log.info("Пользователь с id {} отписался от ссылки {}", chatId, uri.link());
         return Optional.of(mapper.toLinkResponse(deletedLink));
     }
