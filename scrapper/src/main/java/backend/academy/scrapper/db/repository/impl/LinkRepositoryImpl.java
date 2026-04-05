@@ -4,6 +4,7 @@ import backend.academy.scrapper.db.model.Link;
 import backend.academy.scrapper.db.query.LinkQuery;
 import java.net.URI;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -33,7 +34,7 @@ public class LinkRepositoryImpl implements LinkRepository {
             LinkQuery.INSERT.query(),
             new MapSqlParameterSource()
                 .addValue(LINK, link)
-                .addValue(UPDATED_AT, createdTime),
+                .addValue(UPDATED_AT, createdTime.withOffsetSameInstant(ZoneOffset.UTC).toLocalDateTime()),
             Long.class
         );
     }
@@ -78,7 +79,7 @@ public class LinkRepositoryImpl implements LinkRepository {
         return jdbcTemplate.queryForList(
                 LinkQuery.SELECT_BY_UPDATED_AT.query(),
                 new MapSqlParameterSource()
-                    .addValue(TIME_LIMIT, highestTimeLimit.toLocalDateTime())
+                    .addValue(TIME_LIMIT, highestTimeLimit.withOffsetSameInstant(ZoneOffset.UTC).toLocalDateTime())
                     .addValue(OFFSET, offset)
                     .addValue(LIMIT, limit),
                 String.class

@@ -14,6 +14,7 @@ import scrapper.bot.connectivity.model.response.LinkResponse;
 @Component
 public class LinkResponseCapture {
 
+    public static final String LISTENER_ID = "link-response-test-capture-listener";
     private static final TypeReference<List<LinkResponse>> TYPE_REF = new TypeReference<>() {};
 
     private final ObjectMapper objectMapper;
@@ -24,8 +25,9 @@ public class LinkResponseCapture {
     }
 
     @KafkaListener(
+        id = LISTENER_ID,
         topics = "${kafka.producers.common-sender.topic}",
-        groupId = "link-response-test-capture",
+        groupId = "#{T(java.util.UUID).randomUUID().toString()}",
         containerFactory = CommonKafkaConfig.STRING_VALUE_CONTAINER_FACTORY
     )
     public void capture(String message, org.springframework.kafka.support.Acknowledgment ack) {

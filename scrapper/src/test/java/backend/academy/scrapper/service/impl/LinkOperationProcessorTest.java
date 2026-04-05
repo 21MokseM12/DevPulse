@@ -169,6 +169,7 @@ public class LinkOperationProcessorTest {
         LinkResponse linkResponse = new LinkResponse(1L, URI.create("uri"), Set.of(), Set.of());
         when(chatService.isClient(id)).thenReturn(true);
         when(dbLinkService.existsLink(removeLinkRequest.link().toString())).thenReturn(true);
+        when(dbLinkService.findByLink(removeLinkRequest.link().toString())).thenReturn(Optional.of(link));
         when(dbLinkService.delete(removeLinkRequest.link().toString())).thenReturn(Optional.of(link));
         when(mapper.toLinkResponse(any())).thenAnswer(invocation -> {
             Link argument = invocation.getArgument(0);

@@ -1,68 +1,67 @@
 package backend.academy.scrapper.integration_test.db.repository;
 
 import backend.academy.scrapper.db.repository.ChatRepository;
-import backend.academy.scrapper.integration_test.config.TestContainersConfiguration;
 import backend.academy.scrapper.db.repository.impl.ChatRepositoryImpl;
+import backend.academy.scrapper.integration_test.config.TestContainersConfiguration;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@Testcontainers
 @JdbcTest
-@Import(ChatRepositoryImpl.class)
+@Testcontainers
 @ActiveProfiles("test")
-@Sql("classpath:test-init.sql")
+@Import(ChatRepositoryImpl.class)
 public class ChatRepositoryTest extends TestContainersConfiguration {
 
     @Autowired
-    private ChatRepository repo;
+    private ChatRepository repository;
 
     @Test
-    public void whenClientExists_thenReturnTrue() {
-        Long id = 123L;
-        boolean exist = repo.isClient(id);
-        assertTrue(exist);
+    public void save_whenClientDoesNotExist_thenClientIsStored() {
+        Long id = 10101L;
+
+        repository.save(id);
+
+        assertTrue(repository.isClient(id));
     }
 
     @Test
-    public void whenClientDoesNotExist_thenReturnFalse() {
-        Long id = 456L;
-        boolean exist = repo.isClient(id);
-        assertFalse(exist);
+    public void save_whenClientAlreadyExists_thenThrowsDuplicateKeyException() {
+        Long id = 10102L;
+        repository.save(id);
+
+        assertThrows(DuplicateKeyException.class, () -> repository.save(id));
     }
 
     @Test
-    public void testSaveClientSuccess() {
-        Long id = 9L;
-        repo.save(id);
-        assertTrue(repo.isClient(id));
-    }
+    public void delete_whenClientExists_thenReturnsTrueAndRemovesClient() {
+        Long id = 10103L;
+        repository.save(id);
 
-    @Test
-    public void testSaveClientFailure() {
-        Long id = 1L;
-        assertThrows(DuplicateKeyException.class, () -> repo.save(id));
-    }
+        boolean deleted = repository.delete(id);
 
-    @Test
-    public void testDeleteClientSuccess() {
-        Long id = 1L;
-        boolean deleted = repo.delete(id);
         assertTrue(deleted);
+        assertFalse(repository.isClient(id));
     }
 
     @Test
-    public void testDeleteClientFailure() {
-        Long id = 12345L;
-        boolean deleted = repo.delete(id);
+    public void delete_whenClientDoesNotExist_thenReturnsFalse() {
+        Long id = 10104L;
+
+        boolean deleted = repository.delete(id);
+
         assertFalse(deleted);
+    }
+
+    @Test
+    public void isClient_whenIdIsNull_thenReturnsFalse() {
+        assertFalse(repository.isClient(null));
     }
 }

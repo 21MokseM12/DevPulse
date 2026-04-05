@@ -13,6 +13,9 @@ app:
     bot-url: https://example.eu
 
 spring:
+  task:
+    scheduling:
+      enabled: false
   datasource:
     url: jdbc:postgresql://localhost:5432/local
     username: postgres
