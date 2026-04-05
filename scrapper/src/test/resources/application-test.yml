@@ -13,8 +13,11 @@ app:
     bot-url: https://example.eu
 
 spring:
+  task:
+    scheduling:
+      enabled: false
   datasource:
-    url: jdbc:postgresql-17://localhost:5432/local
+    url: jdbc:postgresql://localhost:5432/local
     username: postgres
     password: test
     driver-class-name: org.postgresql.Driver
