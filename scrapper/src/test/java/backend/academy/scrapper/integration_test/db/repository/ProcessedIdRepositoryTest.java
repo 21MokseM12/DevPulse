@@ -1,11 +1,13 @@
 package backend.academy.scrapper.integration_test.db.repository;
 
-import backend.academy.scrapper.db.repository.ProcessedIdRepository;
-import backend.academy.scrapper.integration_test.config.TestContainersConfiguration;
 import backend.academy.scrapper.db.model.ProcessedId;
+import backend.academy.scrapper.db.repository.ProcessedIdRepository;
 import backend.academy.scrapper.db.repository.impl.ProcessedIdRepositoryImpl;
 import backend.academy.scrapper.enums.ProcessedIdType;
+import backend.academy.scrapper.integration_test.config.TestContainersConfiguration;
 import backend.academy.scrapper.model.stackoverflow.ProcessedIdDTO;
+import java.sql.Timestamp;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
@@ -13,88 +15,106 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @JdbcTest
 @Testcontainers
 @ActiveProfiles("test")
-@Import({ProcessedIdRepositoryImpl.class})
-@Sql("classpath:test-init.sql")
+@Import(ProcessedIdRepositoryImpl.class)
 public class ProcessedIdRepositoryTest extends TestContainersConfiguration {
 
     @Autowired
     private ProcessedIdRepository repository;
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @Test
-    public void findAll_whenLinkContainsProcessedIds_shouldReturnProcessedIdsSet() {
-        Set<ProcessedId> processedIds = repository.findAll(1L);
+    public void findAll_whenLinkHasNoProcessedIds_thenReturnsEmptySet() {
+        Long linkId = createLink("https://processed.example/empty");
 
-        assertNotNull(processedIds);
-        assertFalse(processedIds.isEmpty());
-        assertEquals(4, processedIds.size());
-    }
+        Set<ProcessedId> processedIds = repository.findAll(linkId);
 
-    @Test
-    public void findAll_whenLinkDoesNotContainProcessedIds_shouldReturnEmptySet() {
-        Set<ProcessedId> processedIds = repository.findAll(3L);
-
-        assertNotNull(processedIds);
         assertTrue(processedIds.isEmpty());
     }
 
     @Test
-    public void saveAll_whenLinkNotContainsProcessedIds_shouldSaveAllViaLink() {
-        List<ProcessedIdDTO> nowProcessedIds = List.of(
-                new ProcessedIdDTO(34L, ProcessedIdType.STACKOVERFLOW_ANSWER),
-                new ProcessedIdDTO(37L, ProcessedIdType.STACKOVERFLOW_COMMENT));
+    public void saveAll_whenValidPayload_thenAllEntriesArePersisted() {
+        Long linkId = createLink("https://processed.example/1");
+        List<ProcessedIdDTO> payload = List.of(
+            new ProcessedIdDTO(34L, ProcessedIdType.STACKOVERFLOW_ANSWER),
+            new ProcessedIdDTO(35L, ProcessedIdType.STACKOVERFLOW_COMMENT),
+            new ProcessedIdDTO(36L, ProcessedIdType.GITHUB_ISSUE)
+        );
 
-        repository.saveAll(4L, nowProcessedIds);
+        repository.saveAll(linkId, payload);
 
-        Set<ProcessedId> processedIds = repository.findAll(4L);
-        assertNotNull(processedIds);
-        assertFalse(processedIds.isEmpty());
-        assertEquals(nowProcessedIds.size(), processedIds.size());
+        Set<ProcessedId> actual = repository.findAll(linkId);
+        assertEquals(
+            Set.of(
+                new ProcessedId(34L, ProcessedIdType.STACKOVERFLOW_ANSWER.type()),
+                new ProcessedId(35L, ProcessedIdType.STACKOVERFLOW_COMMENT.type()),
+                new ProcessedId(36L, ProcessedIdType.GITHUB_ISSUE.type())
+            ),
+            actual
+        );
     }
 
     @Test
-    public void saveAll_whenLinkContainsProcessedIds_shouldSaveAllViaLink() {
-        List<ProcessedIdDTO> nowProcessedIds = List.of(
-                new ProcessedIdDTO(38L, ProcessedIdType.STACKOVERFLOW_ANSWER),
-                new ProcessedIdDTO(37L, ProcessedIdType.STACKOVERFLOW_COMMENT));
+    public void saveAll_whenPayloadIsEmpty_thenDoesNothing() {
+        Long linkId = createLink("https://processed.example/2");
 
-        repository.saveAll(2L, nowProcessedIds);
+        repository.saveAll(linkId, List.of());
 
-        Set<ProcessedId> processedIds = repository.findAll(2L);
-        assertNotNull(processedIds);
-        assertFalse(processedIds.isEmpty());
-        assertEquals(5, processedIds.size());
+        assertTrue(repository.findAll(linkId).isEmpty());
     }
 
     @Test
-    public void saveAll_whenSaveEqualsProcessedIdEntity_thenDoNotShouldSaveIt() {
-        List<ProcessedIdDTO> nowProcessedIds = List.of(new ProcessedIdDTO(34L, ProcessedIdType.GITHUB_PULL_REQUEST));
+    public void saveAll_whenPayloadContainsDuplicates_thenStoresEachRow() {
+        Long linkId = createLink("https://processed.example/3");
+        List<ProcessedIdDTO> payload = List.of(
+            new ProcessedIdDTO(77L, ProcessedIdType.GITHUB_PULL_REQUEST),
+            new ProcessedIdDTO(77L, ProcessedIdType.GITHUB_PULL_REQUEST)
+        );
 
-        repository.saveAll(1L, nowProcessedIds);
+        repository.saveAll(linkId, payload);
 
-        Set<ProcessedId> processedIds = repository.findAll(1L);
-        assertNotNull(processedIds);
-        assertFalse(processedIds.isEmpty());
-        assertEquals(4, processedIds.size());
+        Integer count = jdbcTemplate.queryForObject(
+            "select count(*) from processed_ids where link_id = ? and processed_id = ? and type = ?",
+            Integer.class,
+            linkId,
+            77L,
+            ProcessedIdType.GITHUB_PULL_REQUEST.type()
+        );
+        assertEquals(2, count);
     }
 
     @Test
-    public void saveAll_whenLinkIdDoesNotExist_shouldThrowException() {
-        List<ProcessedIdDTO> nowProcessedIds = List.of(
-                new ProcessedIdDTO(34L, ProcessedIdType.STACKOVERFLOW_ANSWER),
-                new ProcessedIdDTO(37L, ProcessedIdType.STACKOVERFLOW_COMMENT));
+    public void saveAll_whenLinkIdDoesNotExist_thenThrowsDataIntegrityViolationException() {
+        List<ProcessedIdDTO> payload = List.of(
+            new ProcessedIdDTO(34L, ProcessedIdType.STACKOVERFLOW_ANSWER)
+        );
 
-        assertThrows(DataIntegrityViolationException.class, () -> repository.saveAll(100L, nowProcessedIds));
+        assertThrows(DataIntegrityViolationException.class, () -> repository.saveAll(Long.MAX_VALUE, payload));
+    }
+
+    @Test
+    public void saveAll_whenPayloadIsNull_thenThrowsNullPointerException() {
+        Long linkId = createLink("https://processed.example/4");
+
+        assertThrows(NullPointerException.class, () -> repository.saveAll(linkId, null));
+    }
+
+    private Long createLink(String url) {
+        return jdbcTemplate.queryForObject(
+            "insert into links (link, updated_at) values (?, ?) returning id",
+            Long.class,
+            url,
+            Timestamp.from(OffsetDateTime.now().toInstant())
+        );
     }
 }

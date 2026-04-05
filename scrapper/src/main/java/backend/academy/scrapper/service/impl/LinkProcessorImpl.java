@@ -5,6 +5,7 @@ import backend.academy.scrapper.service.LinkOperationProcessor;
 import backend.academy.scrapper.service.LinkProcessor;
 import backend.academy.scrapper.service.validators.LinkValidatorManager;
 import java.util.List;
+import org.springframework.lang.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,13 +26,13 @@ public class LinkProcessorImpl implements LinkProcessor {
     private final LinkValidatorManager linkValidatorManager;
 
     @Override
-    public List<LinkResponse> findAll(Long chatId) {
+    public List<LinkResponse> findAll(@NonNull Long chatId) {
         log.info("Начинается обработка запроса на поиск ссылок по id чата: {}", chatId);
         return linkOperationProcessor.findAllByChatId(chatId);
     }
 
     @Override
-    public LinkResponse subscribeLink(Long chatId, AddLinkRequest request) {
+    public LinkResponse subscribeLink(@NonNull Long chatId, @NonNull AddLinkRequest request) {
         if (!linkValidatorManager.isValidLink(request.link().toString())) {
             log.warn("По id {} передан невалидный запрос на подписку: {}", chatId, request);
             throw new BadRequestException(BAD_REQUEST_MESSAGE);
@@ -42,7 +43,7 @@ public class LinkProcessorImpl implements LinkProcessor {
     }
 
     @Override
-    public LinkResponse unsubscribeLink(Long chatId, RemoveLinkRequest request) {
+    public LinkResponse unsubscribeLink(@NonNull Long chatId, @NonNull RemoveLinkRequest request) {
         if (!linkValidatorManager.isValidLink(request.link().toString())) {
             log.warn("По id {} передан невалидный запрос на отписку: {}", chatId, request);
             throw new BadRequestException(BAD_REQUEST_MESSAGE);

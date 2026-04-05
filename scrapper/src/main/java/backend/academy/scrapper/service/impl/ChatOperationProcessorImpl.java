@@ -7,6 +7,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,7 +21,7 @@ public class ChatOperationProcessorImpl implements ChatOperationProcessor {
 
     @Override
     @Transactional
-    public boolean register(Long id) {
+    public boolean register(@NonNull Long id) {
         if (!chatRepository.isClient(id)) {
             chatRepository.save(id);
             log.info("Клиент с id {} успешно зарегистрирован", id);
@@ -33,7 +34,7 @@ public class ChatOperationProcessorImpl implements ChatOperationProcessor {
 
     @Override
     @Transactional
-    public boolean unregister(Long id) {
+    public boolean unregister(@NonNull Long id) {
         if (chatRepository.isClient(id)) {
             linkToChatRepository.unsubscribeAll(id);
             chatRepository.delete(id);
