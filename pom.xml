@@ -425,6 +425,7 @@
                 <executions>
                     <execution>
                         <id>jacoco-report</id>
+                        <phase>package</phase>
                         <goals>
                             <goal>report</goal>
                         </goals>
