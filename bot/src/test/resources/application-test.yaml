@@ -1,3 +1,2 @@
 app:
-  telegram-token: simple-token-example
   scrapper-url: "https://api.github.com"

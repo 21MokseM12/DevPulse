@@ -1,24 +1,18 @@
 package backend.academy.bot.service.notifications;
 
-import com.pengrad.telegrambot.TelegramBot;
-import com.pengrad.telegrambot.request.SendMessage;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import scrapper.bot.connectivity.model.LinkUpdate;
 
 @Service
+@Slf4j
 public class BotNotificationManager {
 
-    @Autowired(required = false)
-    private TelegramBot bot;
-
     public void notify(LinkUpdate update) {
-        if (bot == null) {
-            return;
-        }
-        update.tgChatIds().forEach(id -> {
-            bot.execute(new SendMessage(
-                    id, "Произошли обновления по ссылке: ".concat(update.url().toString())));
-        });
+        //todo сделать отправку сообщения к приложению
+        log.info(
+                "Telegram integration is removed. Skipping notification dispatch for url={} and chatIds={}",
+                update.url(),
+                update.tgChatIds());
     }
 }

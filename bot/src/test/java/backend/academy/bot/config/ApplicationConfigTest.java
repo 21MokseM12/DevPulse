@@ -22,6 +22,5 @@ public class ApplicationConfigTest {
     @Test
     public void testLoadYamlConfiguration() {
         assertThat(applicationConfig.scrapperUrl()).isEqualTo("https://api.github.com");
-        assertThat(applicationConfig.telegramToken()).isEqualTo("simple-token-example");
     }
 }

@@ -142,10 +142,6 @@ public class ScrapperConnectionService {
         }
     }
 
-    public LinkResponse subscribeLink(Long chatId, LinkDTO linkDTO) throws BadRequestException {
-        return subscribeLink(String.valueOf(chatId), String.valueOf(chatId), linkDTO);
-    }
-
     public boolean unsubscribeLink(String login, String password, List<LinkResponse> subscribedLinks, Long linkId) {
         URI uri = subscribedLinks.stream()
                 .filter(l -> Objects.equals(l.id(), linkId))

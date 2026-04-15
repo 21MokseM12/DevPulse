@@ -7,8 +7,6 @@ springdoc:
     path: /swagger-ui
 
 app:
-  telegram-enabled: false
-  telegram-token: ${TELEGRAM_TOKEN:}
   scrapper-url: ${SCRAPPER_URL}
 
 spring:
