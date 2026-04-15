@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import scrapper.bot.connectivity.exceptions.BadRequestException;
 
@@ -81,11 +82,13 @@ class TrackCommandManagerTest {
         when(trackSessionManager.hasSession(CHAT_ID)).thenReturn(true);
         when(trackSessionManager.getSession(CHAT_ID)).thenReturn(TrackCommandStates.LINK);
 
-        mockStatic(LinkValidator.class)
-                .when(() -> LinkValidator.isValid(request.getData()))
-                .thenReturn(true);
-
-        SendMessage response = trackCommandManager.createReply(request);
+        SendMessage response;
+        try (MockedStatic<LinkValidator> linkValidatorMockedStatic = mockStatic(LinkValidator.class)) {
+            linkValidatorMockedStatic
+                    .when(() -> LinkValidator.isValid(request.getData()))
+                    .thenReturn(true);
+            response = trackCommandManager.createReply(request);
+        }
 
         assertEquals(
                 TrackCommandStates.TAGS.successMessage(),

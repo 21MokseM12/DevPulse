@@ -24,10 +24,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import scrapper.bot.connectivity.exceptions.BadRequestException;
+import scrapper.bot.connectivity.model.request.ClientCredentialsRequest;
 import scrapper.bot.connectivity.model.request.RemoveLinkRequest;
 import scrapper.bot.connectivity.model.response.ApiErrorResponse;
 import scrapper.bot.connectivity.model.response.LinkResponse;
-import scrapper.bot.connectivity.model.response.ListLinkResponse;
 
 @ExtendWith(MockitoExtension.class)
 public class ScrapperConnectionServiceTest {
@@ -42,14 +42,17 @@ public class ScrapperConnectionServiceTest {
     private ScrapperConnectionService scrapperConnectionService;
 
     private final Long chatId = 123L;
+    private final String login = String.valueOf(chatId);
+    private final String password = String.valueOf(chatId);
 
     @Test
     void registerChat_Success() throws BadRequestException {
-        when(chatClient.registerChat(chatId)).thenReturn(ResponseEntity.ok().build());
+        when(chatClient.registerChat(new ClientCredentialsRequest(login, password)))
+                .thenReturn(ResponseEntity.ok().build());
 
         scrapperConnectionService.registerChat(chatId);
 
-        verify(chatClient, times(1)).registerChat(chatId);
+        verify(chatClient, times(1)).registerChat(new ClientCredentialsRequest(login, password));
     }
 
     @Test
@@ -58,22 +61,23 @@ public class ScrapperConnectionServiceTest {
                 new ApiErrorResponse("Invalid request", "400", "BadRequestException", "Bad request", List.of());
         doReturn(ResponseEntity.badRequest().body(errorResponse))
                 .when(chatClient)
-                .registerChat(chatId);
+                .registerChat(new ClientCredentialsRequest(login, password));
 
         BadRequestException exception =
                 assertThrows(BadRequestException.class, () -> scrapperConnectionService.registerChat(chatId));
 
         assertEquals(Messages.INVALID_MESSAGE.toString(), exception.getMessage());
-        verify(chatClient, times(1)).registerChat(chatId);
+        verify(chatClient, times(1)).registerChat(new ClientCredentialsRequest(login, password));
     }
 
     @Test
     void unregisterChat_Success() throws BadRequestException {
-        when(chatClient.unregisterChat(chatId)).thenReturn(ResponseEntity.ok().build());
+        when(chatClient.unregisterChat(new ClientCredentialsRequest(login, password)))
+                .thenReturn(ResponseEntity.ok().build());
 
         scrapperConnectionService.unregisterChat(chatId);
 
-        verify(chatClient, times(1)).unregisterChat(chatId);
+        verify(chatClient, times(1)).unregisterChat(new ClientCredentialsRequest(login, password));
     }
 
     @Test
@@ -82,13 +86,13 @@ public class ScrapperConnectionServiceTest {
                 new ApiErrorResponse("Invalid request", "400", "BadRequestException", "Bad request", List.of());
         doReturn(ResponseEntity.badRequest().body(errorResponse))
                 .when(chatClient)
-                .unregisterChat(chatId);
+                .unregisterChat(new ClientCredentialsRequest(login, password));
 
         BadRequestException exception =
                 assertThrows(BadRequestException.class, () -> scrapperConnectionService.unregisterChat(chatId));
 
         assertEquals(Messages.INVALID_MESSAGE.toString(), exception.getMessage());
-        verify(chatClient, times(1)).unregisterChat(chatId);
+        verify(chatClient, times(1)).unregisterChat(new ClientCredentialsRequest(login, password));
     }
 
     @Test
@@ -97,26 +101,26 @@ public class ScrapperConnectionServiceTest {
                 new ApiErrorResponse("Chat not found", "404", "ResourceNotFoundException", "Not found", List.of());
         doReturn(ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse))
                 .when(chatClient)
-                .unregisterChat(chatId);
+                .unregisterChat(new ClientCredentialsRequest(login, password));
 
         ChatNotFoundException exception =
                 assertThrows(ChatNotFoundException.class, () -> scrapperConnectionService.unregisterChat(chatId));
 
         assertEquals(Messages.ERROR.toString(), exception.getMessage());
-        verify(chatClient, times(1)).unregisterChat(chatId);
+        verify(chatClient, times(1)).unregisterChat(new ClientCredentialsRequest(login, password));
     }
 
     @Test
     void getAllLinks_Success() throws BadRequestException {
-        ListLinkResponse listLinkResponse = new ListLinkResponse(
-                List.of(new LinkResponse(1L, URI.create("https://example.com"), Set.of(), Set.of())), 1);
-        doReturn(ResponseEntity.ok().body(listLinkResponse)).when(linkClient).getAllLinks(chatId);
+        List<LinkResponse> listLinkResponse =
+                List.of(new LinkResponse(1L, URI.create("https://example.com"), Set.of(), Set.of()));
+        doReturn(ResponseEntity.ok().body(listLinkResponse)).when(linkClient).getAllLinks(login, password);
 
         List<LinkResponse> result = scrapperConnectionService.getAllLinks(chatId);
 
         assertEquals(listLinkResponse.size(), result.size());
-        assertEquals(listLinkResponse.links(), result);
-        verify(linkClient, times(1)).getAllLinks(chatId);
+        assertEquals(listLinkResponse, result);
+        verify(linkClient, times(1)).getAllLinks(login, password);
     }
 
     @Test
@@ -125,13 +129,13 @@ public class ScrapperConnectionServiceTest {
                 new ApiErrorResponse("Invalid request", "400", "BadRequestException", "Bad request", List.of());
         doReturn(ResponseEntity.badRequest().body(errorResponse))
                 .when(linkClient)
-                .getAllLinks(chatId);
+                .getAllLinks(login, password);
 
         BadRequestException exception =
                 assertThrows(BadRequestException.class, () -> scrapperConnectionService.getAllLinks(chatId));
 
         assertEquals(Messages.INVALID_MESSAGE.toString(), exception.getMessage());
-        verify(linkClient, times(1)).getAllLinks(chatId);
+        verify(linkClient, times(1)).getAllLinks(login, password);
     }
 
     @Test
@@ -140,12 +144,14 @@ public class ScrapperConnectionServiceTest {
         List<LinkResponse> subscribedLinks = List.of(linkResponse);
         RemoveLinkRequest removeLinkRequest = new RemoveLinkRequest(URI.create("https://example.com"));
 
-        doReturn(ResponseEntity.ok(linkResponse)).when(linkClient).unsubscribeLink(chatId, removeLinkRequest);
+        doReturn(ResponseEntity.ok(linkResponse))
+                .when(linkClient)
+                .unsubscribeLink(login, password, removeLinkRequest);
 
         boolean result = scrapperConnectionService.unsubscribeLink(chatId, subscribedLinks, 1L);
 
         assertTrue(result);
-        verify(linkClient, times(1)).unsubscribeLink(chatId, removeLinkRequest);
+        verify(linkClient, times(1)).unsubscribeLink(login, password, removeLinkRequest);
     }
 
     @Test
@@ -158,12 +164,12 @@ public class ScrapperConnectionServiceTest {
 
         doReturn(ResponseEntity.badRequest().body(errorResponse))
                 .when(linkClient)
-                .unsubscribeLink(chatId, removeLinkRequest);
+                .unsubscribeLink(login, password, removeLinkRequest);
 
         boolean result = scrapperConnectionService.unsubscribeLink(chatId, subscribedLinks, 1L);
 
         assertFalse(result);
-        verify(linkClient, times(1)).unsubscribeLink(chatId, removeLinkRequest);
+        verify(linkClient, times(1)).unsubscribeLink(login, password, removeLinkRequest);
     }
 
     @Test
@@ -176,11 +182,11 @@ public class ScrapperConnectionServiceTest {
 
         doReturn(ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse))
                 .when(linkClient)
-                .unsubscribeLink(chatId, removeLinkRequest);
+                .unsubscribeLink(login, password, removeLinkRequest);
 
         boolean result = scrapperConnectionService.unsubscribeLink(chatId, subscribedLinks, 1L);
 
         assertFalse(result);
-        verify(linkClient, times(1)).unsubscribeLink(chatId, removeLinkRequest);
+        verify(linkClient, times(1)).unsubscribeLink(login, password, removeLinkRequest);
     }
 }
