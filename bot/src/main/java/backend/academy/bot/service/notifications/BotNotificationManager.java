@@ -9,10 +9,13 @@ import scrapper.bot.connectivity.model.LinkUpdate;
 @Service
 public class BotNotificationManager {
 
-    @Autowired
+    @Autowired(required = false)
     private TelegramBot bot;
 
     public void notify(LinkUpdate update) {
+        if (bot == null) {
+            return;
+        }
         update.tgChatIds().forEach(id -> {
             bot.execute(new SendMessage(
                     id, "Произошли обновления по ссылке: ".concat(update.url().toString())));
