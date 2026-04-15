@@ -1,11 +1,9 @@
 package backend.academy.bot.controller;
 
 import backend.academy.bot.enums.Messages;
-import backend.academy.bot.model.api.CommandInfoResponse;
 import backend.academy.bot.model.api.BotApiMessageResponse;
 import backend.academy.bot.model.entity.LinkDTO;
 import backend.academy.bot.service.ScrapperConnectionService;
-import backend.academy.bot.service.commands.Command;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -31,7 +29,6 @@ public class BotRestController {
     private static final String CLIENT_PASSWORD_HEADER = "Client-Password";
 
     private final ScrapperConnectionService scrapperConnectionService;
-    private final List<Command> commands;
 
     @PostMapping("/clients")
     public ResponseEntity<BotApiMessageResponse> registerClient(@RequestBody ClientCredentialsRequest request)
@@ -45,13 +42,6 @@ public class BotRestController {
             throws BadRequestException {
         scrapperConnectionService.unregisterChat(request.login(), request.password());
         return ResponseEntity.ok(new BotApiMessageResponse(Messages.DELETE_SUBSCRIBE_MESSAGE.toString()));
-    }
-
-    @GetMapping("/commands")
-    public ResponseEntity<List<CommandInfoResponse>> getAvailableCommands() {
-        return ResponseEntity.ok(commands.stream()
-            .map(command -> new CommandInfoResponse(command.apiCommand(), command.description()))
-            .toList());
     }
 
     @GetMapping("/links")
