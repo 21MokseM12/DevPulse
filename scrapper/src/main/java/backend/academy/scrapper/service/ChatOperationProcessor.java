@@ -1,8 +1,17 @@
 package backend.academy.scrapper.service;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ChatOperationProcessor {
+    boolean register(String login, String password);
+
+    boolean unregister(String login, String password);
+
+    boolean existsByLogin(String login);
+
+    Optional<Long> findClientId(String login, String password);
+
     boolean register(Long id);
 
     boolean unregister(Long id);

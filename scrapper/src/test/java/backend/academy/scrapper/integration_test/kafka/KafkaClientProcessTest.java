@@ -35,42 +35,45 @@ public class KafkaClientProcessTest extends TestApplication {
 
     @Test
     void whenRegisterMessageSent_thenClientRegisteredInDatabase() {
-        Long id = 4L;
-        assertFalse(chatRepository.isClient(id), "Chat should not exist before test");
+        String login = "kafka_client_register";
+        String password = "kafka_pass_1";
+        assertFalse(chatRepository.isClient(login, password), "Chat should not exist before test");
 
-        ClientMessage message = new ClientMessage(ClientActions.REGISTER, id);
-        kafkaTemplate.send(clientListenerTopic, String.valueOf(id), message);
+        ClientMessage message = new ClientMessage(ClientActions.REGISTER, login, password);
+        kafkaTemplate.send(clientListenerTopic, login, message);
 
-        await().until(() -> chatRepository.isClient(id));
+        await().until(() -> chatRepository.isClient(login, password));
 
-        assertTrue(chatRepository.isClient(id));
+        assertTrue(chatRepository.isClient(login, password));
     }
 
     @Test
     void whenUnregisterMessageSent_thenClientRemovedFromDatabase() {
-        Long id = 5L;
-        chatRepository.save(id);
-        assertTrue(chatRepository.isClient(id), "Chat should exist before unregister");
+        String login = "kafka_client_unregister";
+        String password = "kafka_pass_2";
+        chatRepository.save(login, password);
+        assertTrue(chatRepository.isClient(login, password), "Chat should exist before unregister");
 
-        ClientMessage message = new ClientMessage(ClientActions.UNREGISTER, id);
-        kafkaTemplate.send(clientListenerTopic, String.valueOf(id), message);
+        ClientMessage message = new ClientMessage(ClientActions.UNREGISTER, login, password);
+        kafkaTemplate.send(clientListenerTopic, login, message);
 
-        await().untilAsserted(() -> assertFalse(chatRepository.isClient(id)));
+        await().untilAsserted(() -> assertFalse(chatRepository.isClient(login, password)));
 
-        assertFalse(chatRepository.isClient(id));
+        assertFalse(chatRepository.isClient(login, password));
     }
 
     @Test
     void whenRegisterAndUnregisterMessageSent_thenFullLifecycleProcessed() {
-        Long id = 9948L;
-        assertFalse(chatRepository.isClient(id), "Chat should not exist before test");
+        String login = "kafka_client_lifecycle";
+        String password = "kafka_pass_3";
+        assertFalse(chatRepository.isClient(login, password), "Chat should not exist before test");
 
-        kafkaTemplate.send(clientListenerTopic, "key", new ClientMessage(ClientActions.REGISTER, id));
-        await().until(() -> chatRepository.isClient(id));
+        kafkaTemplate.send(clientListenerTopic, "key", new ClientMessage(ClientActions.REGISTER, login, password));
+        await().until(() -> chatRepository.isClient(login, password));
 
-        kafkaTemplate.send(clientListenerTopic, "key", new ClientMessage(ClientActions.UNREGISTER, id));
-        await().untilAsserted(() -> assertFalse(chatRepository.isClient(id)));
+        kafkaTemplate.send(clientListenerTopic, "key", new ClientMessage(ClientActions.UNREGISTER, login, password));
+        await().untilAsserted(() -> assertFalse(chatRepository.isClient(login, password)));
 
-        assertFalse(chatRepository.isClient(id));
+        assertFalse(chatRepository.isClient(login, password));
     }
 }

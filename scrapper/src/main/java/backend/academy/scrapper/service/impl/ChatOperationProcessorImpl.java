@@ -4,6 +4,7 @@ import backend.academy.scrapper.db.repository.ChatRepository;
 import backend.academy.scrapper.db.repository.LinkToChatRepository;
 import backend.academy.scrapper.service.ChatOperationProcessor;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
@@ -18,6 +19,42 @@ public class ChatOperationProcessorImpl implements ChatOperationProcessor {
 
     private final ChatRepository chatRepository;
     private final LinkToChatRepository linkToChatRepository;
+
+    @Override
+    @Transactional
+    public boolean register(@NonNull String login, @NonNull String password) {
+        if (chatRepository.existsByLogin(login)) {
+            log.info("Произошла ошибка при регистрации клиента с login {}", login);
+            return false;
+        }
+        chatRepository.save(login, password);
+        log.info("Клиент с login {} успешно зарегистрирован", login);
+        return true;
+    }
+
+    @Override
+    @Transactional
+    public boolean unregister(@NonNull String login, @NonNull String password) {
+        Optional<Long> clientId = chatRepository.findIdByCredentials(login, password);
+        if (clientId.isEmpty()) {
+            log.info("Произошла ошибка при удалении клиента с login {}", login);
+            return false;
+        }
+        linkToChatRepository.unsubscribeAll(clientId.get());
+        chatRepository.delete(login, password);
+        log.info("Клиент с login {} успешно удален", login);
+        return true;
+    }
+
+    @Override
+    public boolean existsByLogin(String login) {
+        return chatRepository.existsByLogin(login);
+    }
+
+    @Override
+    public Optional<Long> findClientId(String login, String password) {
+        return chatRepository.findIdByCredentials(login, password);
+    }
 
     @Override
     @Transactional

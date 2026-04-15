@@ -55,6 +55,8 @@ public class KafkaLinkProcessTest extends TestApplication {
 
     @Value("${kafka.consumers.link-listener.topic}")
     private String linkListenerTopic;
+    private static final String CLIENT_LOGIN = "test-client-100";
+    private static final String CLIENT_PASSWORD = "test-password-100";
 
     @BeforeEach
     void setUp() {
@@ -72,7 +74,8 @@ public class KafkaLinkProcessTest extends TestApplication {
         );
         LinkMessage message = new LinkMessage(
             LinkActions.FIND_ALL,
-            chatId,
+            CLIENT_LOGIN,
+            CLIENT_PASSWORD,
             null,
             null
         );
@@ -96,7 +99,8 @@ public class KafkaLinkProcessTest extends TestApplication {
         AddLinkRequest addRequest = new AddLinkRequest(linkUri, Set.of("tag"), Set.of("filter"));
         LinkMessage message = new LinkMessage(
             LinkActions.SUBSCRIBE,
-            chatId,
+            CLIENT_LOGIN,
+            CLIENT_PASSWORD,
             addRequest,
             null
         );
@@ -121,7 +125,8 @@ public class KafkaLinkProcessTest extends TestApplication {
         RemoveLinkRequest removeRequest = new RemoveLinkRequest(linkUri);
         LinkMessage message = new LinkMessage(
             LinkActions.UNSUBSCRIBE,
-            chatId,
+            CLIENT_LOGIN,
+            CLIENT_PASSWORD,
             null,
             removeRequest
         );

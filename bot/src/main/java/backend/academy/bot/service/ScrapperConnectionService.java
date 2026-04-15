@@ -15,10 +15,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import scrapper.bot.connectivity.exceptions.BadRequestException;
 import scrapper.bot.connectivity.model.request.AddLinkRequest;
+import scrapper.bot.connectivity.model.request.ClientCredentialsRequest;
 import scrapper.bot.connectivity.model.request.RemoveLinkRequest;
 import scrapper.bot.connectivity.model.response.ApiErrorResponse;
 import scrapper.bot.connectivity.model.response.LinkResponse;
-import scrapper.bot.connectivity.model.response.ListLinkResponse;
 
 @Service
 @Slf4j
@@ -36,36 +36,42 @@ public class ScrapperConnectionService {
         this.linkClient = linkClient;
     }
 
-    public void registerChat(Long chatId) throws BadRequestException {
+    public void registerChat(String login, String password) throws BadRequestException {
         ResponseEntity<?> response;
         try {
-            response = chatClient.registerChat(chatId);
+            response = chatClient.registerChat(new ClientCredentialsRequest(login, password));
         } catch (Exception e) {
-            log.error("Error occur via register chat with id {}: {}", chatId, e.getMessage());
+            log.error("Error occur via register chat with login {}: {}", login, e.getMessage());
             throw new BadRequestException(Messages.INVALID_MESSAGE.toString());
         }
         switch (response.getStatusCode().value()) {
             case 200:
-                log.info("Chat with id {} registered successfully", chatId);
+                log.info("Chat with login {} registered successfully", login);
                 break;
             case 400:
                 ApiErrorResponse error = MAPPER.convertValue(response.getBody(), ApiErrorResponse.class);
                 log.error("Error occur via register chat: {}", error);
                 throw new BadRequestException(Messages.INVALID_MESSAGE.toString());
+            default:
+                throw new BadRequestException(Messages.ERROR.toString());
         }
     }
 
-    public void unregisterChat(Long chatId) throws BadRequestException {
+    public void registerChat(Long chatId) throws BadRequestException {
+        registerChat(String.valueOf(chatId), String.valueOf(chatId));
+    }
+
+    public void unregisterChat(String login, String password) throws BadRequestException {
         ResponseEntity<?> response;
         try {
-            response = chatClient.unregisterChat(chatId);
+            response = chatClient.unregisterChat(new ClientCredentialsRequest(login, password));
         } catch (Exception e) {
-            log.error("Error occur via unregister chat with id {}: {}", chatId, e.getMessage());
+            log.error("Error occur via unregister chat with login {}: {}", login, e.getMessage());
             throw new BadRequestException(Messages.INVALID_MESSAGE.toString());
         }
         switch (response.getStatusCode().value()) {
             case 200:
-                log.info("Chat with id {} unregistered successfully", chatId);
+                log.info("Chat with login {} unregistered successfully", login);
                 break;
             case 400:
                 ApiErrorResponse error400 = MAPPER.convertValue(response.getBody(), ApiErrorResponse.class);
@@ -75,46 +81,59 @@ public class ScrapperConnectionService {
                 ApiErrorResponse error404 = MAPPER.convertValue(response.getBody(), ApiErrorResponse.class);
                 log.error("Chat not found: {}", error404);
                 throw new ChatNotFoundException(Messages.ERROR.toString());
+            default:
+                throw new BadRequestException(Messages.ERROR.toString());
         }
     }
 
-    public List<LinkResponse> getAllLinks(Long chatId) throws BadRequestException {
+    public void unregisterChat(Long chatId) throws BadRequestException {
+        unregisterChat(String.valueOf(chatId), String.valueOf(chatId));
+    }
+
+    public List<LinkResponse> getAllLinks(String login, String password) throws BadRequestException {
         ResponseEntity<?> response;
         try {
-            response = linkClient.getAllLinks(chatId);
+            response = linkClient.getAllLinks(login, password);
         } catch (Exception e) {
-            log.error("Error occur via getting all links with chat id {}: {}", chatId, e.getMessage());
+            log.error("Error occur via getting all links with login {}: {}", login, e.getMessage());
             throw new BadRequestException(Messages.INVALID_MESSAGE.toString());
         }
         switch (response.getStatusCode().value()) {
             case 200:
-                ListLinkResponse linkResponse = MAPPER.convertValue(response.getBody(), ListLinkResponse.class);
-                return linkResponse.links();
+                return MAPPER.convertValue(
+                    response.getBody(),
+                    MAPPER.getTypeFactory().constructCollectionType(List.class, LinkResponse.class)
+                );
             case 400:
+            case 404:
                 ApiErrorResponse error = MAPPER.convertValue(response.getBody(), ApiErrorResponse.class);
                 log.error("Error occur via getAllLinks: {}", error);
                 throw new BadRequestException(Messages.INVALID_MESSAGE.toString());
+            default:
+                return List.of();
         }
-        return List.of();
     }
 
-    public LinkResponse subscribeLink(Long chatId, LinkDTO linkDTO) throws BadRequestException {
+    public List<LinkResponse> getAllLinks(Long chatId) throws BadRequestException {
+        return getAllLinks(String.valueOf(chatId), String.valueOf(chatId));
+    }
+
+    public LinkResponse subscribeLink(String login, String password, LinkDTO linkDTO) throws BadRequestException {
         ResponseEntity<?> response;
         try {
             response = linkClient.subscribeLink(
-                    chatId, new AddLinkRequest(URI.create(linkDTO.uri()), linkDTO.tags(), linkDTO.filters()));
+                    login, password, new AddLinkRequest(URI.create(linkDTO.uri()), linkDTO.tags(), linkDTO.filters()));
         } catch (Exception e) {
-            log.error("Error occur via subscribe chat with id {} on link: {}", chatId, e.getMessage());
+            log.error("Error occur via subscribe login {} on link: {}", login, e.getMessage());
             throw new BadRequestException(Messages.INVALID_MESSAGE.toString());
         }
         switch (response.getStatusCode().value()) {
             case 200:
                 LinkResponse linkResponse = MAPPER.convertValue(response.getBody(), LinkResponse.class);
-                log.info(
-                        "Link was subscribed: {}",
-                        Objects.requireNonNull(linkResponse).url().toString());
+                log.info("Link was subscribed: {}", Objects.requireNonNull(linkResponse).url());
                 return linkResponse;
             case 400:
+            case 404:
                 ApiErrorResponse error = MAPPER.convertValue(response.getBody(), ApiErrorResponse.class);
                 log.error("Error occur via subscribeLink: {}", error);
                 throw new BadRequestException(Messages.INVALID_MESSAGE.toString());
@@ -123,7 +142,11 @@ public class ScrapperConnectionService {
         }
     }
 
-    public boolean unsubscribeLink(Long chatId, List<LinkResponse> subscribedLinks, Long linkId) {
+    public LinkResponse subscribeLink(Long chatId, LinkDTO linkDTO) throws BadRequestException {
+        return subscribeLink(String.valueOf(chatId), String.valueOf(chatId), linkDTO);
+    }
+
+    public boolean unsubscribeLink(String login, String password, List<LinkResponse> subscribedLinks, Long linkId) {
         URI uri = subscribedLinks.stream()
                 .filter(l -> Objects.equals(l.id(), linkId))
                 .findFirst()
@@ -131,28 +154,27 @@ public class ScrapperConnectionService {
                 .url();
         ResponseEntity<?> response;
         try {
-            response = linkClient.unsubscribeLink(chatId, new RemoveLinkRequest(uri));
+            response = linkClient.unsubscribeLink(login, password, new RemoveLinkRequest(uri));
         } catch (Exception e) {
-            log.error("Error occur via unsubscribe chat with id {} on link: {}", chatId, e.getMessage());
+            log.error("Error occur via unsubscribe login {} on link: {}", login, e.getMessage());
             return false;
         }
         switch (response.getStatusCode().value()) {
             case 200:
                 LinkResponse linkResponse = MAPPER.convertValue(response.getBody(), LinkResponse.class);
-                log.info(
-                        "Link was unsubscribed: {}",
-                        Objects.requireNonNull(linkResponse).url().toString());
+                log.info("Link was unsubscribed: {}", Objects.requireNonNull(linkResponse).url());
                 return true;
             case 400:
-                ApiErrorResponse error400 = MAPPER.convertValue(response.getBody(), ApiErrorResponse.class);
-                log.error("Error occur via unsubscribeLink: {}", error400);
-                return false;
             case 404:
-                ApiErrorResponse error404 = MAPPER.convertValue(response.getBody(), ApiErrorResponse.class);
-                log.error("Link was not found: {}", error404);
+                ApiErrorResponse error = MAPPER.convertValue(response.getBody(), ApiErrorResponse.class);
+                log.error("Error occur via unsubscribeLink: {}", error);
                 return false;
             default:
                 return false;
         }
+    }
+
+    public boolean unsubscribeLink(Long chatId, List<LinkResponse> subscribedLinks, Long linkId) {
+        return unsubscribeLink(String.valueOf(chatId), String.valueOf(chatId), subscribedLinks, linkId);
     }
 }

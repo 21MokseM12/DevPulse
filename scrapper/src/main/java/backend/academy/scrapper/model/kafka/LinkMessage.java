@@ -6,7 +6,8 @@ import scrapper.bot.connectivity.model.request.RemoveLinkRequest;
 
 public record LinkMessage(
     LinkActions action,
-    Long chatId,
+    String login,
+    String password,
     AddLinkRequest add,
     RemoveLinkRequest remove
 ) { }

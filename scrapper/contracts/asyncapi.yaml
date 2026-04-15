@@ -1,0 +1,205 @@
+asyncapi: 3.0.0
+info:
+  title: Scrapper Kafka API
+  version: 1.1.0
+  description: |
+    Асинхронный контракт микросервиса scrapper для входящих команд и исходящих результатов обработки.
+defaultContentType: application/json
+servers:
+  localKafka:
+    host: localhost:9092
+    protocol: kafka
+    description: Local Kafka broker
+
+channels:
+  client-listener-topic-request:
+    address: client-listener-topic-request
+    messages:
+      clientCommand:
+        $ref: '#/components/messages/ClientCommandMessage'
+
+  link-listener-topic-request:
+    address: link-listener-topic-request
+    messages:
+      linkCommand:
+        $ref: '#/components/messages/LinkCommandMessage'
+
+  link-topic-response:
+    address: link-topic-response
+    messages:
+      linkResult:
+        $ref: '#/components/messages/LinkResultBatchMessage'
+
+operations:
+  receiveClientCommand:
+    action: receive
+    channel:
+      $ref: '#/channels/client-listener-topic-request'
+    summary: Получение команды регистрации/удаления чата
+    messages:
+      - $ref: '#/channels/client-listener-topic-request/messages/clientCommand'
+
+  receiveLinkCommand:
+    action: receive
+    channel:
+      $ref: '#/channels/link-listener-topic-request'
+    summary: Получение команды для операций со ссылками
+    messages:
+      - $ref: '#/channels/link-listener-topic-request/messages/linkCommand'
+
+  sendLinkResult:
+    action: send
+    channel:
+      $ref: '#/channels/link-topic-response'
+    summary: Публикация результата обработки команды ссылок
+    messages:
+      - $ref: '#/channels/link-topic-response/messages/linkResult'
+
+components:
+  messages:
+    ClientCommandMessage:
+      name: ClientCommandMessage
+      title: Команда для чата
+      payload:
+        $ref: '#/components/schemas/ClientMessage'
+      examples:
+        - name: registerChat
+          payload:
+            action: REGISTER
+            login: alice
+            password: qwerty123
+        - name: unregisterChat
+          payload:
+            action: UNREGISTER
+            login: alice
+            password: qwerty123
+
+    LinkCommandMessage:
+      name: LinkCommandMessage
+      title: Команда для ссылок
+      payload:
+        $ref: '#/components/schemas/LinkMessage'
+      examples:
+        - name: findAllLinks
+          payload:
+            action: FIND_ALL
+            login: alice
+            password: qwerty123
+        - name: subscribeLink
+          payload:
+            action: SUBSCRIBE
+            login: alice
+            password: qwerty123
+            add:
+              link: https://github.com/spring-projects/spring-framework
+              tags: [backend]
+              filters: [author:octocat]
+        - name: unsubscribeLink
+          payload:
+            action: UNSUBSCRIBE
+            login: alice
+            password: qwerty123
+            remove:
+              link: https://stackoverflow.com/questions/12345678/example
+
+    LinkResultBatchMessage:
+      name: LinkResultBatchMessage
+      title: Результат обработки команд ссылок
+      payload:
+        $ref: '#/components/schemas/LinkResponseBatch'
+      examples:
+        - name: linksResult
+          payload:
+            - id: 42
+              url: https://github.com/spring-projects/spring-framework
+              tags: [backend]
+              filters: [author:octocat]
+
+  schemas:
+    ClientMessage:
+      type: object
+      required: [action, login, password]
+      properties:
+        action:
+          type: string
+          enum: [REGISTER, UNREGISTER]
+        login:
+          type: string
+          minLength: 1
+        password:
+          type: string
+          minLength: 1
+
+    LinkMessage:
+      type: object
+      required: [action, login, password]
+      properties:
+        action:
+          type: string
+          enum: [FIND_ALL, SUBSCRIBE, UNSUBSCRIBE]
+        login:
+          type: string
+          minLength: 1
+        password:
+          type: string
+          minLength: 1
+        add:
+          $ref: '#/components/schemas/AddLinkRequest'
+        remove:
+          $ref: '#/components/schemas/RemoveLinkRequest'
+
+    AddLinkRequest:
+      type: object
+      required: [link]
+      properties:
+        link:
+          type: string
+          format: uri
+        tags:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
+          nullable: true
+        filters:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
+          nullable: true
+
+    RemoveLinkRequest:
+      type: object
+      required: [link]
+      properties:
+        link:
+          type: string
+          format: uri
+
+    LinkResponse:
+      type: object
+      required: [id, url]
+      properties:
+        id:
+          type: integer
+          format: int64
+        url:
+          type: string
+          format: uri
+        tags:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
+          nullable: true
+        filters:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
+          nullable: true
+
+    LinkResponseBatch:
+      type: array
+      items:
+        $ref: '#/components/schemas/LinkResponse'

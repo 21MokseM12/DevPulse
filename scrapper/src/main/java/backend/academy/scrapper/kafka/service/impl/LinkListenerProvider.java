@@ -4,6 +4,7 @@ import backend.academy.scrapper.exceptions.KafkaProcessException;
 import backend.academy.scrapper.kafka.sender.KafkaLinkSender;
 import backend.academy.scrapper.kafka.service.ListenerProvider;
 import backend.academy.scrapper.model.kafka.LinkMessage;
+import backend.academy.scrapper.service.ChatOperationProcessor;
 import backend.academy.scrapper.service.LinkProcessor;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -25,6 +26,7 @@ public class LinkListenerProvider implements ListenerProvider {
 
     private final ObjectMapper objectMapper;
     private final LinkProcessor processor;
+    private final ChatOperationProcessor chatOperationProcessor;
     private final KafkaLinkSender sender;
 
     @Override
@@ -48,7 +50,8 @@ public class LinkListenerProvider implements ListenerProvider {
 
     private void provideFindAllRequest(LinkMessage request) {
         try {
-            var response = processor.findAll(request.chatId());
+            Long chatId = resolveChatId(request);
+            var response = processor.findAll(chatId);
             sender.send(response);
         } catch (Exception e) {
             log.error(ERROR_MESSAGE, request, request.action(), e.getMessage());
@@ -58,7 +61,8 @@ public class LinkListenerProvider implements ListenerProvider {
 
     private void provideSubscribeRequest(LinkMessage request) {
         try {
-            var response = processor.subscribeLink(request.chatId(), request.add());
+            Long chatId = resolveChatId(request);
+            var response = processor.subscribeLink(chatId, request.add());
             sender.send(List.of(response));
         } catch (Exception e) {
             log.error(ERROR_MESSAGE, request, request.action(), e.getMessage());
@@ -68,11 +72,17 @@ public class LinkListenerProvider implements ListenerProvider {
 
     private void provideUnsubscribeRequest(LinkMessage request) {
         try {
-            var response = processor.unsubscribeLink(request.chatId(), request.remove());
+            Long chatId = resolveChatId(request);
+            var response = processor.unsubscribeLink(chatId, request.remove());
             sender.send(List.of(response));
         } catch (Exception e) {
             log.error(ERROR_MESSAGE, request, request.action(), e.getMessage());
             throw new KafkaProcessException(e.getMessage());
         }
+    }
+
+    private Long resolveChatId(@NonNull LinkMessage request) {
+        return chatOperationProcessor.findClientId(request.login(), request.password())
+            .orElseThrow(() -> new KafkaProcessException("Клиент не найден"));
     }
 }

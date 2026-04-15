@@ -1,5 +1,7 @@
 package backend.academy.scrapper.controller;
 
+import backend.academy.scrapper.exceptions.ResourceNotFoundException;
+import backend.academy.scrapper.service.ChatOperationProcessor;
 import backend.academy.scrapper.service.LinkProcessor;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -20,28 +22,43 @@ import scrapper.bot.connectivity.model.response.LinkResponse;
 @RequiredArgsConstructor
 public class LinkController {
 
-    private static final String CHAT_ID_REQUEST_HEADER = "Tg-Chat-Id";
+    private static final String CLIENT_LOGIN_REQUEST_HEADER = "Client-Login";
+    private static final String CLIENT_PASSWORD_REQUEST_HEADER = "Client-Password";
 
+    private final ChatOperationProcessor chatProcessor;
     private final LinkProcessor processor;
 
     @GetMapping
-    public ResponseEntity<List<LinkResponse>> findAll(@RequestHeader(name = CHAT_ID_REQUEST_HEADER) Long chatId) {
+    public ResponseEntity<List<LinkResponse>> findAll(
+            @RequestHeader(name = CLIENT_LOGIN_REQUEST_HEADER) String login,
+            @RequestHeader(name = CLIENT_PASSWORD_REQUEST_HEADER) String password
+    ) {
+        Long chatId = resolveChatId(login, password);
         return ResponseEntity.ok(processor.findAll(chatId));
     }
 
     @PostMapping
     public ResponseEntity<LinkResponse> subscribeLink(
-            @RequestHeader(name = CHAT_ID_REQUEST_HEADER) Long chatId,
+            @RequestHeader(name = CLIENT_LOGIN_REQUEST_HEADER) String login,
+            @RequestHeader(name = CLIENT_PASSWORD_REQUEST_HEADER) String password,
             @RequestBody AddLinkRequest request
     ) {
+        Long chatId = resolveChatId(login, password);
         return ResponseEntity.ok(processor.subscribeLink(chatId, request));
     }
 
     @DeleteMapping
     public ResponseEntity<LinkResponse> unsubscribeLink(
-            @RequestHeader(name = CHAT_ID_REQUEST_HEADER) Long chatId,
+            @RequestHeader(name = CLIENT_LOGIN_REQUEST_HEADER) String login,
+            @RequestHeader(name = CLIENT_PASSWORD_REQUEST_HEADER) String password,
             @RequestBody RemoveLinkRequest request
     ) {
+        Long chatId = resolveChatId(login, password);
         return ResponseEntity.ok(processor.unsubscribeLink(chatId, request));
+    }
+
+    private Long resolveChatId(String login, String password) {
+        return chatProcessor.findClientId(login, password)
+            .orElseThrow(() -> new ResourceNotFoundException("Клиент не найден"));
     }
 }
