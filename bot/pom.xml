@@ -132,6 +132,10 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
             </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+            </plugin>
             <!-- To build OCI image: https://docs.spring.io/spring-boot/maven-plugin/build-image.html -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
