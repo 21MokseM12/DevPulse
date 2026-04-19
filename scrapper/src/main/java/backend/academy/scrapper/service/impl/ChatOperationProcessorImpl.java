@@ -110,6 +110,6 @@ public class ChatOperationProcessorImpl implements ChatOperationProcessor {
 
     @Override
     public boolean chatIsSubscribedOnLink(Long chatId, Long linkId) {
-        return linkToChatRepository.subscribeChatOnLink(chatId, linkId);
+        return linkToChatRepository.chatIsSubscribedOnLink(chatId, linkId);
     }
 }

@@ -7,7 +7,8 @@ public interface LinkToChatRepository {
 
     boolean subscribeChatOnLink(@NotNull Long chatId, @NotNull Long linkId);
 
-    boolean chatIsSubscribedOnLink(Long chatId, Long linkId);
+    /** Read-only: true if a row exists for the pair (chat_id, link_id). Does not insert. */
+    boolean chatIsSubscribedOnLink(@NotNull Long chatId, @NotNull Long linkId);
 
     boolean unsubscribe(Long chatId, Long linkId);
 
