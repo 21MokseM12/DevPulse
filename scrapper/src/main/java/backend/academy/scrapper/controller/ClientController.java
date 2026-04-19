@@ -20,13 +20,13 @@ import scrapper.bot.connectivity.model.request.ClientCredentialsRequest;
 @Validated
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(value = "/tg-chat", produces = MediaType.APPLICATION_JSON_VALUE)
-public class ChatController {
+@RequestMapping(value = "/clients", produces = MediaType.APPLICATION_JSON_VALUE)
+public class ClientController {
 
     private final ChatOperationProcessor chatOperationProcessor;
 
     @PostMapping
-    public ResponseEntity<Void> registerChat(@Valid @RequestBody ClientCredentialsRequest request) throws BadRequestException {
+    public ResponseEntity<Void> register(@Valid @RequestBody ClientCredentialsRequest request) throws BadRequestException {
         if (request.login() == null || request.password() == null
             || request.login().isBlank() || request.password().isBlank()) {
             throw new BadRequestException("Некорректные параметры запроса");
@@ -39,7 +39,7 @@ public class ChatController {
     }
 
     @DeleteMapping
-    public ResponseEntity<Void> unregisterChat(@Valid @RequestBody ClientCredentialsRequest request)
+    public ResponseEntity<Void> unregister(@Valid @RequestBody ClientCredentialsRequest request)
         throws BadRequestException, ResourceNotFoundException {
         if (request.login() == null || request.password() == null
             || request.login().isBlank() || request.password().isBlank()) {

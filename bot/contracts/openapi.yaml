@@ -56,6 +56,8 @@ paths:
                 $ref: '#/components/schemas/BotApiMessageResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /api/v1/links:
     get:
@@ -75,6 +77,8 @@ paths:
                   $ref: '#/components/schemas/LinkResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
     post:
       tags: [Links]
       operationId: trackLink
@@ -96,6 +100,8 @@ paths:
                 $ref: '#/components/schemas/LinkResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
     delete:
       tags: [Links]
       operationId: untrackLink
@@ -117,6 +123,8 @@ paths:
                 $ref: '#/components/schemas/BotApiMessageResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /updates:
     post:
@@ -145,18 +153,16 @@ components:
       schema:
         type: string
         minLength: 1
-    ClientPasswordHeader:
-      name: Client-Password
-      in: header
-      required: true
-      description: Пароль клиента
-      schema:
-        type: string
-        minLength: 1
 
   responses:
     BadRequest:
       description: Некорректный запрос
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+    NotFound:
+      description: Ресурс не найден
       content:
         application/json:
           schema:

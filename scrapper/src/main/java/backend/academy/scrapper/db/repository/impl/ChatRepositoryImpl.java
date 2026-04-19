@@ -4,6 +4,7 @@ import backend.academy.scrapper.db.query.ChatQuery;
 import backend.academy.scrapper.db.repository.ChatRepository;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -54,6 +55,21 @@ public class ChatRepositoryImpl implements ChatRepository {
                 Long.class
             )
         );
+    }
+
+    @Override
+    public Optional<Long> findIdByLogin(String login) {
+        try {
+            return Optional.ofNullable(
+                jdbcTemplate.queryForObject(
+                    ChatQuery.SELECT_ID_BY_LOGIN.query(),
+                    new MapSqlParameterSource().addValue(LOGIN, login),
+                    Long.class
+                )
+            );
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
     }
 
     @Override

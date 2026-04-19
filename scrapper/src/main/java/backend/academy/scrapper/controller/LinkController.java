@@ -23,42 +23,38 @@ import scrapper.bot.connectivity.model.response.LinkResponse;
 public class LinkController {
 
     private static final String CLIENT_LOGIN_REQUEST_HEADER = "Client-Login";
-    private static final String CLIENT_PASSWORD_REQUEST_HEADER = "Client-Password";
 
     private final ChatOperationProcessor chatProcessor;
     private final LinkProcessor processor;
 
     @GetMapping
     public ResponseEntity<List<LinkResponse>> findAll(
-            @RequestHeader(name = CLIENT_LOGIN_REQUEST_HEADER) String login,
-            @RequestHeader(name = CLIENT_PASSWORD_REQUEST_HEADER) String password
+            @RequestHeader(name = CLIENT_LOGIN_REQUEST_HEADER) String login
     ) {
-        Long chatId = resolveChatId(login, password);
+        Long chatId = resolveChatId(login);
         return ResponseEntity.ok(processor.findAll(chatId));
     }
 
     @PostMapping
     public ResponseEntity<LinkResponse> subscribeLink(
             @RequestHeader(name = CLIENT_LOGIN_REQUEST_HEADER) String login,
-            @RequestHeader(name = CLIENT_PASSWORD_REQUEST_HEADER) String password,
             @RequestBody AddLinkRequest request
     ) {
-        Long chatId = resolveChatId(login, password);
+        Long chatId = resolveChatId(login);
         return ResponseEntity.ok(processor.subscribeLink(chatId, request));
     }
 
     @DeleteMapping
     public ResponseEntity<LinkResponse> unsubscribeLink(
             @RequestHeader(name = CLIENT_LOGIN_REQUEST_HEADER) String login,
-            @RequestHeader(name = CLIENT_PASSWORD_REQUEST_HEADER) String password,
             @RequestBody RemoveLinkRequest request
     ) {
-        Long chatId = resolveChatId(login, password);
+        Long chatId = resolveChatId(login);
         return ResponseEntity.ok(processor.unsubscribeLink(chatId, request));
     }
 
-    private Long resolveChatId(String login, String password) {
-        return chatProcessor.findClientId(login, password)
+    private Long resolveChatId(String login) {
+        return chatProcessor.findClientIdByLogin(login)
             .orElseThrow(() -> new ResourceNotFoundException("Клиент не найден"));
     }
 }

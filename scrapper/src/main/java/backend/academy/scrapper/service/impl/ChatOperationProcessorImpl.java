@@ -52,8 +52,8 @@ public class ChatOperationProcessorImpl implements ChatOperationProcessor {
     }
 
     @Override
-    public Optional<Long> findClientId(String login, String password) {
-        return chatRepository.findIdByCredentials(login, password);
+    public Optional<Long> findClientIdByLogin(String login) {
+        return chatRepository.findIdByLogin(login);
     }
 
     @Override

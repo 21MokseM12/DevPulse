@@ -90,10 +90,10 @@ public class ScrapperConnectionService {
         unregisterChat(String.valueOf(chatId), String.valueOf(chatId));
     }
 
-    public List<LinkResponse> getAllLinks(String login, String password) throws BadRequestException {
+    public List<LinkResponse> getAllLinks(String login) throws BadRequestException {
         ResponseEntity<?> response;
         try {
-            response = linkClient.getAllLinks(login, password);
+            response = linkClient.getAllLinks(login);
         } catch (Exception e) {
             log.error("Error occur via getting all links with login {}: {}", login, e.getMessage());
             throw new BadRequestException(Messages.INVALID_MESSAGE.toString());
@@ -115,14 +115,14 @@ public class ScrapperConnectionService {
     }
 
     public List<LinkResponse> getAllLinks(Long chatId) throws BadRequestException {
-        return getAllLinks(String.valueOf(chatId), String.valueOf(chatId));
+        return getAllLinks(String.valueOf(chatId));
     }
 
-    public LinkResponse subscribeLink(String login, String password, LinkDTO linkDTO) throws BadRequestException {
+    public LinkResponse subscribeLink(String login, LinkDTO linkDTO) throws BadRequestException {
         ResponseEntity<?> response;
         try {
             response = linkClient.subscribeLink(
-                    login, password, new AddLinkRequest(URI.create(linkDTO.uri()), linkDTO.tags(), linkDTO.filters()));
+                    login, new AddLinkRequest(URI.create(linkDTO.uri()), linkDTO.tags(), linkDTO.filters()));
         } catch (Exception e) {
             log.error("Error occur via subscribe login {} on link: {}", login, e.getMessage());
             throw new BadRequestException(Messages.INVALID_MESSAGE.toString());
@@ -142,7 +142,7 @@ public class ScrapperConnectionService {
         }
     }
 
-    public boolean unsubscribeLink(String login, String password, List<LinkResponse> subscribedLinks, Long linkId) {
+    public boolean unsubscribeLink(String login, List<LinkResponse> subscribedLinks, Long linkId) {
         URI uri = subscribedLinks.stream()
                 .filter(l -> Objects.equals(l.id(), linkId))
                 .findFirst()
@@ -150,7 +150,7 @@ public class ScrapperConnectionService {
                 .url();
         ResponseEntity<?> response;
         try {
-            response = linkClient.unsubscribeLink(login, password, new RemoveLinkRequest(uri));
+            response = linkClient.unsubscribeLink(login, new RemoveLinkRequest(uri));
         } catch (Exception e) {
             log.error("Error occur via unsubscribe login {} on link: {}", login, e.getMessage());
             return false;
@@ -171,6 +171,6 @@ public class ScrapperConnectionService {
     }
 
     public boolean unsubscribeLink(Long chatId, List<LinkResponse> subscribedLinks, Long linkId) {
-        return unsubscribeLink(String.valueOf(chatId), String.valueOf(chatId), subscribedLinks, linkId);
+        return unsubscribeLink(String.valueOf(chatId), subscribedLinks, linkId);
     }
 }

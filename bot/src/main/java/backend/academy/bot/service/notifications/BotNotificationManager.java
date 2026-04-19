@@ -13,6 +13,6 @@ public class BotNotificationManager {
         log.info(
                 "Telegram integration is removed. Skipping notification dispatch for url={} and chatIds={}",
                 update.url(),
-                update.tgChatIds());
+                update.clientsIds());
     }
 }

@@ -10,7 +10,7 @@ public interface ChatOperationProcessor {
 
     boolean existsByLogin(String login);
 
-    Optional<Long> findClientId(String login, String password);
+    Optional<Long> findClientIdByLogin(String login);
 
     boolean register(Long id);
 

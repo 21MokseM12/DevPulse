@@ -82,7 +82,7 @@ public class LinkListenerProvider implements ListenerProvider {
     }
 
     private Long resolveChatId(@NonNull LinkMessage request) {
-        return chatOperationProcessor.findClientId(request.login(), request.password())
+        return chatOperationProcessor.findClientIdByLogin(request.login())
             .orElseThrow(() -> new KafkaProcessException("Клиент не найден"));
     }
 }

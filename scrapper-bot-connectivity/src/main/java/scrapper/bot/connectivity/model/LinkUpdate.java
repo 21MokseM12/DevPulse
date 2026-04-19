@@ -11,6 +11,6 @@ public record LinkUpdate(
     String updateOwner,
     String description,
     OffsetDateTime creationDate,
-    List<Long> tgChatIds
+    List<Long> clientsIds
 ) {
 }

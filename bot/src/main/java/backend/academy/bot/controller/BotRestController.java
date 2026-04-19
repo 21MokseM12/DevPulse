@@ -26,7 +26,6 @@ import scrapper.bot.connectivity.model.response.LinkResponse;
 public class BotRestController {
 
     private static final String CLIENT_LOGIN_HEADER = "Client-Login";
-    private static final String CLIENT_PASSWORD_HEADER = "Client-Password";
 
     private final ScrapperConnectionService scrapperConnectionService;
 
@@ -46,34 +45,31 @@ public class BotRestController {
 
     @GetMapping("/links")
     public ResponseEntity<List<LinkResponse>> getLinks(
-            @RequestHeader(name = CLIENT_LOGIN_HEADER) String login,
-            @RequestHeader(name = CLIENT_PASSWORD_HEADER) String password) throws BadRequestException {
-        return ResponseEntity.ok(scrapperConnectionService.getAllLinks(login, password));
+            @RequestHeader(name = CLIENT_LOGIN_HEADER) String login) throws BadRequestException {
+        return ResponseEntity.ok(scrapperConnectionService.getAllLinks(login));
     }
 
     @PostMapping("/links")
     public ResponseEntity<LinkResponse> trackLink(
             @RequestHeader(name = CLIENT_LOGIN_HEADER) String login,
-            @RequestHeader(name = CLIENT_PASSWORD_HEADER) String password,
             @RequestBody AddLinkRequest request) throws BadRequestException {
         var link = new LinkDTO();
         link.uri(request.link().toString());
         link.tags(request.tags());
         link.filters(request.filters());
-        return ResponseEntity.ok(scrapperConnectionService.subscribeLink(login, password, link));
+        return ResponseEntity.ok(scrapperConnectionService.subscribeLink(login, link));
     }
 
     @DeleteMapping("/links")
     public ResponseEntity<BotApiMessageResponse> untrackLink(
             @RequestHeader(name = CLIENT_LOGIN_HEADER) String login,
-            @RequestHeader(name = CLIENT_PASSWORD_HEADER) String password,
             @RequestBody RemoveLinkRequest request) throws BadRequestException {
-        var links = scrapperConnectionService.getAllLinks(login, password);
+        var links = scrapperConnectionService.getAllLinks(login);
         var deleted = links.stream()
             .filter(link -> link.url().equals(request.link()))
             .findFirst()
             .map(LinkResponse::id)
-            .map(id -> scrapperConnectionService.unsubscribeLink(login, password, links, id))
+            .map(id -> scrapperConnectionService.unsubscribeLink(login, links, id))
             .orElse(false);
         if (!deleted) {
             throw new BadRequestException(Messages.ERROR.toString());

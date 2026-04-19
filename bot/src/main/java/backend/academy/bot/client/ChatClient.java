@@ -8,7 +8,7 @@ import org.springframework.web.service.annotation.HttpExchange;
 import org.springframework.web.service.annotation.PostExchange;
 import scrapper.bot.connectivity.model.request.ClientCredentialsRequest;
 
-@HttpExchange("/tg-chat")
+@HttpExchange("/clients")
 public interface ChatClient {
 
     @PostExchange(contentType = MediaType.APPLICATION_JSON_VALUE)

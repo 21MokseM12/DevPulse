@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import java.util.Optional;
 import org.mockito.junit.jupiter.MockitoExtension;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.times;
@@ -57,5 +58,18 @@ class ChatOperationProcessorTest {
         when(chatRepository.isClient(id)).thenReturn(false);
         assertThat(chatService.unregister(id)).isFalse();
         verify(chatRepository, times(0)).delete(id);
+    }
+
+    @Test
+    public void findClientIdByLogin_returnsIdFromRepository() {
+        when(chatRepository.findIdByLogin("alice")).thenReturn(Optional.of(99L));
+        assertThat(chatService.findClientIdByLogin("alice")).contains(99L);
+        verify(chatRepository, times(1)).findIdByLogin("alice");
+    }
+
+    @Test
+    public void findClientIdByLogin_emptyWhenUnknown() {
+        when(chatRepository.findIdByLogin("nobody")).thenReturn(Optional.empty());
+        assertThat(chatService.findClientIdByLogin("nobody")).isEmpty();
     }
 }

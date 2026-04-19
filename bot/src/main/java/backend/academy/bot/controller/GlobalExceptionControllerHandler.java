@@ -1,5 +1,6 @@
 package backend.academy.bot.controller;
 
+import backend.academy.bot.exceptions.ChatNotFoundException;
 import java.util.Arrays;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -22,5 +23,17 @@ public class GlobalExceptionControllerHandler {
                 new ApiErrorResponse("Bad request", "400", e.getClass().getSimpleName(), e.getMessage(), stacktrace);
 
         return new ResponseEntity<>(apiErrorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ChatNotFoundException.class)
+    public ResponseEntity<ApiErrorResponse> handleChatNotFoundException(ChatNotFoundException e) {
+        List<String> stacktrace = Arrays.stream(e.getStackTrace())
+                .map(StackTraceElement::toString)
+                .toList();
+
+        ApiErrorResponse apiErrorResponse = new ApiErrorResponse(
+                "Resource not found", "404", e.getClass().getSimpleName(), e.getMessage(), stacktrace);
+
+        return new ResponseEntity<>(apiErrorResponse, HttpStatus.NOT_FOUND);
     }
 }

@@ -9,6 +9,8 @@ public interface ChatRepository {
 
     Optional<Long> findIdByCredentials(String login, String password);
 
+    Optional<Long> findIdByLogin(String login);
+
     void save(String login, String password);
 
     boolean delete(String login, String password);

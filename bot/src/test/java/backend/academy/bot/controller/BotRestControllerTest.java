@@ -2,6 +2,7 @@ package backend.academy.bot.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -11,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import backend.academy.bot.enums.Messages;
+import backend.academy.bot.exceptions.ChatNotFoundException;
 import backend.academy.bot.model.entity.LinkDTO;
 import backend.academy.bot.service.ScrapperConnectionService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -75,13 +77,30 @@ class BotRestControllerTest {
     }
 
     @Test
+    void unregisterClient_returns404WhenChatNotFound() throws Exception {
+        var payload = """
+                {
+                  "login": "user",
+                  "password": "pass"
+                }
+                """;
+        doThrow(new ChatNotFoundException(Messages.ERROR.toString()))
+                .when(scrapperConnectionService)
+                .unregisterChat("user", "pass");
+
+        mockMvc.perform(delete("/api/v1/clients")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("404"));
+    }
+
+    @Test
     void getLinks_returnsLinksList() throws Exception {
         var links = List.of(new LinkResponse(1L, URI.create("https://github.com/u/r"), Set.of("java"), Set.of("f")));
-        when(scrapperConnectionService.getAllLinks("user", "pass")).thenReturn(links);
+        when(scrapperConnectionService.getAllLinks("user")).thenReturn(links);
 
-        mockMvc.perform(get("/api/v1/links")
-                        .header("Client-Login", "user")
-                        .header("Client-Password", "pass"))
+        mockMvc.perform(get("/api/v1/links").header("Client-Login", "user"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(1L))
                 .andExpect(jsonPath("$[0].url").value("https://github.com/u/r"));
@@ -97,11 +116,10 @@ class BotRestControllerTest {
                 }
                 """;
         var response = new LinkResponse(5L, URI.create("https://github.com/u/r"), Set.of("java", "spring"), Set.of("f1"));
-        when(scrapperConnectionService.subscribeLink(eq("user"), eq("pass"), any(LinkDTO.class))).thenReturn(response);
+        when(scrapperConnectionService.subscribeLink(eq("user"), any(LinkDTO.class))).thenReturn(response);
 
         mockMvc.perform(post("/api/v1/links")
                         .header("Client-Login", "user")
-                        .header("Client-Password", "pass")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(addRequest))
                 .andExpect(status().isOk())
@@ -109,7 +127,7 @@ class BotRestControllerTest {
                 .andExpect(jsonPath("$.url").value("https://github.com/u/r"));
 
         ArgumentCaptor<LinkDTO> captor = ArgumentCaptor.forClass(LinkDTO.class);
-        verify(scrapperConnectionService).subscribeLink(eq("user"), eq("pass"), captor.capture());
+        verify(scrapperConnectionService).subscribeLink(eq("user"), captor.capture());
         LinkDTO captured = captor.getValue();
         org.junit.jupiter.api.Assertions.assertEquals("https://github.com/u/r", captured.uri());
         org.junit.jupiter.api.Assertions.assertEquals(Set.of("java", "spring"), captured.tags());
@@ -120,13 +138,12 @@ class BotRestControllerTest {
     void untrackLink_returnsDeleteMessageWhenUnsubscribed() throws Exception {
         URI url = URI.create("https://github.com/u/r");
         var links = List.of(new LinkResponse(10L, url, Set.of(), Set.of()));
-        when(scrapperConnectionService.getAllLinks("user", "pass")).thenReturn(links);
-        when(scrapperConnectionService.unsubscribeLink("user", "pass", links, 10L)).thenReturn(true);
+        when(scrapperConnectionService.getAllLinks("user")).thenReturn(links);
+        when(scrapperConnectionService.unsubscribeLink("user", links, 10L)).thenReturn(true);
 
         var request = objectMapper.writeValueAsString(new scrapper.bot.connectivity.model.request.RemoveLinkRequest(url));
         mockMvc.perform(delete("/api/v1/links")
                         .header("Client-Login", "user")
-                        .header("Client-Password", "pass")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request))
                 .andExpect(status().isOk())
@@ -135,7 +152,7 @@ class BotRestControllerTest {
 
     @Test
     void untrackLink_returnsBadRequestWhenNoMatchingLink() throws Exception {
-        when(scrapperConnectionService.getAllLinks("user", "pass"))
+        when(scrapperConnectionService.getAllLinks("user"))
                 .thenReturn(List.of(new LinkResponse(10L, URI.create("https://github.com/u/r"), Set.of(), Set.of())));
 
         var request = """
@@ -145,7 +162,6 @@ class BotRestControllerTest {
                 """;
         mockMvc.perform(delete("/api/v1/links")
                         .header("Client-Login", "user")
-                        .header("Client-Password", "pass")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request))
                 .andExpect(status().isBadRequest());
