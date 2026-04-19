@@ -162,6 +162,36 @@ public class LinkOperationProcessorTest {
     }
 
     @Test
+    public void whenLinkExists_subscribeCalledTwice_returnsSameResponseAndSubscribesEachTime() {
+        Long id = 123L;
+        AddLinkRequest addLinkRequest =
+                new AddLinkRequest(URI.create("https://repeat.example/r"), Set.of("tag"), Set.of("filter"));
+        Link link = new Link(
+                1L, URI.create("https://repeat.example/r"), Set.of("tag"), Set.of("filter"), OffsetDateTime.now());
+        LinkResponse expected = new LinkResponse(link.id(), link.url(), link.tags(), link.filters());
+
+        when(chatService.isClient(id)).thenReturn(true);
+        when(dbLinkService.findByLink(addLinkRequest.link().toString())).thenReturn(Optional.of(link));
+        when(mapper.toLinkResponse(any())).thenAnswer(invocation -> {
+            Link argument = invocation.getArgument(0);
+            return new LinkResponse(
+                    argument.id(),
+                    argument.url(),
+                    argument.tags(),
+                    argument.filters());
+        });
+
+        Optional<LinkResponse> first = linkOperationProcessor.subscribe(id, addLinkRequest);
+        Optional<LinkResponse> second = linkOperationProcessor.subscribe(id, addLinkRequest);
+
+        assertTrue(first.isPresent());
+        assertTrue(second.isPresent());
+        assertEquals(expected, first.get());
+        assertEquals(expected, second.get());
+        verify(chatService, times(2)).subscribeChatOnLink(id, link.id());
+    }
+
+    @Test
     public void testUnsubscribeLinkSuccess() {
         Long id = 1L;
         RemoveLinkRequest removeLinkRequest = new RemoveLinkRequest(URI.create("uri"));

@@ -9,6 +9,8 @@ import org.mockito.Mock;
 import java.util.Optional;
 import org.mockito.junit.jupiter.MockitoExtension;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -71,5 +73,15 @@ class ChatOperationProcessorTest {
     public void findClientIdByLogin_emptyWhenUnknown() {
         when(chatRepository.findIdByLogin("nobody")).thenReturn(Optional.empty());
         assertThat(chatService.findClientIdByLogin("nobody")).isEmpty();
+    }
+
+    @Test
+    public void chatIsSubscribedOnLink_usesReadOnlyRepositoryMethod_noInsert() {
+        when(linkToChatRepository.chatIsSubscribedOnLink(10L, 20L)).thenReturn(true);
+
+        assertThat(chatService.chatIsSubscribedOnLink(10L, 20L)).isTrue();
+
+        verify(linkToChatRepository).chatIsSubscribedOnLink(10L, 20L);
+        verify(linkToChatRepository, never()).subscribeChatOnLink(anyLong(), anyLong());
     }
 }

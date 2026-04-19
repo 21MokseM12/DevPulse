@@ -19,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.springframework.dao.DuplicateKeyException;
 
 @JdbcTest
 @Testcontainers
@@ -40,6 +41,33 @@ public class LinkToChatRepositoryTest extends TestContainersConfiguration {
 
         assertTrue(created);
         assertTrue(repository.chatIsSubscribedOnLink(chatId, linkId));
+    }
+
+    @Test
+    public void subscribeChatOnLink_twice_isIdempotent_singleRowInDb() {
+        Long chatId = createChat(20008L);
+        Long linkId = createLink("https://link-to-chat.example/idempotent");
+
+        assertTrue(repository.subscribeChatOnLink(chatId, linkId));
+        assertTrue(repository.subscribeChatOnLink(chatId, linkId));
+
+        Integer count = jdbcTemplate.queryForObject(
+            "select count(*) from links_chats where chat_id = ? and link_id = ?",
+            Integer.class,
+            chatId,
+            linkId);
+        assertEquals(1, count);
+    }
+
+    @Test
+    public void linksChats_uniqueConstraint_rejectsRawDuplicateInsert() {
+        Long chatId = createChat(20009L);
+        Long linkId = createLink("https://link-to-chat.example/unique-raw");
+
+        jdbcTemplate.update("insert into links_chats (chat_id, link_id) values (?, ?)", chatId, linkId);
+
+        assertThrows(DuplicateKeyException.class, () ->
+            jdbcTemplate.update("insert into links_chats (chat_id, link_id) values (?, ?)", chatId, linkId));
     }
 
     @Test
