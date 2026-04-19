@@ -14,5 +14,6 @@
     <include relativeToChangelogFile="true" file="005_createTableFilters.sql"/>
     <include relativeToChangelogFile="true" file="006_createProcessedIds.sql"/>
     <include relativeToChangelogFile="true" file="007_addClientCredentialsToChats.sql"/>
+    <include relativeToChangelogFile="true" file="008_deduplicateAndUniqueLinksChats.sql"/>
 
 </databaseChangeLog>

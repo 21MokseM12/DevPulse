@@ -23,16 +23,17 @@ public class LinkToChatRepositoryImpl implements LinkToChatRepository {
 
     @Transactional(propagation = Propagation.MANDATORY)
     public boolean subscribeChatOnLink(@NotNull Long chatId, @NotNull Long linkId) {
-        return jdbcTemplate.update(
+        jdbcTemplate.update(
             LinkToChatQuery.INSERT.query(),
             new MapSqlParameterSource()
                 .addValue(LINK_ID, linkId)
                 .addValue(CHAT_ID, chatId)
-        ) == 1;
+        );
+        return chatIsSubscribedOnLink(chatId, linkId);
     }
 
     @Transactional(readOnly = true)
-    public boolean chatIsSubscribedOnLink(Long chatId, Long linkId) {
+    public boolean chatIsSubscribedOnLink(@NotNull Long chatId, @NotNull Long linkId) {
         return Optional.ofNullable(jdbcTemplate.queryForObject(
             LinkToChatQuery.SELECT_COUNT_BY_CHAT_ID_AND_LINK_ID.query(),
             new MapSqlParameterSource()
