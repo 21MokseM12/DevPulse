@@ -23,3 +23,5 @@ dependency-reduced-pom.xml
 *.log
 hs_err_pid*
 /.env.example
+/.vscode/
+/VKR.pdf
