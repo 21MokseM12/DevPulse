@@ -61,17 +61,11 @@ public class LinkOperationProcessorImpl implements LinkOperationProcessor {
             Link link;
             if (optionalLink.isEmpty()) {
                 link = linkService.saveLink(linkRequest);
-                chatService.subscribeChatOnLink(chatId, link.id());
-                log.info("Пользователь с id {} подписался на ссылку {}, ссылка добавлена", chatId, link.url().toString());
             } else {
                 link = optionalLink.get();
-                if (chatService.chatIsSubscribedOnLink(chatId, link.id())) {
-                    log.info("Пользователь с id {} уже подписан на ссылку {}", chatId, link);
-                    return Optional.of(mapper.toLinkResponse(link));
-                }
-                chatService.subscribeChatOnLink(chatId, link.id());
-                log.info("Пользователь с id {} подписался на ссылку {}", chatId, link.url().toString());
             }
+            chatService.subscribeChatOnLink(chatId, link.id());
+            log.info("Пользователь с id {} подписан на ссылку {}", chatId, link.url());
             return Optional.of(mapper.toLinkResponse(link));
         } catch (Exception e) {
             log.error(
