@@ -40,7 +40,7 @@ public class LinkToChatRepositoryImpl implements LinkToChatRepository {
                 .addValue(CHAT_ID, chatId)
                 .addValue(LINK_ID, linkId),
             Long.class
-        )).orElse(0L) == 1;
+        )).orElse(0L) > 0;
     }
 
     @Transactional(propagation = Propagation.MANDATORY)

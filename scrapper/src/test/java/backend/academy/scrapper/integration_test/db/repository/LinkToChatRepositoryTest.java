@@ -16,6 +16,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -60,6 +61,33 @@ public class LinkToChatRepositoryTest extends TestContainersConfiguration {
     }
 
     @Test
+    public void subscribeChatOnLink_whenCalledTwice_rowCountRemainsOne() {
+        Long chatId = createChat(20010L);
+        Long linkId = createLink("https://link-to-chat.example/repeat-one");
+
+        repository.subscribeChatOnLink(chatId, linkId);
+        repository.subscribeChatOnLink(chatId, linkId);
+
+        Integer count = jdbcTemplate.queryForObject(
+            "select count(*) from links_chats where chat_id = ? and link_id = ?",
+            Integer.class,
+            chatId,
+            linkId
+        );
+        assertTrue(repository.chatIsSubscribedOnLink(chatId, linkId));
+        assertEquals(1, count);
+    }
+
+    @Test
+    public void subscribeChatOnLink_onExistingPair_doesNotThrow() {
+        Long chatId = createChat(20011L);
+        Long linkId = createLink("https://link-to-chat.example/no-throw");
+        repository.subscribeChatOnLink(chatId, linkId);
+
+        assertDoesNotThrow(() -> repository.subscribeChatOnLink(chatId, linkId));
+    }
+
+    @Test
     public void linksChats_uniqueConstraint_rejectsRawDuplicateInsert() {
         Long chatId = createChat(20009L);
         Long linkId = createLink("https://link-to-chat.example/unique-raw");
@@ -68,6 +96,63 @@ public class LinkToChatRepositoryTest extends TestContainersConfiguration {
 
         assertThrows(DuplicateKeyException.class, () ->
             jdbcTemplate.update("insert into links_chats (chat_id, link_id) values (?, ?)", chatId, linkId));
+    }
+
+    @Test
+    public void migration008_removesDuplicates_andAddsUniqueConstraint() {
+        Long chatId = createChat(20012L);
+        Long linkId = createLink("https://link-to-chat.example/migration-008");
+
+        jdbcTemplate.update("alter table links_chats drop constraint if exists links_chats_chat_id_link_id_key");
+        jdbcTemplate.update("insert into links_chats (chat_id, link_id) values (?, ?)", chatId, linkId);
+        jdbcTemplate.update("insert into links_chats (chat_id, link_id) values (?, ?)", chatId, linkId);
+
+        jdbcTemplate.update(
+            "delete from links_chats as a using links_chats as b "
+                + "where a.ctid > b.ctid and a.chat_id = b.chat_id and a.link_id = b.link_id"
+        );
+        jdbcTemplate.update(
+            "alter table links_chats add constraint links_chats_chat_id_link_id_key unique (chat_id, link_id)"
+        );
+
+        Integer count = jdbcTemplate.queryForObject(
+            "select count(*) from links_chats where chat_id = ? and link_id = ?",
+            Integer.class,
+            chatId,
+            linkId
+        );
+        assertEquals(1, count);
+
+        int updatedRows = jdbcTemplate.update(
+            "insert into links_chats (chat_id, link_id) values (?, ?) on conflict (chat_id, link_id) do nothing",
+            chatId,
+            linkId
+        );
+        assertEquals(0, updatedRows);
+        assertThrows(
+            DuplicateKeyException.class,
+            () -> jdbcTemplate.update("insert into links_chats (chat_id, link_id) values (?, ?)", chatId, linkId)
+        );
+    }
+
+    @Test
+    public void chatIsSubscribedOnLink_whenMultipleRowsExist_returnsTrue() {
+        Long chatId = createChat(20013L);
+        Long linkId = createLink("https://link-to-chat.example/dirty-double");
+
+        jdbcTemplate.update("alter table links_chats drop constraint if exists links_chats_chat_id_link_id_key");
+        jdbcTemplate.update("insert into links_chats (chat_id, link_id) values (?, ?)", chatId, linkId);
+        jdbcTemplate.update("insert into links_chats (chat_id, link_id) values (?, ?)", chatId, linkId);
+
+        Integer count = jdbcTemplate.queryForObject(
+            "select count(*) from links_chats where chat_id = ? and link_id = ?",
+            Integer.class,
+            chatId,
+            linkId
+        );
+
+        assertEquals(2, count);
+        assertTrue(repository.chatIsSubscribedOnLink(chatId, linkId));
     }
 
     @Test
