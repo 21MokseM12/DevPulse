@@ -130,7 +130,7 @@ public class LinkOperationProcessorTest {
         verify(chatService).isClient(id);
         verify(dbLinkService).findByLink(addLinkRequest.link().toString());
         verify(dbLinkService).saveLink(addLinkRequest);
-        verify(chatService).subscribeChatOnLink(id, link.id());
+        verify(chatService).subscribeChatOnLink(id, link.id(), addLinkRequest.tags(), addLinkRequest.filters());
     }
 
     @Test
@@ -158,7 +158,7 @@ public class LinkOperationProcessorTest {
         assertEquals(expected, linkResponse.get());
         verify(chatService).isClient(id);
         verify(dbLinkService).findByLink(addLinkRequest.link().toString());
-        verify(chatService).subscribeChatOnLink(id, linkId);
+        verify(chatService).subscribeChatOnLink(id, linkId, addLinkRequest.tags(), addLinkRequest.filters());
     }
 
     @Test
@@ -188,7 +188,8 @@ public class LinkOperationProcessorTest {
         assertTrue(second.isPresent());
         assertEquals(expected, first.get());
         assertEquals(expected, second.get());
-        verify(chatService, times(2)).subscribeChatOnLink(id, link.id());
+        verify(chatService, times(2))
+            .subscribeChatOnLink(id, link.id(), addLinkRequest.tags(), addLinkRequest.filters());
     }
 
     @Test
@@ -200,6 +201,7 @@ public class LinkOperationProcessorTest {
         when(chatService.isClient(id)).thenReturn(true);
         when(dbLinkService.existsLink(removeLinkRequest.link().toString())).thenReturn(true);
         when(dbLinkService.findByLink(removeLinkRequest.link().toString())).thenReturn(Optional.of(link));
+        when(chatService.findAllByLinkId(link.id())).thenReturn(List.of());
         when(dbLinkService.delete(removeLinkRequest.link().toString())).thenReturn(Optional.of(link));
         when(mapper.toLinkResponse(any())).thenAnswer(invocation -> {
             Link argument = invocation.getArgument(0);

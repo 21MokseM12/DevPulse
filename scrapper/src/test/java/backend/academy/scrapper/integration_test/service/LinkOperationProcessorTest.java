@@ -46,13 +46,13 @@ class LinkOperationProcessorTest extends TestContainersConfiguration {
         assertEquals(firstResponse.url(), secondResponse.url());
 
         Integer relationCount = jdbcTemplate.queryForObject(
-            "select count(*) from links_chats where chat_id = ? and link_id = ?",
+            "select count(*) from client_links where client_id = ? and link_id = ?",
             Integer.class,
             chatId,
             firstResponse.id()
         );
         Integer linksCount = jdbcTemplate.queryForObject(
-            "select count(*) from links where link = ?",
+            "select count(*) from links where url = ?",
             Integer.class,
             url.toString()
         );

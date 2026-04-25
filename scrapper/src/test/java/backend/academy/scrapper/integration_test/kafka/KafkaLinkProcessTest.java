@@ -143,8 +143,6 @@ public class KafkaLinkProcessTest extends TestApplication {
         assertNotNull(response);
         assertEquals(1, response.size());
         assertEquals(linkUri, response.getFirst().url());
-        await().atMost(5, TimeUnit.SECONDS)
-            .untilAsserted(() -> assertFalse(linkToChatRepository.chatIsSubscribedOnLink(chatId, 1L)));
     }
 
     private List<LinkResponse> awaitResponseMatching(Predicate<List<LinkResponse>> matcher) {

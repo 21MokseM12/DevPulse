@@ -110,11 +110,17 @@ public class ProcessedIdRepositoryTest extends TestContainersConfiguration {
     }
 
     private Long createLink(String url) {
+        Timestamp now = Timestamp.from(OffsetDateTime.now().toInstant());
         return jdbcTemplate.queryForObject(
-            "insert into links (link, updated_at) values (?, ?) returning id",
+            "insert into links (link, updated_at, url, link_type, last_checked_at, etag, created_at) values (?, ?, ?, ?, ?, ?, ?) returning id",
             Long.class,
             url,
-            Timestamp.from(OffsetDateTime.now().toInstant())
+            now,
+            url,
+            "UNKNOWN",
+            now,
+            null,
+            now
         );
     }
 }
