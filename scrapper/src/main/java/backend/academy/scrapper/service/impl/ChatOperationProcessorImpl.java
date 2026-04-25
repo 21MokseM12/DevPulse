@@ -5,6 +5,7 @@ import backend.academy.scrapper.db.repository.LinkToChatRepository;
 import backend.academy.scrapper.service.ChatOperationProcessor;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
@@ -106,6 +107,11 @@ public class ChatOperationProcessorImpl implements ChatOperationProcessor {
     @Override
     public void subscribeChatOnLink(Long chatId, Long linkId) {
         linkToChatRepository.subscribeChatOnLink(chatId, linkId);
+    }
+
+    @Override
+    public void subscribeChatOnLink(Long chatId, Long linkId, Set<String> tags, Set<String> filters) {
+        linkToChatRepository.subscribeChatOnLink(chatId, linkId, tags, filters);
     }
 
     @Override

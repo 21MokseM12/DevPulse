@@ -2,6 +2,7 @@ package backend.academy.scrapper.service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface ChatOperationProcessor {
     boolean register(String login, String password);
@@ -23,6 +24,8 @@ public interface ChatOperationProcessor {
     void unsubscribe(Long chatId, Long linkId);
 
     void subscribeChatOnLink(Long chatId, Long linkId);
+
+    void subscribeChatOnLink(Long chatId, Long linkId, Set<String> tags, Set<String> filters);
 
     boolean chatIsSubscribedOnLink(Long chatId, Long linkId);
 }

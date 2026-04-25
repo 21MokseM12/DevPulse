@@ -64,7 +64,7 @@ public class LinkOperationProcessorImpl implements LinkOperationProcessor {
             } else {
                 link = optionalLink.get();
             }
-            chatService.subscribeChatOnLink(chatId, link.id());
+            chatService.subscribeChatOnLink(chatId, link.id(), linkRequest.tags(), linkRequest.filters());
             log.info("Пользователь с id {} подписан на ссылку {}", chatId, link.url());
             return Optional.of(mapper.toLinkResponse(link));
         } catch (Exception e) {
@@ -86,11 +86,11 @@ public class LinkOperationProcessorImpl implements LinkOperationProcessor {
         Link link = linkService.findByLink(uri.link().toString())
             .orElseThrow(() -> new LinkNotFoundException("Ссылка " + uri.link() + " не найдена"));
         chatService.unsubscribe(chatId, link.id());
-        Link deletedLink = linkService
-            .delete(uri.link().toString())
-            .orElseThrow(() -> new LinkNotFoundException("Ссылка " + uri.link() + " не найдена"));
         log.info("Пользователь с id {} отписался от ссылки {}", chatId, uri.link());
-        return Optional.of(mapper.toLinkResponse(deletedLink));
+        if (chatService.findAllByLinkId(link.id()).isEmpty()) {
+            linkService.delete(uri.link().toString());
+        }
+        return Optional.of(mapper.toLinkResponse(link));
     }
 
     @Override
