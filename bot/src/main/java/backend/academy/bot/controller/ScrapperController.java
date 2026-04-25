@@ -19,7 +19,13 @@ public class ScrapperController {
 
     @PostMapping
     public ResponseEntity<Void> notifyLinkUpdate(@RequestBody LinkUpdate update) throws BadRequestException {
-        if (update.clientsIds().isEmpty() || update.url() == null) {
+        if (update.clientsIds() == null
+                || update.clientsIds().isEmpty()
+                || update.url() == null
+                || update.title() == null
+                || update.updateOwner() == null
+                || update.description() == null
+                || update.creationDate() == null) {
             throw new BadRequestException("Некорректные параметры запроса");
         }
         notificationManager.notify(update);

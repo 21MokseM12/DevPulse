@@ -3,6 +3,7 @@ package backend.academy.bot.controller;
 import backend.academy.bot.enums.Messages;
 import backend.academy.bot.model.api.BotApiMessageResponse;
 import backend.academy.bot.model.entity.LinkDTO;
+import backend.academy.bot.service.ClientOperationService;
 import backend.academy.bot.service.ScrapperConnectionService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -27,19 +28,20 @@ public class BotRestController {
 
     private static final String CLIENT_LOGIN_HEADER = "Client-Login";
 
+    private final ClientOperationService clientOperationService;
     private final ScrapperConnectionService scrapperConnectionService;
 
     @PostMapping("/clients")
     public ResponseEntity<BotApiMessageResponse> registerClient(@RequestBody ClientCredentialsRequest request)
             throws BadRequestException {
-        scrapperConnectionService.registerChat(request.login(), request.password());
+        clientOperationService.registerClient(request.login(), request.password());
         return ResponseEntity.ok(new BotApiMessageResponse(Messages.WELCOME_MESSAGE.toString()));
     }
 
     @DeleteMapping("/clients")
     public ResponseEntity<BotApiMessageResponse> unregisterClient(@RequestBody ClientCredentialsRequest request)
             throws BadRequestException {
-        scrapperConnectionService.unregisterChat(request.login(), request.password());
+        clientOperationService.unregisterClient(request.login(), request.password());
         return ResponseEntity.ok(new BotApiMessageResponse(Messages.DELETE_SUBSCRIBE_MESSAGE.toString()));
     }
 

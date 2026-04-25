@@ -1,0 +1,11 @@
+CREATE TABLE IF NOT EXISTS notifications (
+    id BIGSERIAL PRIMARY KEY,
+    link_id BIGINT NOT NULL,
+    url TEXT NOT NULL,
+    title TEXT NOT NULL,
+    update_owner TEXT NOT NULL,
+    description TEXT NOT NULL,
+    creation_date TIMESTAMP WITH TIME ZONE NOT NULL,
+    clients_ids JSONB NOT NULL,
+    received_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

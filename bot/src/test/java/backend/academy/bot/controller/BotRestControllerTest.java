@@ -14,6 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import backend.academy.bot.enums.Messages;
 import backend.academy.bot.exceptions.ChatNotFoundException;
 import backend.academy.bot.model.entity.LinkDTO;
+import backend.academy.bot.service.ClientOperationService;
 import backend.academy.bot.service.ScrapperConnectionService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
@@ -40,6 +41,9 @@ class BotRestControllerTest {
     @MockitoBean
     private ScrapperConnectionService scrapperConnectionService;
 
+    @MockitoBean
+    private ClientOperationService clientOperationService;
+
     @Test
     void registerClient_returnsWelcomeMessage() throws Exception {
         var payload = """
@@ -55,7 +59,7 @@ class BotRestControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value(Messages.WELCOME_MESSAGE.toString()));
 
-        verify(scrapperConnectionService).registerChat("user", "pass");
+        verify(clientOperationService).registerClient("user", "pass");
     }
 
     @Test
@@ -73,7 +77,7 @@ class BotRestControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value(Messages.DELETE_SUBSCRIBE_MESSAGE.toString()));
 
-        verify(scrapperConnectionService).unregisterChat("user", "pass");
+        verify(clientOperationService).unregisterClient("user", "pass");
     }
 
     @Test
@@ -85,8 +89,8 @@ class BotRestControllerTest {
                 }
                 """;
         doThrow(new ChatNotFoundException(Messages.ERROR.toString()))
-                .when(scrapperConnectionService)
-                .unregisterChat("user", "pass");
+                .when(clientOperationService)
+                .unregisterClient("user", "pass");
 
         mockMvc.perform(delete("/api/v1/clients")
                         .contentType(MediaType.APPLICATION_JSON)

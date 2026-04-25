@@ -10,5 +10,13 @@ app:
   scrapper-url: ${SCRAPPER_URL}
 
 spring:
+  datasource:
+    username: ${BOT_POSTGRES_USER:${POSTGRES_USER:postgres}}
+    password: ${BOT_POSTGRES_PASSWORD:${POSTGRES_PASSWORD:postgres}}
+    url: ${BOT_POSTGRES_URL:${POSTGRES_URL:jdbc:postgresql://localhost:5432/devpulse_bot}}
+    driver-class-name: org.postgresql.Driver
   application:
     name: frontend-message-processor
+  liquibase:
+    enabled: true
+    change-log: classpath:db/migrations/master.xml
