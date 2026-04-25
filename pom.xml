@@ -40,6 +40,7 @@
 
         <java-telegram-bot-api.version>7.11.0</java-telegram-bot-api.version>
         <wiremock.version>3.10.0</wiremock.version>
+        <testcontainers.version>1.21.4</testcontainers.version>
 
         <org.mapstruct.version>1.5.5.Final</org.mapstruct.version>
         <lombok.version>1.18.36</lombok.version>
