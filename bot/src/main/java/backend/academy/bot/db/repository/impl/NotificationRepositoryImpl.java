@@ -26,7 +26,17 @@ public class NotificationRepositoryImpl implements NotificationRepository {
             """
             INSERT INTO notifications(link_id, url, title, update_owner, description, creation_date)
             VALUES(:link_id, :url, :title, :update_owner, :description, :creation_date)
+            ON CONFLICT (link_id, creation_date, update_owner, title) DO NOTHING
             RETURNING id
+            """;
+    private static final String SELECT_EXISTING_ID =
+            """
+            SELECT id
+            FROM notifications
+            WHERE link_id = :link_id
+              AND creation_date = :creation_date
+              AND update_owner = :update_owner
+              AND title = :title
             """;
     private static final String INSERT_RECIPIENT =
             """
@@ -40,17 +50,20 @@ public class NotificationRepositoryImpl implements NotificationRepository {
 
     @Override
     public long save(Notification notification) {
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue(LINK_ID, notification.linkId())
+                .addValue(URL, notification.url())
+                .addValue(TITLE, notification.title())
+                .addValue(UPDATE_OWNER, notification.updateOwner())
+                .addValue(DESCRIPTION, notification.description())
+                .addValue(CREATION_DATE, notification.creationDate());
         Long id = jdbcTemplate.queryForObject(
                 INSERT,
-                new MapSqlParameterSource()
-                        .addValue(LINK_ID, notification.linkId())
-                        .addValue(URL, notification.url())
-                        .addValue(TITLE, notification.title())
-                        .addValue(UPDATE_OWNER, notification.updateOwner())
-                        .addValue(DESCRIPTION, notification.description())
-                        .addValue(CREATION_DATE, notification.creationDate()),
+                params,
                 Long.class);
-        long notificationId = Optional.ofNullable(id).orElseThrow();
+        long notificationId = Optional.ofNullable(id).orElseGet(() -> Optional.ofNullable(
+                        jdbcTemplate.queryForObject(SELECT_EXISTING_ID, params, Long.class))
+                .orElseThrow());
         saveRecipients(notificationId, notification.clientsIds());
         return notificationId;
     }

@@ -8,6 +8,17 @@ springdoc:
 
 app:
   scrapper-url: ${SCRAPPER_URL}
+  kafka:
+    consumers:
+      link-updates:
+        topic: ${BOT_LINK_UPDATES_TOPIC:link-updates}
+        group-id: ${BOT_LINK_UPDATES_GROUP_ID:bot-link-updates-consumer}
+    retry-policy:
+      interval: ${BOT_KAFKA_RETRY_INTERVAL:1000}
+      multiplier: ${BOT_KAFKA_RETRY_MULTIPLIER:2.0}
+      max-delay: ${BOT_KAFKA_RETRY_MAX_DELAY:5000}
+      max-attempts: ${BOT_KAFKA_RETRY_MAX_ATTEMPTS:3}
+      auto-create-topics: ${BOT_KAFKA_RETRY_AUTO_CREATE_TOPICS:true}
 
 spring:
   datasource:
@@ -20,3 +31,14 @@ spring:
   liquibase:
     enabled: true
     change-log: classpath:db/migrations/master.xml
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    listener:
+      concurrency: 1

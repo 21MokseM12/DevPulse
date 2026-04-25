@@ -1,6 +1,6 @@
 package backend.academy.bot.controller;
 
-import backend.academy.bot.service.notifications.BotNotificationManager;
+import backend.academy.bot.service.notifications.LinkUpdateProcessingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,20 +15,11 @@ import scrapper.bot.connectivity.model.LinkUpdate;
 @RequiredArgsConstructor
 public class ScrapperController {
 
-    private final BotNotificationManager notificationManager;
+    private final LinkUpdateProcessingService linkUpdateProcessingService;
 
     @PostMapping
     public ResponseEntity<Void> notifyLinkUpdate(@RequestBody LinkUpdate update) throws BadRequestException {
-        if (update.clientsIds() == null
-                || update.clientsIds().isEmpty()
-                || update.url() == null
-                || update.title() == null
-                || update.updateOwner() == null
-                || update.description() == null
-                || update.creationDate() == null) {
-            throw new BadRequestException("Некорректные параметры запроса");
-        }
-        notificationManager.notify(update);
+        linkUpdateProcessingService.process(update);
         return ResponseEntity.ok().build();
     }
 }

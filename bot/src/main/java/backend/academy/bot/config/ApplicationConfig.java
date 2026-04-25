@@ -7,7 +7,7 @@ import org.springframework.validation.annotation.Validated;
 
 @Getter
 @Validated
-@ConfigurationProperties(prefix = "app", ignoreUnknownFields = false)
+@ConfigurationProperties(prefix = "app")
 public class ApplicationConfig {
 
     @NotEmpty

@@ -11,5 +11,6 @@
     <include relativeToChangelogFile="true" file="002_create_notifications.sql"/>
     <include relativeToChangelogFile="true" file="003_notification_recipients_and_indexes.sql"/>
     <include relativeToChangelogFile="true" file="004_drop_notifications_clients_ids.sql"/>
+    <include relativeToChangelogFile="true" file="005_add_notifications_dedup_constraint.sql"/>
 
 </databaseChangeLog>
