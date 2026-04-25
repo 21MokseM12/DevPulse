@@ -1,4 +1,4 @@
 delete
 from links
 where id = :link_id
-returning id, link, updated_at;
+returning id, url, last_checked_at, created_at;

@@ -20,12 +20,16 @@ public class LinkRowMapper implements RowMapper<Link> {
     public Link mapRow(ResultSet rs, int rowNum) {
         try {
             Set<String> columns = getColumns(rs);
+            String urlColumn = columns.contains("url") ? "url" : "link";
+            String createdAtColumn = columns.contains("created_at")
+                ? "created_at"
+                : (columns.contains("last_checked_at") ? "last_checked_at" : "updated_at");
             return new Link(
                 rs.getLong("id"),
-                URI.create(rs.getString("link")),
+                URI.create(rs.getString(urlColumn)),
                 extractSetFromArray(rs, columns, "tags"),
                 extractSetFromArray(rs,columns, "filters"),
-                rs.getObject("updated_at", OffsetDateTime.class)
+                rs.getObject(createdAtColumn, OffsetDateTime.class)
             );
         } catch (SQLException e) {
             throw new RuntimeException("Произошли ошибка маппинга ссылки", e);

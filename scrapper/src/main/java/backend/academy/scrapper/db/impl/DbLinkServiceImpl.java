@@ -2,9 +2,7 @@ package backend.academy.scrapper.db.impl;
 
 import backend.academy.scrapper.db.DbLinkService;
 import backend.academy.scrapper.db.model.Link;
-import backend.academy.scrapper.db.repository.FilterRepository;
 import backend.academy.scrapper.db.repository.LinkRepository;
-import backend.academy.scrapper.db.repository.TagRepository;
 import backend.academy.scrapper.mapper.LinkMapper;
 import java.net.URI;
 import java.time.Clock;
@@ -26,9 +24,7 @@ public class DbLinkServiceImpl implements DbLinkService {
 
     private final Clock clock;
     private final LinkMapper mapper;
-    private final TagRepository tagRepository;
     private final LinkRepository linkRepository;
-    private final FilterRepository filterRepository;
 
     @Override
     @Transactional(rollbackFor = DataAccessException.class)
@@ -37,8 +33,6 @@ public class DbLinkServiceImpl implements DbLinkService {
             log.info("Начинается сохранение ссылки по запросу: {}", request);
             OffsetDateTime createdTime = OffsetDateTime.now(clock);
             Long linkId = linkRepository.save(request.link().toString(), createdTime);
-            tagRepository.save(request.tags(), linkId);
-            filterRepository.save(request.filters(), linkId);
             log.info("Ссылка успешно сохранена с id: {}", linkId);
             return mapper.toLink(request, linkId, createdTime);
         } catch (DataAccessException e) {
@@ -85,10 +79,7 @@ public class DbLinkServiceImpl implements DbLinkService {
             Optional<Link> optId = linkRepository.findIdByLink(link);
             if (optId.isPresent()) {
                 Long id = optId.get().id();
-                Set<String> tags = tagRepository.deleteByLinkId(id);
-                Set<String> filters = filterRepository.deleteByLinkId(id);
-                return linkRepository.delete(id)
-                    .map(linkEntity -> mapper.toLink(linkEntity, tags, filters));
+                return linkRepository.delete(id);
             }
             log.warn("id для ссылки {} не найден", link);
             return Optional.empty();

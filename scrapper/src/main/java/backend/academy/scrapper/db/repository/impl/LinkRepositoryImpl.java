@@ -19,8 +19,11 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 public class LinkRepositoryImpl implements LinkRepository {
 
-    private static final String LINK = "link";
-    private static final String UPDATED_AT = "updated_at";
+    private static final String URL = "url";
+    private static final String LAST_CHECKED_AT = "last_checked_at";
+    private static final String CREATED_AT = "created_at";
+    private static final String LINK_TYPE = "link_type";
+    private static final String ETAG = "etag";
     private static final String LINK_ID = "link_id";
     private static final String TIME_LIMIT = "highestTimeLimit";
     private static final String OFFSET = "offset";
@@ -29,21 +32,24 @@ public class LinkRepositoryImpl implements LinkRepository {
     private final NamedParameterJdbcTemplate jdbcTemplate;
     private final RowMapper<Link> rowMapper;
 
-    public Long save(String link, OffsetDateTime createdTime) {
+    public Long save(String url, OffsetDateTime createdTime) {
         return jdbcTemplate.queryForObject(
             LinkQuery.INSERT.query(),
             new MapSqlParameterSource()
-                .addValue(LINK, link)
-                .addValue(UPDATED_AT, createdTime.withOffsetSameInstant(ZoneOffset.UTC).toLocalDateTime()),
+                .addValue(URL, url)
+                .addValue(LAST_CHECKED_AT, createdTime.withOffsetSameInstant(ZoneOffset.UTC).toLocalDateTime())
+                .addValue(CREATED_AT, createdTime.withOffsetSameInstant(ZoneOffset.UTC).toLocalDateTime())
+                .addValue(LINK_TYPE, resolveLinkType(url))
+                .addValue(ETAG, null),
             Long.class
         );
     }
 
-    public Optional<Link> findIdByLink(String link) {
+    public Optional<Link> findIdByLink(String url) {
         return Optional.ofNullable(jdbcTemplate.queryForObject(
             LinkQuery.SELECT_BY_LINK.query(),
             new MapSqlParameterSource()
-                .addValue(LINK, link),
+                .addValue(URL, url),
             rowMapper
         ));
     }
@@ -57,11 +63,11 @@ public class LinkRepositoryImpl implements LinkRepository {
         ));
     }
 
-    public boolean existsLink(String link) {
+    public boolean existsLink(String url) {
         return Optional.ofNullable(jdbcTemplate.queryForObject(
             LinkQuery.SELECT_COUNT_BY_LINK.query(),
             new MapSqlParameterSource()
-                .addValue(LINK, link),
+                .addValue(URL, url),
             Integer.class
         )).orElse(0) == 1;
     }
@@ -86,5 +92,15 @@ public class LinkRepositoryImpl implements LinkRepository {
             ).stream()
             .map(URI::create)
             .collect(Collectors.toSet());
+    }
+
+    private String resolveLinkType(String url) {
+        if (url.startsWith("https://github.com/")) {
+            return "GITHUB";
+        }
+        if (url.startsWith("https://stackoverflow.com/")) {
+            return "STACKOVERFLOW";
+        }
+        return "UNKNOWN";
     }
 }

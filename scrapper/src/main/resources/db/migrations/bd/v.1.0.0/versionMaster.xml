@@ -15,5 +15,12 @@
     <include relativeToChangelogFile="true" file="006_createProcessedIds.sql"/>
     <include relativeToChangelogFile="true" file="007_addClientCredentialsToChats.sql"/>
     <include relativeToChangelogFile="true" file="008_deduplicateAndUniqueLinksChats.sql"/>
+    <include relativeToChangelogFile="true" file="009_expand_links_for_state.sql"/>
+    <include relativeToChangelogFile="true" file="010_create_client_links.sql"/>
+    <include relativeToChangelogFile="true" file="011_create_poll_state.sql"/>
+    <include relativeToChangelogFile="true" file="012_create_kafka_outbox.sql"/>
+    <include relativeToChangelogFile="true" file="013_backfill_links_state.sql"/>
+    <include relativeToChangelogFile="true" file="014_backfill_client_links.sql"/>
+    <include relativeToChangelogFile="true" file="015_backfill_poll_state.sql"/>
 
 </databaseChangeLog>

@@ -1,3 +1,3 @@
-select count(link)
+select count(url)
 from links
-where link = :link;
+where url = :url;

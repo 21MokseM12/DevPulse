@@ -8,13 +8,13 @@ import java.util.Set;
 
 public interface LinkRepository {
 
-    Long save(String link, OffsetDateTime createdTime);
+    Long save(String url, OffsetDateTime createdTime);
 
-    Optional<Link> findIdByLink(String link);
+    Optional<Link> findIdByLink(String url);
 
     Optional<Link> findById(Long linkId);
 
-    boolean existsLink(String link);
+    boolean existsLink(String url);
 
     Optional<Link> delete(Long id);
 

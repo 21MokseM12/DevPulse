@@ -1,3 +1,3 @@
 delete
-from links_chats
-where chat_id = :chatId;
+from client_links
+where client_id = :chatId;

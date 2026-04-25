@@ -1,3 +1,3 @@
-select chat_id
-from links_chats
+select client_id
+from client_links
 where link_id = :linkId;

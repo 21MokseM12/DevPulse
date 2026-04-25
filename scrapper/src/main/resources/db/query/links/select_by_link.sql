@@ -1,14 +1,15 @@
 SELECT
     l.id,
-    l.link,
-    l.updated_at,
+    l.url,
+    l.last_checked_at,
+    l.created_at,
     COALESCE(
-        ARRAY(SELECT t.tag FROM tags t WHERE t.link_id = l.id),
+        ARRAY(SELECT DISTINCT tag_item FROM client_links cl, unnest(cl.tags) AS tag_item WHERE cl.link_id = l.id),
         ARRAY[]::TEXT[]
     ) AS tags,
     COALESCE(
-        ARRAY(SELECT f.filter FROM filters f WHERE f.link_id = l.id),
+        ARRAY(SELECT DISTINCT filter_item FROM client_links cl, unnest(cl.filters) AS filter_item WHERE cl.link_id = l.id),
         ARRAY[]::TEXT[]
     ) AS filters
 FROM links l
-WHERE link = :link;
+WHERE l.url = :url;
