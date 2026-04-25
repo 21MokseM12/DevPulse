@@ -25,3 +25,4 @@ hs_err_pid*
 /.env.example
 /.vscode/
 /VKR.pdf
+/VKR-plan.md
