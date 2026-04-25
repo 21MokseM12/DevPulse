@@ -1,9 +1,11 @@
 package backend.academy.bot.service.notifications;
 
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import backend.academy.bot.db.model.Notification;
 import backend.academy.bot.db.repository.NotificationRepository;
+import backend.academy.bot.mapper.LinkUpdateNotificationMapper;
 import java.net.URI;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -19,6 +21,9 @@ class BotNotificationManagerTest {
     @MockitoBean
     private NotificationRepository notificationRepository;
 
+    @MockitoBean
+    private LinkUpdateNotificationMapper notificationMapper;
+
     @Autowired
     private BotNotificationManager manager;
 
@@ -33,17 +38,19 @@ class BotNotificationManagerTest {
                 "description",
                 createdAt,
                 List.of(10L, 20L));
+        Notification notification = new Notification(
+                100L,
+                "https://github.com/org/repo/pull/123",
+                "PR updated",
+                "octocat",
+                "description",
+                createdAt,
+                List.of(10L, 20L));
+        when(notificationMapper.map(update)).thenReturn(notification);
 
         manager.notify(update);
 
-        verify(notificationRepository)
-                .save(new Notification(
-                        100L,
-                        "https://github.com/org/repo/pull/123",
-                        "PR updated",
-                        "octocat",
-                        "description",
-                        createdAt,
-                        List.of(10L, 20L)));
+        verify(notificationMapper).map(update);
+        verify(notificationRepository).save(notification);
     }
 }

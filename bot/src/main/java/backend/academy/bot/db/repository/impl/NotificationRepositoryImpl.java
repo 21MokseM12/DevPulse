@@ -2,8 +2,6 @@ package backend.academy.bot.db.repository.impl;
 
 import backend.academy.bot.db.model.Notification;
 import backend.academy.bot.db.repository.NotificationRepository;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -21,16 +19,22 @@ public class NotificationRepositoryImpl implements NotificationRepository {
     private static final String UPDATE_OWNER = "update_owner";
     private static final String DESCRIPTION = "description";
     private static final String CREATION_DATE = "creation_date";
-    private static final String CLIENTS_IDS = "clients_ids";
+    private static final String NOTIFICATION_ID = "notification_id";
+    private static final String CLIENT_LOGIN = "client_login";
 
     private static final String INSERT =
             """
-            INSERT INTO notifications(link_id, url, title, update_owner, description, creation_date, clients_ids)
-            VALUES(:link_id, :url, :title, :update_owner, :description, :creation_date, :clients_ids)
+            INSERT INTO notifications(link_id, url, title, update_owner, description, creation_date)
+            VALUES(:link_id, :url, :title, :update_owner, :description, :creation_date)
             RETURNING id
             """;
-
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final String INSERT_RECIPIENT =
+            """
+            INSERT INTO notification_recipients(notification_id, client_login)
+            SELECT :notification_id, :client_login
+            WHERE EXISTS (SELECT 1 FROM clients WHERE login = :client_login)
+            ON CONFLICT DO NOTHING
+            """;
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
@@ -44,17 +48,20 @@ public class NotificationRepositoryImpl implements NotificationRepository {
                         .addValue(TITLE, notification.title())
                         .addValue(UPDATE_OWNER, notification.updateOwner())
                         .addValue(DESCRIPTION, notification.description())
-                        .addValue(CREATION_DATE, notification.creationDate())
-                        .addValue(CLIENTS_IDS, toJson(notification.clientsIds())),
+                        .addValue(CREATION_DATE, notification.creationDate()),
                 Long.class);
-        return Optional.ofNullable(id).orElseThrow();
+        long notificationId = Optional.ofNullable(id).orElseThrow();
+        saveRecipients(notificationId, notification.clientsIds());
+        return notificationId;
     }
 
-    private String toJson(List<Long> clientsIds) {
-        try {
-            return OBJECT_MAPPER.writeValueAsString(clientsIds);
-        } catch (JsonProcessingException e) {
-            throw new IllegalStateException("Cannot serialize clients ids", e);
-        }
+    private void saveRecipients(long notificationId, List<Long> clientsIds) {
+        clientsIds.stream()
+                .map(String::valueOf)
+                .forEach(clientLogin -> jdbcTemplate.update(
+                        INSERT_RECIPIENT,
+                        new MapSqlParameterSource()
+                                .addValue(NOTIFICATION_ID, notificationId)
+                                .addValue(CLIENT_LOGIN, clientLogin)));
     }
 }

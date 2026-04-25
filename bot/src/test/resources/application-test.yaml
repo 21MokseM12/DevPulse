@@ -1,2 +1,12 @@
 app:
   scrapper-url: "https://api.github.com"
+
+spring:
+  datasource:
+    username: test
+    password: test
+    url: jdbc:postgresql://localhost:15432/devpulse_bot_test
+    driver-class-name: org.postgresql.Driver
+  liquibase:
+    enabled: true
+    change-log: classpath:db/migrations/master.xml
