@@ -12,6 +12,10 @@ app:
       interval: 15s
       force-check-delay: 30s
       thread-pool-size: 4
+    outbox:
+      topic: ${SCRAPPER_OUTBOX_TOPIC:link-updates}
+      interval: ${SCRAPPER_OUTBOX_INTERVAL:5s}
+      batch-size: ${SCRAPPER_OUTBOX_BATCH_SIZE:100}
     github:
       token: ${GITHUB_TOKEN}
       url: https://api.github.com

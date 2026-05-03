@@ -1,10 +1,12 @@
 package backend.academy.scrapper.service.notifications.impl;
 
 import backend.academy.scrapper.client.BotClient;
+import backend.academy.scrapper.config.ScrapperConfig;
 import backend.academy.scrapper.db.repository.KafkaOutboxRepository;
 import backend.academy.scrapper.mapper.LinkUpdateMapper;
 import backend.academy.scrapper.model.LinkUpdateDTO;
 import backend.academy.scrapper.model.NotifyUpdateEntity;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -27,11 +29,21 @@ class ScrapperHttpNotificationManagerTest {
     private LinkUpdateMapper mapper;
     @Mock
     private KafkaOutboxRepository kafkaOutboxRepository;
+    @Mock
+    private ScrapperConfig scrapperConfig;
+    @Mock
+    private ScrapperConfig.OutboxCredentials outboxCredentials;
 
     @Test
     void notify_writesEveryUpdateToKafkaOutbox() {
         ScrapperHttpNotificationManager manager =
-            new ScrapperHttpNotificationManager(botClient, mapper, kafkaOutboxRepository);
+            new ScrapperHttpNotificationManager(
+                botClient,
+                mapper,
+                kafkaOutboxRepository,
+                scrapperConfig,
+                new ObjectMapper()
+            );
 
         LinkUpdateDTO update = new LinkUpdateDTO(10L, "title", "owner", OffsetDateTime.now(), "desc");
         NotifyUpdateEntity entity = new NotifyUpdateEntity(
@@ -51,6 +63,8 @@ class ScrapperHttpNotificationManagerTest {
 
         when(mapper.toLinkUpdate(update, entity)).thenReturn(payload);
         when(botClient.sendUpdates(payload)).thenReturn(ResponseEntity.ok().build());
+        when(scrapperConfig.outbox()).thenReturn(outboxCredentials);
+        when(outboxCredentials.topic()).thenReturn("link-updates");
 
         manager.notify(List.of(entity));
 

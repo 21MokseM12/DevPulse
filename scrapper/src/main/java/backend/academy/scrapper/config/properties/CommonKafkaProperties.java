@@ -11,7 +11,8 @@ import org.springframework.kafka.listener.ContainerProperties;
 public record CommonKafkaProperties(
     @NotBlank String bootstrapServers,
     @NotNull ConsumerProperties consumer,
-    @NotNull ProducerProperties producer
+    @NotNull ProducerProperties producer,
+    @NotNull RetryPolicyProperties retryPolicy
 ) {
     public record ConsumerProperties(
         boolean enableAutoCommit,
@@ -24,5 +25,13 @@ public record CommonKafkaProperties(
         @NotBlank String clientId,
         @NotBlank String acksConfig,
         boolean enableIdempotenceConfig
+    ) { }
+
+    public record RetryPolicyProperties(
+        long interval,
+        double multiplier,
+        long maxDelay,
+        int maxAttempts,
+        boolean autoCreateTopics
     ) { }
 }
