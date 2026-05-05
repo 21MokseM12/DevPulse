@@ -7,7 +7,7 @@ springdoc:
     path: /swagger-ui
 
 app:
-  scrapper-url: ${SCRAPPER_URL}
+  scrapper-url: ${BOT_SCRAPPER_URL:${SCRAPPER_URL:http://localhost:8081}}
   shared-secret: ${INTERNAL_SHARED_SECRET:devpulse-internal-secret}
   kafka:
     consumers:
@@ -33,7 +33,7 @@ spring:
     enabled: true
     change-log: classpath:db/migrations/master.xml
   kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    bootstrap-servers: ${BOT_KAFKA_BOOTSTRAP_SERVERS:${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}}
     consumer:
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer

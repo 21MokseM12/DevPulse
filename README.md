@@ -11,7 +11,7 @@
 * Bot
 * Scrapper
 
-Для работы требуется БД `PostgreSQL`. Присутствует опциональная зависимость на `Kafka`.
+Для работы требуются две БД `PostgreSQL` (`bot` и `scrapper`) и Kafka-совместимый брокер.
 
 Для дополнительной справки: [HELP.md](./HELP.md)
 
@@ -50,11 +50,11 @@
 3. В переменные окружения записать следующие данные:
 GITHUB_TOKEN (токен для доступа к github API);
 SO_TOKEN_KEY, SO_ACCESS_TOKEN (токены для доступа к StackOverflow API);
-POSTGRES_USER (пользователь базы данных)
-POSTGRES_PASSWORD (пароль для пользователя базы данных)
-POSTGRES_DB_NAME (название вашей базы данных)
+BOT_POSTGRES_USER, BOT_POSTGRES_PASSWORD, BOT_POSTGRES_DB_NAME (параметры БД bot);
+SCRAPPER_POSTGRES_USER, SCRAPPER_POSTGRES_PASSWORD, SCRAPPER_POSTGRES_DB_NAME (параметры БД scrapper);
+INTERNAL_SHARED_SECRET (общий межсервисный секрет bot <-> scrapper).
 4. Запустить Docker
-5. Запустить файл docker-compose, хранящийся в корне проекта: он запустит все сервисы, PostgreSQL и Liquibase
+5. Запустить `docker compose up --build` в корне проекта: поднимутся `bot`, `scrapper`, `bot-db`, `scrapper-db` и Kafka (Redpanda).
 
 Тестирование
 - [x] Тесты должны запускать БД в Testcontainers
