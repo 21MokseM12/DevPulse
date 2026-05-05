@@ -52,3 +52,22 @@ jobs:
           cache: maven
 
       - run: mvn compile -am spotless:check modernizer:modernizer spotbugs:check pmd:check pmd:cpd-check
+
+  integration-e2e:
+    name: integration-e2e
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '23'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: run integration/e2e suite
+        run: mvn -pl bot,scrapper -Dtest='*Integration*Test,*IntegrationTest' -Dsurefire.failIfNoSpecifiedTests=false test

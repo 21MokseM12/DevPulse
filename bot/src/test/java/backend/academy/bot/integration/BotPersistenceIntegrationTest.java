@@ -143,6 +143,16 @@ class BotPersistenceIntegrationTest {
         assertThat(recipientsAfterDelete).isZero();
     }
 
+    @Test
+    void deleteUnknownClient_returns404() throws Exception {
+        String payload = objectMapper.writeValueAsString(Map.of("login", "ghost", "password", "ghost"));
+
+        mockMvc.perform(delete("/api/v1/clients")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isNotFound());
+    }
+
     private void registerClient(String login, String password) throws Exception {
         String payload = objectMapper.writeValueAsString(Map.of("login", login, "password", password));
         mockMvc.perform(post("/api/v1/clients")
