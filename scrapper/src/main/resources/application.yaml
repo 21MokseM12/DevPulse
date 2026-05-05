@@ -23,7 +23,7 @@ app:
       url: https://api.stackexchange.com/2.3
       key: ${SO_TOKEN_KEY}
       access-token: ${SO_ACCESS_TOKEN}
-    bot-url: http://localhost:8080
+    bot-url: ${BOT_URL:http://bot:8080}
   database:
     page-size: 1000
 
