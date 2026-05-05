@@ -1,7 +1,12 @@
 package backend.academy.scrapper.model.github.mappers;
 
 import backend.academy.scrapper.model.LinkUpdateDTO;
+import backend.academy.scrapper.model.UpdateType;
+import backend.academy.scrapper.model.github.GithubLabel;
 import backend.academy.scrapper.model.github.GithubResponse;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class GithubResponseMapper {
 
@@ -20,7 +25,9 @@ public class GithubResponseMapper {
                 response.payload().pullRequest().title(),
                 response.actor().login(),
                 response.creationDate(),
-                bodyPreview);
+                bodyPreview,
+                UpdateType.GITHUB_PULL_REQUEST,
+                extractLabels(response.payload().pullRequest().labels()));
     }
 
     public static LinkUpdateDTO mapToIssue(GithubResponse response) {
@@ -32,6 +39,19 @@ public class GithubResponseMapper {
                 response.payload().issue().title(),
                 response.actor().login(),
                 response.creationDate(),
-                bodyPreview);
+                bodyPreview,
+                UpdateType.GITHUB_ISSUE,
+                extractLabels(response.payload().issue().labels()));
+    }
+
+    private static Set<String> extractLabels(List<GithubLabel> labels) {
+        if (labels == null || labels.isEmpty()) {
+            return Set.of();
+        }
+        return labels.stream()
+                .map(GithubLabel::name)
+                .filter(name -> name != null && !name.isBlank())
+                .map(String::trim)
+                .collect(Collectors.toSet());
     }
 }

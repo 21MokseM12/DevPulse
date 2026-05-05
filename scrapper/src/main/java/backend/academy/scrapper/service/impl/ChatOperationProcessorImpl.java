@@ -2,6 +2,7 @@ package backend.academy.scrapper.service.impl;
 
 import backend.academy.scrapper.db.repository.ChatRepository;
 import backend.academy.scrapper.db.repository.LinkToChatRepository;
+import backend.academy.scrapper.db.model.LinkSubscription;
 import backend.academy.scrapper.exceptions.InvalidCredentialsException;
 import backend.academy.scrapper.service.ChatOperationProcessor;
 import java.util.List;
@@ -104,6 +105,11 @@ public class ChatOperationProcessorImpl implements ChatOperationProcessor {
     @Override
     public List<Long> findAllByLinkId(Long linkId) {
         return linkToChatRepository.findAllByLinkId(linkId);
+    }
+
+    @Override
+    public List<LinkSubscription> findSubscriptionsByLinkId(Long linkId) {
+        return linkToChatRepository.findSubscriptionsByLinkId(linkId);
     }
 
     @Override

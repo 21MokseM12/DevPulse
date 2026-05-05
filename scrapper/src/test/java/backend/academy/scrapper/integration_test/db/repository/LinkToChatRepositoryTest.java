@@ -7,6 +7,7 @@ import java.sql.Timestamp;
 import java.time.OffsetDateTime;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
@@ -127,6 +128,19 @@ public class LinkToChatRepositoryTest extends TestContainersConfiguration {
 
         List<Long> chats = repository.findAllByLinkId(linkId);
         assertEquals(new HashSet<>(List.of(firstChat, secondChat)), new HashSet<>(chats));
+    }
+
+    @Test
+    public void findSubscriptionsByLinkId_whenFiltersPresent_thenReturnsClientFilters() {
+        Long chatId = createChat(20010L);
+        Long linkId = createLink("https://client-link.example/filter-sub");
+        repository.subscribeChatOnLink(chatId, linkId, Set.of("tag"), Set.of("author:octocat", "type:github_issue"));
+
+        var subscriptions = repository.findSubscriptionsByLinkId(linkId);
+
+        assertEquals(1, subscriptions.size());
+        assertEquals(chatId, subscriptions.getFirst().clientId());
+        assertEquals(Set.of("author:octocat", "type:github_issue"), subscriptions.getFirst().filters());
     }
 
     private Long createChat(Long chatId) {

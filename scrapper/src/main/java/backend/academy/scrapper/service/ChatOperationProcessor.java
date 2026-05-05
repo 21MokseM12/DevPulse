@@ -1,5 +1,6 @@
 package backend.academy.scrapper.service;
 
+import backend.academy.scrapper.db.model.LinkSubscription;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -20,6 +21,8 @@ public interface ChatOperationProcessor {
     boolean isClient(Long id);
 
     List<Long> findAllByLinkId(Long linkId);
+
+    List<LinkSubscription> findSubscriptionsByLinkId(Long linkId);
 
     void unsubscribe(Long chatId, Long linkId);
 

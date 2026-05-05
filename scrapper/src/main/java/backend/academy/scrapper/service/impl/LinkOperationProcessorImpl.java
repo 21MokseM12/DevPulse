@@ -4,12 +4,15 @@ import backend.academy.scrapper.config.properties.DatabaseProperty;
 import backend.academy.scrapper.db.DbCommonService;
 import backend.academy.scrapper.db.DbLinkService;
 import backend.academy.scrapper.db.model.Link;
+import backend.academy.scrapper.db.model.LinkSubscription;
 import backend.academy.scrapper.enums.ProcessedIdType;
 import backend.academy.scrapper.exceptions.LinkNotFoundException;
 import backend.academy.scrapper.mapper.LinkResponseMapper;
+import backend.academy.scrapper.model.LinkUpdateDTO;
 import backend.academy.scrapper.model.stackoverflow.ProcessedIdDTO;
 import backend.academy.scrapper.service.ChatOperationProcessor;
 import backend.academy.scrapper.service.LinkOperationProcessor;
+import backend.academy.scrapper.service.filters.SubscriptionFilterService;
 import java.net.URI;
 import java.time.Clock;
 import java.time.Duration;
@@ -37,6 +40,7 @@ public class LinkOperationProcessorImpl implements LinkOperationProcessor {
     private final DbLinkService linkService;
     private final DbCommonService commonService;
     private final ChatOperationProcessor chatService;
+    private final SubscriptionFilterService subscriptionFilterService;
 
     @Override
     @Transactional
@@ -128,6 +132,18 @@ public class LinkOperationProcessorImpl implements LinkOperationProcessor {
             .map(chatService::findAllByLinkId)
             .stream().flatMap(List::stream)
             .toList();
+    }
+
+    @Override
+    public List<Long> findSubscribedChats(URI link, LinkUpdateDTO update) {
+        return linkService.findByLink(link.toString())
+                .map(Link::id)
+                .map(chatService::findSubscriptionsByLinkId)
+                .stream()
+                .flatMap(List::stream)
+                .filter(subscription -> subscriptionFilterService.matches(update, subscription.filters()))
+                .map(LinkSubscription::clientId)
+                .toList();
     }
 
     @Override

@@ -1,6 +1,7 @@
 package backend.academy.scrapper.service;
 
 import backend.academy.scrapper.model.stackoverflow.ProcessedIdDTO;
+import backend.academy.scrapper.model.LinkUpdateDTO;
 import java.net.URI;
 import java.time.Duration;
 import java.time.OffsetDateTime;
@@ -25,6 +26,8 @@ public interface LinkOperationProcessor {
     Set<URI> findAllLinksByForceCheckDelay(Duration duration, int pageNum);
 
     List<Long> findSubscribedChats(URI link);
+
+    List<Long> findSubscribedChats(URI link, LinkUpdateDTO update);
 
     void markPollingSuccess(URI link, OffsetDateTime checkedAt, Duration forceCheckDelay);
 

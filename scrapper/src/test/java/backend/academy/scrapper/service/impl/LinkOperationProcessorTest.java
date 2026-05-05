@@ -4,11 +4,15 @@ import backend.academy.scrapper.config.properties.DatabaseProperty;
 import backend.academy.scrapper.db.DbCommonService;
 import backend.academy.scrapper.db.impl.DbLinkServiceImpl;
 import backend.academy.scrapper.db.model.Link;
+import backend.academy.scrapper.db.model.LinkSubscription;
 import backend.academy.scrapper.db.model.ProcessedId;
 import backend.academy.scrapper.enums.ProcessedIdType;
 import backend.academy.scrapper.mapper.LinkResponseMapper;
 import backend.academy.scrapper.model.stackoverflow.ProcessedIdDTO;
+import backend.academy.scrapper.model.LinkUpdateDTO;
+import backend.academy.scrapper.model.UpdateType;
 import backend.academy.scrapper.service.ChatOperationProcessor;
+import backend.academy.scrapper.service.filters.SubscriptionFilterService;
 import java.net.URI;
 import java.time.Clock;
 import java.time.Duration;
@@ -53,6 +57,8 @@ public class LinkOperationProcessorTest {
     private DbLinkServiceImpl dbLinkService;
     @Mock
     private ChatOperationProcessor chatService;
+    @Mock
+    private SubscriptionFilterService subscriptionFilterService;
     @InjectMocks
     private LinkOperationProcessorImpl linkOperationProcessor;
 
@@ -363,5 +369,24 @@ public class LinkOperationProcessorTest {
         assertNotNull(subscribedChats);
         assertTrue(subscribedChats.isEmpty());
         verify(chatService, times(0)).findAllByLinkId(1L);
+    }
+
+    @Test
+    public void findSubscribedChats_withFilters_shouldReturnOnlyMatchedClients() {
+        URI link = URI.create("https://github.com/org/repo/issues/1");
+        Link dbLink = new Link(99L, link, Set.of(), Set.of(), OffsetDateTime.now());
+        LinkUpdateDTO update = new LinkUpdateDTO(
+                101L, "Issue", "octocat", OffsetDateTime.now(), "desc", UpdateType.GITHUB_ISSUE, Set.of("bug"));
+        LinkSubscription matched = new LinkSubscription(1L, Set.of("author:octocat"));
+        LinkSubscription ignored = new LinkSubscription(2L, Set.of("author:someone"));
+
+        when(dbLinkService.findByLink(link.toString())).thenReturn(Optional.of(dbLink));
+        when(chatService.findSubscriptionsByLinkId(99L)).thenReturn(List.of(matched, ignored));
+        when(subscriptionFilterService.matches(update, matched.filters())).thenReturn(true);
+        when(subscriptionFilterService.matches(update, ignored.filters())).thenReturn(false);
+
+        List<Long> result = linkOperationProcessor.findSubscribedChats(link, update);
+
+        assertEquals(List.of(1L), result);
     }
 }

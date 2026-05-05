@@ -54,7 +54,7 @@ public class StackOverflowUpdaterServiceTest {
 
     @Test
     public void getUpdates_whenStatusCodeSuccessful_shouldReturnUpdates() {
-        StackOverflowQuestionItem questionItem = new StackOverflowQuestionItem("title");
+        StackOverflowQuestionItem questionItem = new StackOverflowQuestionItem("title", List.of());
         LinkUpdateDTO expected = new LinkUpdateDTO(1L, "title", "owner", OffsetDateTime.now(), "desc");
 
         when(stackOverflowClient.getQuestionById(1L, "stackoverflow"))

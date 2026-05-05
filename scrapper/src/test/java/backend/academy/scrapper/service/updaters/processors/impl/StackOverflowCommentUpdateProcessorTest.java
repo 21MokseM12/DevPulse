@@ -12,6 +12,7 @@ import static org.mockito.Mockito.when;
 
 import backend.academy.scrapper.client.StackOverflowClient;
 import backend.academy.scrapper.model.LinkUpdateDTO;
+import backend.academy.scrapper.model.UpdateType;
 import backend.academy.scrapper.model.stackoverflow.StackOverflowCommentItem;
 import backend.academy.scrapper.model.stackoverflow.StackOverflowOwner;
 import backend.academy.scrapper.model.stackoverflow.StackOverflowQuestionItem;
@@ -23,6 +24,7 @@ import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -46,7 +48,7 @@ public class StackOverflowCommentUpdateProcessorTest {
 
     private final URI link = URI.create("link");
 
-    private final StackOverflowQuestionItem question = new StackOverflowQuestionItem("questionTitle");
+    private final StackOverflowQuestionItem question = new StackOverflowQuestionItem("questionTitle", List.of());
 
     private final Long questionId = 1L;
 
@@ -96,8 +98,8 @@ public class StackOverflowCommentUpdateProcessorTest {
                 new StackOverflowCommentItem(5L, OWNER, fixedTime, "comment")));
 
         List<LinkUpdateDTO> expected = List.of(
-                new LinkUpdateDTO(2L, question.title(), OWNER.username(), fixedTime, "comment"),
-                new LinkUpdateDTO(4L, question.title(), OWNER.username(), fixedTime, "comment"));
+                new LinkUpdateDTO(2L, question.title(), OWNER.username(), fixedTime, "comment", UpdateType.STACKOVERFLOW_COMMENT, Set.of()),
+                new LinkUpdateDTO(4L, question.title(), OWNER.username(), fixedTime, "comment", UpdateType.STACKOVERFLOW_COMMENT, Set.of()));
 
         when(client.getCommentsByQuestionId(questionId, site, filter))
                 .thenReturn(ResponseEntity.ok().body(response));
@@ -120,11 +122,11 @@ public class StackOverflowCommentUpdateProcessorTest {
                 new StackOverflowCommentItem(5L, OWNER, fixedTime, "comment")));
 
         List<LinkUpdateDTO> expected = List.of(
-                new LinkUpdateDTO(1L, question.title(), OWNER.username(), fixedTime, "comment"),
-                new LinkUpdateDTO(2L, question.title(), OWNER.username(), fixedTime, "comment"),
-                new LinkUpdateDTO(3L, question.title(), OWNER.username(), fixedTime, "comment"),
-                new LinkUpdateDTO(4L, question.title(), OWNER.username(), fixedTime, "comment"),
-                new LinkUpdateDTO(5L, question.title(), OWNER.username(), fixedTime, "comment"));
+                new LinkUpdateDTO(1L, question.title(), OWNER.username(), fixedTime, "comment", UpdateType.STACKOVERFLOW_COMMENT, Set.of()),
+                new LinkUpdateDTO(2L, question.title(), OWNER.username(), fixedTime, "comment", UpdateType.STACKOVERFLOW_COMMENT, Set.of()),
+                new LinkUpdateDTO(3L, question.title(), OWNER.username(), fixedTime, "comment", UpdateType.STACKOVERFLOW_COMMENT, Set.of()),
+                new LinkUpdateDTO(4L, question.title(), OWNER.username(), fixedTime, "comment", UpdateType.STACKOVERFLOW_COMMENT, Set.of()),
+                new LinkUpdateDTO(5L, question.title(), OWNER.username(), fixedTime, "comment", UpdateType.STACKOVERFLOW_COMMENT, Set.of()));
 
         when(client.getCommentsByQuestionId(questionId, site, filter))
                 .thenReturn(ResponseEntity.ok().body(response));

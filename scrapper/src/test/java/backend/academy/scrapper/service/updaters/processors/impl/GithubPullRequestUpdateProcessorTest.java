@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 
 import backend.academy.scrapper.enums.GithubActionType;
 import backend.academy.scrapper.model.LinkUpdateDTO;
+import backend.academy.scrapper.model.UpdateType;
 import backend.academy.scrapper.model.github.GithubActor;
 import backend.academy.scrapper.model.github.GithubIssue;
 import backend.academy.scrapper.model.github.GithubPayload;
@@ -23,6 +24,7 @@ import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,9 +35,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 public class GithubPullRequestUpdateProcessorTest {
 
-    private static final GithubPullRequest PULL_REQUEST = new GithubPullRequest("titlePR", "bodyPR");
+    private static final GithubPullRequest PULL_REQUEST = new GithubPullRequest("titlePR", "bodyPR", List.of());
 
-    private static final GithubIssue ISSUE = new GithubIssue("titleIssue", "bodyIssue");
+    private static final GithubIssue ISSUE = new GithubIssue("titleIssue", "bodyIssue", List.of());
 
     private static final GithubActor ACTOR = new GithubActor("actor21");
 
@@ -78,10 +80,10 @@ public class GithubPullRequestUpdateProcessorTest {
                         fixedTime,
                         new GithubPayload("opened", PULL_REQUEST, null)));
         List<LinkUpdateDTO> expected = List.of(
-                new LinkUpdateDTO(1L, "titlePR", ACTOR.login(), fixedTime, "bodyPR"),
-                new LinkUpdateDTO(2L, "titlePR", ACTOR.login(), fixedTime, "bodyPR"),
-                new LinkUpdateDTO(3L, "titlePR", ACTOR.login(), fixedTime, "bodyPR"),
-                new LinkUpdateDTO(4L, "titlePR", ACTOR.login(), fixedTime, "bodyPR"));
+                new LinkUpdateDTO(1L, "titlePR", ACTOR.login(), fixedTime, "bodyPR", UpdateType.GITHUB_PULL_REQUEST, Set.of()),
+                new LinkUpdateDTO(2L, "titlePR", ACTOR.login(), fixedTime, "bodyPR", UpdateType.GITHUB_PULL_REQUEST, Set.of()),
+                new LinkUpdateDTO(3L, "titlePR", ACTOR.login(), fixedTime, "bodyPR", UpdateType.GITHUB_PULL_REQUEST, Set.of()),
+                new LinkUpdateDTO(4L, "titlePR", ACTOR.login(), fixedTime, "bodyPR", UpdateType.GITHUB_PULL_REQUEST, Set.of()));
 
         when(linkService.getProcessedPullRequestIds(link)).thenReturn(List.of());
 
@@ -118,7 +120,8 @@ public class GithubPullRequestUpdateProcessorTest {
                         ACTOR,
                         fixedTime,
                         new GithubPayload("closed", null, ISSUE)));
-        List<LinkUpdateDTO> expected = List.of(new LinkUpdateDTO(1L, "titlePR", ACTOR.login(), fixedTime, "bodyPR"));
+        List<LinkUpdateDTO> expected = List.of(new LinkUpdateDTO(
+                1L, "titlePR", ACTOR.login(), fixedTime, "bodyPR", UpdateType.GITHUB_PULL_REQUEST, Set.of()));
 
         when(linkService.getProcessedPullRequestIds(link)).thenReturn(List.of());
 
@@ -225,7 +228,8 @@ public class GithubPullRequestUpdateProcessorTest {
                         ACTOR,
                         fixedTime,
                         new GithubPayload("opened", PULL_REQUEST, null)));
-        List<LinkUpdateDTO> expected = List.of(new LinkUpdateDTO(4L, "titlePR", ACTOR.login(), fixedTime, "bodyPR"));
+        List<LinkUpdateDTO> expected = List.of(new LinkUpdateDTO(
+                4L, "titlePR", ACTOR.login(), fixedTime, "bodyPR", UpdateType.GITHUB_PULL_REQUEST, Set.of()));
 
         when(linkService.getProcessedPullRequestIds(link)).thenReturn(List.of(2L));
 

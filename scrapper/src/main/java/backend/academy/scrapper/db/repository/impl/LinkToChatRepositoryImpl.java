@@ -1,12 +1,15 @@
 package backend.academy.scrapper.db.repository.impl;
 
+import backend.academy.scrapper.db.model.LinkSubscription;
 import backend.academy.scrapper.db.query.LinkToChatQuery;
 import backend.academy.scrapper.db.repository.LinkToChatRepository;
 import jakarta.validation.constraints.NotNull;
 import java.time.OffsetDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -90,6 +93,17 @@ public class LinkToChatRepositoryImpl implements LinkToChatRepository {
         );
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<LinkSubscription> findSubscriptionsByLinkId(Long linkId) {
+        return jdbcTemplate.query(
+                LinkToChatQuery.SELECT_SUBSCRIPTIONS_BY_LINK_ID.query(),
+                new MapSqlParameterSource().addValue(LINK_ID, linkId),
+                (rs, rowNum) -> new LinkSubscription(
+                        rs.getLong("client_id"),
+                        toSet(rs.getArray("filters"))));
+    }
+
     private String toPostgresArrayLiteral(Set<String> values) {
         if (values == null || values.isEmpty()) {
             return "{}";
@@ -102,5 +116,23 @@ public class LinkToChatRepositoryImpl implements LinkToChatRepository {
     private String escapeArrayValue(String value) {
         String escaped = value == null ? "" : value.replace("\\", "\\\\").replace("\"", "\\\"");
         return "\"" + escaped + "\"";
+    }
+
+    private Set<String> toSet(java.sql.Array array) {
+        if (array == null) {
+            return Set.of();
+        }
+        try {
+            String[] values = (String[]) array.getArray();
+            if (values == null || values.length == 0) {
+                return Set.of();
+            }
+            return Arrays.stream(values)
+                    .filter(value -> value != null && !value.isBlank())
+                    .map(String::trim)
+                    .collect(Collectors.toSet());
+        } catch (java.sql.SQLException e) {
+            return Set.of();
+        }
     }
 }

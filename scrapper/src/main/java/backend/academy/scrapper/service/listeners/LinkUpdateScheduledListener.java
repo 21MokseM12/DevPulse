@@ -85,10 +85,12 @@ public class LinkUpdateScheduledListener {
             try {
                 List<LinkUpdateDTO> response = updaterFactory.get(link).getUpdates(link);
                 linkOperationProcessor.markPollingSuccess(link, checkedAt, scrapperConfig.scheduler().forceCheckDelay());
-                if (!response.isEmpty()) {
-                    List<Long> chatIdsNeededNotify = linkOperationProcessor.findSubscribedChats(link);
-                    notifyList.add(new NotifyUpdateEntity(link, response, chatIdsNeededNotify));
-                }
+                response.forEach(update -> {
+                    List<Long> chatIdsNeededNotify = linkOperationProcessor.findSubscribedChats(link, update);
+                    if (!chatIdsNeededNotify.isEmpty()) {
+                        notifyList.add(new NotifyUpdateEntity(link, List.of(update), chatIdsNeededNotify));
+                    }
+                });
             } catch (Exception ex) {
                 log.warn("Ошибка опроса ссылки {}: {}", link, ex.getMessage());
                 linkOperationProcessor.markPollingFailure(
