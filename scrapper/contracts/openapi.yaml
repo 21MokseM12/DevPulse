@@ -18,6 +18,8 @@ paths:
       tags: [Clients]
       operationId: registerClient
       summary: Зарегистрировать клиента
+      parameters:
+        - $ref: '#/components/parameters/InternalSecretHeader'
       requestBody:
         required: true
         content:
@@ -29,10 +31,14 @@ paths:
           description: Клиент успешно зарегистрирован
         '400':
           $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
     delete:
       tags: [Clients]
       operationId: unregisterClient
       summary: Удалить клиента
+      parameters:
+        - $ref: '#/components/parameters/InternalSecretHeader'
       requestBody:
         required: true
         content:
@@ -44,6 +50,8 @@ paths:
           description: Клиент успешно удален
         '400':
           $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
   /links:
@@ -53,6 +61,7 @@ paths:
       summary: Получить список отслеживаемых ссылок
       parameters:
         - $ref: '#/components/parameters/ClientLoginHeader'
+        - $ref: '#/components/parameters/InternalSecretHeader'
       responses:
         '200':
           description: Ссылки успешно получены
@@ -64,6 +73,8 @@ paths:
                   $ref: '#/components/schemas/LinkResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
     post:
@@ -72,6 +83,7 @@ paths:
       summary: Добавить подписку на ссылку
       parameters:
         - $ref: '#/components/parameters/ClientLoginHeader'
+        - $ref: '#/components/parameters/InternalSecretHeader'
       requestBody:
         required: true
         content:
@@ -87,6 +99,8 @@ paths:
                 $ref: '#/components/schemas/LinkResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
     delete:
@@ -95,6 +109,7 @@ paths:
       summary: Удалить подписку на ссылку
       parameters:
         - $ref: '#/components/parameters/ClientLoginHeader'
+        - $ref: '#/components/parameters/InternalSecretHeader'
       requestBody:
         required: true
         content:
@@ -110,6 +125,8 @@ paths:
                 $ref: '#/components/schemas/LinkResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
 
@@ -123,6 +140,14 @@ components:
       schema:
         type: string
         minLength: 1
+    InternalSecretHeader:
+      name: X-Internal-Secret
+      in: header
+      required: true
+      description: Межсервисный секретный заголовок для вызовов bot -> scrapper
+      schema:
+        type: string
+        minLength: 1
 
   responses:
     BadRequest:
@@ -133,6 +158,12 @@ components:
             $ref: '#/components/schemas/ApiErrorResponse'
     NotFound:
       description: Ресурс не найден
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+    Unauthorized:
+      description: Неавторизованный межсервисный запрос
       content:
         application/json:
           schema:

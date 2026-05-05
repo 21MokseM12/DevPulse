@@ -12,6 +12,12 @@ servers:
     description: Local Kafka broker
 
 channels:
+  link-updates:
+    address: link-updates
+    messages:
+      botLinkUpdate:
+        $ref: '#/components/messages/BotLinkUpdateMessage'
+
   client-listener-topic-request:
     address: client-listener-topic-request
     messages:
@@ -31,6 +37,14 @@ channels:
         $ref: '#/components/messages/LinkResultBatchMessage'
 
 operations:
+  sendBotLinkUpdate:
+    action: send
+    channel:
+      $ref: '#/channels/link-updates'
+    summary: Публикация обновления ссылки для bot (outbox delivery)
+    messages:
+      - $ref: '#/channels/link-updates/messages/botLinkUpdate'
+
   receiveClientCommand:
     action: receive
     channel:
@@ -57,6 +71,22 @@ operations:
 
 components:
   messages:
+    BotLinkUpdateMessage:
+      name: BotLinkUpdateMessage
+      title: Событие обновления ссылки для bot
+      payload:
+        $ref: '#/components/schemas/LinkUpdate'
+      examples:
+        - name: githubIssueUpdate
+          payload:
+            id: 101
+            url: https://github.com/spring-projects/spring-framework/issues/1
+            title: New issue created
+            updateOwner: octocat
+            description: Краткое описание обновления
+            creationDate: '2026-04-05T10:00:00Z'
+            clientsIds: [1001, 1002]
+
     ClientCommandMessage:
       name: ClientCommandMessage
       title: Команда для чата
@@ -203,3 +233,28 @@ components:
       type: array
       items:
         $ref: '#/components/schemas/LinkResponse'
+
+    LinkUpdate:
+      type: object
+      required: [id, url, title, updateOwner, description, creationDate, clientsIds]
+      properties:
+        id:
+          type: integer
+          format: int64
+        url:
+          type: string
+          format: uri
+        title:
+          type: string
+        updateOwner:
+          type: string
+        description:
+          type: string
+        creationDate:
+          type: string
+          format: date-time
+        clientsIds:
+          type: array
+          items:
+            type: integer
+            format: int64

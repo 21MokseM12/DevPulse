@@ -90,4 +90,9 @@ class LinkControllerTest {
                         .content("{\"link\":\"" + link + "\"}"))
                 .andExpect(status().isOk());
     }
+
+    @Test
+    void get_links_returns401WithoutInternalSecret() throws Exception {
+        mockMvc.perform(get("/links").header("Client-Login", "alice")).andExpect(status().isUnauthorized());
+    }
 }
