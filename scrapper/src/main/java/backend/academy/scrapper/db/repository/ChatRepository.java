@@ -1,19 +1,18 @@
 package backend.academy.scrapper.db.repository;
 
+import backend.academy.scrapper.db.model.ClientAuthData;
 import java.util.Optional;
 
 public interface ChatRepository {
     boolean existsByLogin(String login);
 
-    boolean isClient(String login, String password);
-
-    Optional<Long> findIdByCredentials(String login, String password);
+    Optional<ClientAuthData> findAuthDataByLogin(String login);
 
     Optional<Long> findIdByLogin(String login);
 
-    void save(String login, String password);
+    void save(String login, String passwordHash);
 
-    boolean delete(String login, String password);
+    boolean deleteByLogin(String login);
 
     boolean isClient(Long id);
 

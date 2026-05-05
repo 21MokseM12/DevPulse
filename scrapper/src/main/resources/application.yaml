@@ -16,6 +16,9 @@ app:
       topic: ${SCRAPPER_OUTBOX_TOPIC:link-updates}
       interval: ${SCRAPPER_OUTBOX_INTERVAL:5s}
       batch-size: ${SCRAPPER_OUTBOX_BATCH_SIZE:100}
+    auth:
+      header: ${SCRAPPER_AUTH_HEADER:X-Internal-Secret}
+      shared-secret: ${INTERNAL_SHARED_SECRET:devpulse-internal-secret}
     github:
       token: ${GITHUB_TOKEN}
       url: https://api.github.com

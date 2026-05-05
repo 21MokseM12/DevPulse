@@ -1,6 +1,8 @@
 package backend.academy.scrapper.controller.handlers;
 
+import backend.academy.scrapper.exceptions.InvalidCredentialsException;
 import backend.academy.scrapper.exceptions.ResourceNotFoundException;
+import backend.academy.scrapper.exceptions.UnauthorizedException;
 import jakarta.validation.ConstraintViolationException;
 import java.util.Arrays;
 import java.util.List;
@@ -14,7 +16,7 @@ import scrapper.bot.connectivity.model.response.ApiErrorResponse;
 @RestControllerAdvice
 public class GlobalExceptionControllerHandler {
 
-    @ExceptionHandler(exception = {BadRequestException.class, ConstraintViolationException.class})
+    @ExceptionHandler(exception = {BadRequestException.class, ConstraintViolationException.class, InvalidCredentialsException.class})
     public ResponseEntity<ApiErrorResponse> badRequestException(Exception e) {
         List<String> stacktrace = Arrays.stream(e.getStackTrace())
                 .map(StackTraceElement::toString)
@@ -36,5 +38,17 @@ public class GlobalExceptionControllerHandler {
                 "Resource not found", "404", e.getClass().getSimpleName(), e.getMessage(), stacktrace);
 
         return new ResponseEntity<>(apiErrorResponse, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ApiErrorResponse> unauthorizedException(UnauthorizedException e) {
+        List<String> stacktrace = Arrays.stream(e.getStackTrace())
+                .map(StackTraceElement::toString)
+                .toList();
+
+        ApiErrorResponse apiErrorResponse =
+                new ApiErrorResponse("Unauthorized", "401", e.getClass().getSimpleName(), e.getMessage(), stacktrace);
+
+        return new ResponseEntity<>(apiErrorResponse, HttpStatus.UNAUTHORIZED);
     }
 }

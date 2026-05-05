@@ -12,8 +12,14 @@ public class ApplicationConfig {
 
     @NotEmpty
     private String scrapperUrl;
+    @NotEmpty
+    private String sharedSecret;
 
     public void setScrapperUrl(String scrapperUrl) {
         this.scrapperUrl = scrapperUrl;
+    }
+
+    public void setSharedSecret(String sharedSecret) {
+        this.sharedSecret = sharedSecret;
     }
 }

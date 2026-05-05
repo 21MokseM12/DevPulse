@@ -1,5 +1,6 @@
 package backend.academy.scrapper.db.repository.impl;
 
+import backend.academy.scrapper.db.model.ClientAuthData;
 import backend.academy.scrapper.db.query.ChatQuery;
 import backend.academy.scrapper.db.repository.ChatRepository;
 import java.util.Optional;
@@ -16,7 +17,7 @@ public class ChatRepositoryImpl implements ChatRepository {
 
     private static final String ID = "id";
     private static final String LOGIN = "login";
-    private static final String PASSWORD = "password";
+    private static final String PASSWORD_HASH = "password_hash";
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
@@ -32,29 +33,15 @@ public class ChatRepositoryImpl implements ChatRepository {
     }
 
     @Override
-    public boolean isClient(String login, String password) {
-        return Optional.ofNullable(
-            jdbcTemplate.queryForObject(
-                ChatQuery.SELECT_COUNT_BY_CREDENTIALS.query(),
-                new MapSqlParameterSource()
-                    .addValue(LOGIN, login)
-                    .addValue(PASSWORD, password),
-                Integer.class
-            )
-        ).orElse(0) > 0;
-    }
-
-    @Override
-    public Optional<Long> findIdByCredentials(String login, String password) {
-        return Optional.ofNullable(
-            jdbcTemplate.queryForObject(
-                ChatQuery.SELECT_ID_BY_CREDENTIALS.query(),
-                new MapSqlParameterSource()
-                    .addValue(LOGIN, login)
-                    .addValue(PASSWORD, password),
-                Long.class
-            )
-        );
+    public Optional<ClientAuthData> findAuthDataByLogin(String login) {
+        try {
+            return Optional.ofNullable(jdbcTemplate.queryForObject(
+                    ChatQuery.SELECT_AUTH_DATA_BY_LOGIN.query(),
+                    new MapSqlParameterSource().addValue(LOGIN, login),
+                    (rs, rowNum) -> new ClientAuthData(rs.getLong(ID), rs.getString(PASSWORD_HASH))));
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
     }
 
     @Override
@@ -74,23 +61,21 @@ public class ChatRepositoryImpl implements ChatRepository {
 
     @Override
     @Transactional
-    public void save(String login, String password) {
+    public void save(String login, String passwordHash) {
         jdbcTemplate.update(
             ChatQuery.INSERT_CHAT_BY_CREDENTIALS.query(),
             new MapSqlParameterSource()
                 .addValue(LOGIN, login)
-                .addValue(PASSWORD, password)
+                .addValue(PASSWORD_HASH, passwordHash)
         );
     }
 
     @Override
     @Transactional
-    public boolean delete(String login, String password) {
+    public boolean deleteByLogin(String login) {
         return jdbcTemplate.update(
-            ChatQuery.DELETE_BY_CREDENTIALS.query(),
-            new MapSqlParameterSource()
-                .addValue(LOGIN, login)
-                .addValue(PASSWORD, password)
+            ChatQuery.DELETE_BY_LOGIN.query(),
+            new MapSqlParameterSource().addValue(LOGIN, login)
         ) > 0;
     }
 

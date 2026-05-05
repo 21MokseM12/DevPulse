@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import backend.academy.scrapper.exceptions.InvalidCredentialsException;
 import backend.academy.scrapper.service.ChatOperationProcessor;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,9 @@ import org.springframework.test.web.servlet.MockMvc;
 @WebMvcTest(controllers = ClientController.class)
 class ClientControllerTest {
 
+    private static final String INTERNAL_SECRET_HEADER = "X-Internal-Secret";
+    private static final String INTERNAL_SECRET = "devpulse-internal-secret";
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -31,6 +35,7 @@ class ClientControllerTest {
         when(chatOperationProcessor.register(eq("alice"), eq("secret"))).thenReturn(true);
 
         mockMvc.perform(post("/clients")
+                        .header(INTERNAL_SECRET_HEADER, INTERNAL_SECRET)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"login\":\"alice\",\"password\":\"secret\"}"))
                 .andExpect(status().isOk());
@@ -43,6 +48,7 @@ class ClientControllerTest {
         when(chatOperationProcessor.register(eq("alice"), eq("secret"))).thenReturn(false);
 
         mockMvc.perform(post("/clients")
+                        .header(INTERNAL_SECRET_HEADER, INTERNAL_SECRET)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"login\":\"alice\",\"password\":\"secret\"}"))
                 .andExpect(status().isBadRequest());
@@ -53,6 +59,7 @@ class ClientControllerTest {
         when(chatOperationProcessor.unregister(eq("alice"), eq("secret"))).thenReturn(true);
 
         mockMvc.perform(delete("/clients")
+                        .header(INTERNAL_SECRET_HEADER, INTERNAL_SECRET)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"login\":\"alice\",\"password\":\"secret\"}"))
                 .andExpect(status().isOk());
@@ -65,8 +72,29 @@ class ClientControllerTest {
         when(chatOperationProcessor.unregister(eq("alice"), eq("secret"))).thenReturn(false);
 
         mockMvc.perform(delete("/clients")
+                        .header(INTERNAL_SECRET_HEADER, INTERNAL_SECRET)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"login\":\"alice\",\"password\":\"secret\"}"))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void delete_clients_returns400WhenPasswordInvalid() throws Exception {
+        when(chatOperationProcessor.unregister(eq("alice"), eq("secret")))
+                .thenThrow(new InvalidCredentialsException("Некорректные учетные данные"));
+
+        mockMvc.perform(delete("/clients")
+                        .header(INTERNAL_SECRET_HEADER, INTERNAL_SECRET)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"login\":\"alice\",\"password\":\"secret\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void post_clients_returns401WithoutInternalSecret() throws Exception {
+        mockMvc.perform(post("/clients")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"login\":\"alice\",\"password\":\"secret\"}"))
+                .andExpect(status().isUnauthorized());
     }
 }

@@ -29,6 +29,9 @@ import scrapper.bot.connectivity.model.response.LinkResponse;
 @WebMvcTest(controllers = LinkController.class)
 class LinkControllerTest {
 
+    private static final String INTERNAL_SECRET_HEADER = "X-Internal-Secret";
+    private static final String INTERNAL_SECRET = "devpulse-internal-secret";
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -43,7 +46,10 @@ class LinkControllerTest {
         when(chatOperationProcessor.findClientIdByLogin("alice")).thenReturn(java.util.Optional.of(42L));
         when(linkProcessor.findAll(42L)).thenReturn(List.of());
 
-        mockMvc.perform(get("/links").header("Client-Login", "alice")).andExpect(status().isOk());
+        mockMvc.perform(get("/links")
+                        .header("Client-Login", "alice")
+                        .header(INTERNAL_SECRET_HEADER, INTERNAL_SECRET))
+                .andExpect(status().isOk());
 
         verify(chatOperationProcessor).findClientIdByLogin("alice");
         verify(linkProcessor).findAll(42L);
@@ -53,7 +59,10 @@ class LinkControllerTest {
     void get_links_returns404WhenClientUnknown() throws Exception {
         when(chatOperationProcessor.findClientIdByLogin("nobody")).thenReturn(java.util.Optional.empty());
 
-        mockMvc.perform(get("/links").header("Client-Login", "nobody")).andExpect(status().isNotFound());
+        mockMvc.perform(get("/links")
+                        .header("Client-Login", "nobody")
+                        .header(INTERNAL_SECRET_HEADER, INTERNAL_SECRET))
+                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -65,6 +74,7 @@ class LinkControllerTest {
 
         mockMvc.perform(post("/links")
                         .header("Client-Login", "alice")
+                        .header(INTERNAL_SECRET_HEADER, INTERNAL_SECRET)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"link\":\"" + link + "\"}"))
                 .andExpect(status().isOk());
@@ -79,6 +89,7 @@ class LinkControllerTest {
 
         mockMvc.perform(delete("/links")
                         .header("Client-Login", "alice")
+                        .header(INTERNAL_SECRET_HEADER, INTERNAL_SECRET)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"link\":\"" + link + "\"}"))
                 .andExpect(status().isOk());

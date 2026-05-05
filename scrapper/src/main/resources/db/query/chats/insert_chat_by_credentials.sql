@@ -1,2 +1,2 @@
-insert into chats (login, password)
-values (:login, :password);
+insert into chats (login, password_hash)
+values (:login, :password_hash);

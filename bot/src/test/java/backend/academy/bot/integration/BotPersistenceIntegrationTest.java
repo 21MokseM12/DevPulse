@@ -70,6 +70,11 @@ class BotPersistenceIntegrationTest {
         Integer existingAfterRegister =
                 jdbcTemplate.queryForObject("SELECT COUNT(*) FROM clients WHERE login = 'user-1'", Integer.class);
         assertThat(existingAfterRegister).isEqualTo(1);
+        String storedHash = jdbcTemplate.queryForObject(
+                "SELECT password_hash FROM clients WHERE login = 'user-1'", String.class);
+        assertThat(storedHash).isNotBlank();
+        assertThat(storedHash).isNotEqualTo("pass-1");
+        assertThat(storedHash).startsWith("$2");
 
         mockMvc.perform(delete("/api/v1/clients").contentType(MediaType.APPLICATION_JSON).content(payload))
                 .andExpect(status().isOk());

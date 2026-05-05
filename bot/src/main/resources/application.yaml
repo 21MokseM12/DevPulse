@@ -8,6 +8,7 @@ springdoc:
 
 app:
   scrapper-url: ${SCRAPPER_URL}
+  shared-secret: ${INTERNAL_SHARED_SECRET:devpulse-internal-secret}
   kafka:
     consumers:
       link-updates:

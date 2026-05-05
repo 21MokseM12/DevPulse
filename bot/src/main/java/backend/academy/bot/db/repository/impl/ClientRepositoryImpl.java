@@ -14,17 +14,17 @@ import org.springframework.stereotype.Repository;
 public class ClientRepositoryImpl implements ClientRepository {
 
     private static final String LOGIN = "login";
-    private static final String PASSWORD = "password";
+    private static final String PASSWORD_HASH = "password_hash";
 
-    private static final String SELECT_BY_LOGIN = "SELECT id, login, password FROM clients WHERE login = :login";
+    private static final String SELECT_BY_LOGIN = "SELECT id, login, password_hash FROM clients WHERE login = :login";
     private static final String INSERT =
-            "INSERT INTO clients(login, password) VALUES(:login, :password) RETURNING id";
+            "INSERT INTO clients(login, password_hash) VALUES(:login, :password_hash) RETURNING id";
     private static final String DELETE_BY_LOGIN = "DELETE FROM clients WHERE login = :login";
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
     private static final RowMapper<Client> CLIENT_ROW_MAPPER =
-            (rs, rowNum) -> new Client(rs.getLong("id"), rs.getString(LOGIN), rs.getString(PASSWORD));
+            (rs, rowNum) -> new Client(rs.getLong("id"), rs.getString(LOGIN), rs.getString(PASSWORD_HASH));
 
     @Override
     public Optional<Client> findByLogin(String login) {
@@ -36,10 +36,10 @@ public class ClientRepositoryImpl implements ClientRepository {
     }
 
     @Override
-    public long save(String login, String password) {
+    public long save(String login, String passwordHash) {
         Long id = jdbcTemplate.queryForObject(
                 INSERT,
-                new MapSqlParameterSource().addValue(LOGIN, login).addValue(PASSWORD, password),
+                new MapSqlParameterSource().addValue(LOGIN, login).addValue(PASSWORD_HASH, passwordHash),
                 Long.class);
         return Optional.ofNullable(id).orElseThrow();
     }

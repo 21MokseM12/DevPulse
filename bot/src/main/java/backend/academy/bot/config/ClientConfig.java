@@ -13,6 +13,7 @@ import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 public class ClientConfig {
 
     private static final String BASE_SCRAPPER_URL = "http://localhost:8081";
+    private static final String INTERNAL_AUTH_HEADER = "X-Internal-Secret";
 
     private final ApplicationConfig config;
 
@@ -24,6 +25,7 @@ public class ClientConfig {
     @Bean
     public HttpServiceProxyFactory httpServiceProxyFactory(RestClient.Builder builder) {
         RestClient restClient = builder.baseUrl(config.scrapperUrl() == null ? BASE_SCRAPPER_URL : config.scrapperUrl())
+                .defaultHeader(INTERNAL_AUTH_HEADER, config.sharedSecret())
                 .build();
         return HttpServiceProxyFactory.builderFor(RestClientAdapter.create(restClient))
                 .build();

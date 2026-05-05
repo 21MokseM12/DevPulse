@@ -5,7 +5,7 @@ ALTER TABLE chats
 
 ALTER TABLE chats
     ADD COLUMN IF NOT EXISTS login VARCHAR(255),
-    ADD COLUMN IF NOT EXISTS password VARCHAR(255);
+    ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255);
 
 CREATE UNIQUE INDEX IF NOT EXISTS chats_login_unique_idx
     ON chats (login)

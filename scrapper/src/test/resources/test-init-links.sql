@@ -7,9 +7,9 @@ DELETE FROM links WHERE id IN (1, 2);
 DELETE FROM chats WHERE id IN (100, 101);
 
 -- Insert fresh test data
-INSERT INTO chats (id, login, password) VALUES
-    (100, 'test-client-100', 'test-password-100'),
-    (101, 'test-client-101', 'test-password-101');
+INSERT INTO chats (id, login, password_hash) VALUES
+    (100, 'test-client-100', '$2a$10$8H1IRUUScxQY12LT9fXJuewRkQx82Uu35xrlS6U79x1QgzjKEGv7e'),
+    (101, 'test-client-101', '$2a$10$8H1IRUUScxQY12LT9fXJuewRkQx82Uu35xrlS6U79x1QgzjKEGv7e');
 INSERT INTO links (id, link, updated_at, url, link_type, last_checked_at, etag, created_at) VALUES
     (1, 'https://github.com/owner/repo1', timestamp '2025-03-19 10:30:00', 'https://github.com/owner/repo1', 'GITHUB', timestamp '2025-03-19 10:30:00', null, timestamp '2025-03-19 10:30:00'),
     (2, 'https://github.com/owner/repo2', timestamp '2025-03-19 10:31:00', 'https://github.com/owner/repo2', 'GITHUB', timestamp '2025-03-19 10:31:00', null, timestamp '2025-03-19 10:31:00');

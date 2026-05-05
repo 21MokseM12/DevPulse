@@ -16,7 +16,8 @@ public record ScrapperConfig(
         StackOverflowCredentials stackOverflow,
         @NotEmpty String botUrl,
         @NotNull @Bean SchedulerCredentials scheduler,
-        @NotNull @Bean OutboxCredentials outbox) {
+        @NotNull @Bean OutboxCredentials outbox,
+        @NotNull @Bean AuthCredentials auth) {
 
     public record SchedulerCredentials(
             @NotEmpty Duration interval,
@@ -31,4 +32,6 @@ public record ScrapperConfig(
             @NotEmpty String topic,
             @NotEmpty Duration interval,
             @NotEmpty @Min(1) @Max(10_000) int batchSize) {}
+
+    public record AuthCredentials(@NotEmpty String header, @NotEmpty String sharedSecret) {}
 }

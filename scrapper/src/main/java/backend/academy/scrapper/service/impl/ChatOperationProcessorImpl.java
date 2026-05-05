@@ -2,6 +2,7 @@ package backend.academy.scrapper.service.impl;
 
 import backend.academy.scrapper.db.repository.ChatRepository;
 import backend.academy.scrapper.db.repository.LinkToChatRepository;
+import backend.academy.scrapper.exceptions.InvalidCredentialsException;
 import backend.academy.scrapper.service.ChatOperationProcessor;
 import java.util.List;
 import java.util.Optional;
@@ -10,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.lang.NonNull;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +22,7 @@ public class ChatOperationProcessorImpl implements ChatOperationProcessor {
 
     private final ChatRepository chatRepository;
     private final LinkToChatRepository linkToChatRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
@@ -28,7 +31,7 @@ public class ChatOperationProcessorImpl implements ChatOperationProcessor {
             log.info("Произошла ошибка при регистрации клиента с login {}", login);
             return false;
         }
-        chatRepository.save(login, password);
+        chatRepository.save(login, passwordEncoder.encode(password));
         log.info("Клиент с login {} успешно зарегистрирован", login);
         return true;
     }
@@ -36,13 +39,17 @@ public class ChatOperationProcessorImpl implements ChatOperationProcessor {
     @Override
     @Transactional
     public boolean unregister(@NonNull String login, @NonNull String password) {
-        Optional<Long> clientId = chatRepository.findIdByCredentials(login, password);
-        if (clientId.isEmpty()) {
+        var authData = chatRepository.findAuthDataByLogin(login);
+        if (authData.isEmpty()) {
             log.info("Произошла ошибка при удалении клиента с login {}", login);
             return false;
         }
-        linkToChatRepository.unsubscribeAll(clientId.get());
-        chatRepository.delete(login, password);
+        String passwordHash = authData.get().passwordHash();
+        if (passwordHash == null || passwordHash.isBlank() || !passwordEncoder.matches(password, passwordHash)) {
+            throw new InvalidCredentialsException("Некорректные учетные данные");
+        }
+        linkToChatRepository.unsubscribeAll(authData.get().id());
+        chatRepository.deleteByLogin(login);
         log.info("Клиент с login {} успешно удален", login);
         return true;
     }

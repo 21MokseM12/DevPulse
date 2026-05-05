@@ -6,7 +6,7 @@ import java.util.Optional;
 public interface ClientRepository {
     Optional<Client> findByLogin(String login);
 
-    long save(String login, String password);
+    long save(String login, String passwordHash);
 
     boolean deleteByLogin(String login);
 }

@@ -49,7 +49,8 @@ class KafkaOutboxProcessorTest {
                 new ScrapperConfig.StackOverflowCredentials("https://api.stackexchange.com", "key", "token"),
                 "http://localhost:8080",
                 new ScrapperConfig.SchedulerCredentials(java.time.Duration.ofSeconds(15), java.time.Duration.ofSeconds(30), 4),
-                new ScrapperConfig.OutboxCredentials("link-updates", java.time.Duration.ofSeconds(5), 100));
+                new ScrapperConfig.OutboxCredentials("link-updates", java.time.Duration.ofSeconds(5), 100),
+                new ScrapperConfig.AuthCredentials("X-Internal-Secret", "test-secret"));
         CommonKafkaProperties kafkaProperties = new CommonKafkaProperties(
                 "localhost:9092",
                 new CommonKafkaProperties.ConsumerProperties(
