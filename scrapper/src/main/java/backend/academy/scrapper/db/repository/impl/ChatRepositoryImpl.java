@@ -23,13 +23,12 @@ public class ChatRepositoryImpl implements ChatRepository {
 
     @Override
     public boolean existsByLogin(String login) {
-        return Optional.ofNullable(
-            jdbcTemplate.queryForObject(
-                ChatQuery.SELECT_COUNT_BY_LOGIN.query(),
-                new MapSqlParameterSource().addValue(LOGIN, login),
-                Integer.class
-            )
-        ).orElse(0) > 0;
+        return Optional.ofNullable(jdbcTemplate.queryForObject(
+                                ChatQuery.SELECT_COUNT_BY_LOGIN.query(),
+                                new MapSqlParameterSource().addValue(LOGIN, login),
+                                Integer.class))
+                        .orElse(0)
+                > 0;
     }
 
     @Override
@@ -47,13 +46,10 @@ public class ChatRepositoryImpl implements ChatRepository {
     @Override
     public Optional<Long> findIdByLogin(String login) {
         try {
-            return Optional.ofNullable(
-                jdbcTemplate.queryForObject(
+            return Optional.ofNullable(jdbcTemplate.queryForObject(
                     ChatQuery.SELECT_ID_BY_LOGIN.query(),
                     new MapSqlParameterSource().addValue(LOGIN, login),
-                    Long.class
-                )
-            );
+                    Long.class));
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
         }
@@ -63,51 +59,37 @@ public class ChatRepositoryImpl implements ChatRepository {
     @Transactional
     public void save(String login, String passwordHash) {
         jdbcTemplate.update(
-            ChatQuery.INSERT_CHAT_BY_CREDENTIALS.query(),
-            new MapSqlParameterSource()
-                .addValue(LOGIN, login)
-                .addValue(PASSWORD_HASH, passwordHash)
-        );
+                ChatQuery.INSERT_CHAT_BY_CREDENTIALS.query(),
+                new MapSqlParameterSource().addValue(LOGIN, login).addValue(PASSWORD_HASH, passwordHash));
     }
 
     @Override
     @Transactional
     public boolean deleteByLogin(String login) {
         return jdbcTemplate.update(
-            ChatQuery.DELETE_BY_LOGIN.query(),
-            new MapSqlParameterSource().addValue(LOGIN, login)
-        ) > 0;
+                        ChatQuery.DELETE_BY_LOGIN.query(), new MapSqlParameterSource().addValue(LOGIN, login))
+                > 0;
     }
 
     @Override
     public boolean isClient(Long id) {
-        return Optional.ofNullable(
-            jdbcTemplate.queryForObject(
-                ChatQuery.SELECT_COUNT_BY_ID.query(),
-                new MapSqlParameterSource()
-                    .addValue(ID, id),
-                Integer.class
-            )
-        ).orElse(0) > 0;
+        return Optional.ofNullable(jdbcTemplate.queryForObject(
+                                ChatQuery.SELECT_COUNT_BY_ID.query(),
+                                new MapSqlParameterSource().addValue(ID, id),
+                                Integer.class))
+                        .orElse(0)
+                > 0;
     }
 
     @Override
     @Transactional
     public void save(Long id) {
-        jdbcTemplate.update(
-            ChatQuery.INSERT_CHAT.query(),
-            new MapSqlParameterSource()
-                .addValue(ID, id)
-        );
+        jdbcTemplate.update(ChatQuery.INSERT_CHAT.query(), new MapSqlParameterSource().addValue(ID, id));
     }
 
     @Override
     @Transactional
     public boolean delete(Long id) {
-        return jdbcTemplate.update(
-            ChatQuery.DELETE_BY_ID.query(),
-            new MapSqlParameterSource()
-                .addValue(ID, id)
-        ) > 0;
+        return jdbcTemplate.update(ChatQuery.DELETE_BY_ID.query(), new MapSqlParameterSource().addValue(ID, id)) > 0;
     }
 }

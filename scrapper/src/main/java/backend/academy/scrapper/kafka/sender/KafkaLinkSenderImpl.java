@@ -19,19 +19,18 @@ public class KafkaLinkSenderImpl implements KafkaLinkSender {
     private String linkTopic;
 
     public KafkaLinkSenderImpl(
-        @Qualifier(CommonKafkaConfig.COMMON_KAFKA_TEMPLATE)
-        KafkaTemplate<String, Object> kafkaTemplate
-    ) {
+            @Qualifier(CommonKafkaConfig.COMMON_KAFKA_TEMPLATE) KafkaTemplate<String, Object> kafkaTemplate) {
         this.kafkaTemplate = kafkaTemplate;
     }
 
     @Override
     public void send(List<LinkResponse> response) {
-        kafkaTemplate.send(linkTopic, response)
-            .thenAccept(result -> log.info("Сообщение успешно отправлено: {}", result))
-            .exceptionally(result -> {
-                log.error("При отправке сообщения произошла ошибка: {}", result.getMessage());
-                return null;
-            });
+        kafkaTemplate
+                .send(linkTopic, response)
+                .thenAccept(result -> log.info("Сообщение успешно отправлено: {}", result))
+                .exceptionally(result -> {
+                    log.error("При отправке сообщения произошла ошибка: {}", result.getMessage());
+                    return null;
+                });
     }
 }

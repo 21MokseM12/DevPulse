@@ -11,7 +11,5 @@ import org.springframework.test.context.ActiveProfiles;
 public class TestApplication extends TestContainersConfiguration {
 
     @Test
-    public void contextLoads() {
-
-    }
+    public void contextLoads() {}
 }

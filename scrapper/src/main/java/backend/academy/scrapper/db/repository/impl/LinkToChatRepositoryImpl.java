@@ -30,67 +30,59 @@ public class LinkToChatRepositoryImpl implements LinkToChatRepository {
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public boolean subscribeChatOnLink(@NotNull Long chatId, @NotNull Long linkId, Set<String> tags, Set<String> filters) {
+    public boolean subscribeChatOnLink(
+            @NotNull Long chatId, @NotNull Long linkId, Set<String> tags, Set<String> filters) {
         jdbcTemplate.update(
-            LinkToChatQuery.INSERT.query(),
-            new MapSqlParameterSource()
-                .addValue(LINK_ID, linkId)
-                .addValue(CHAT_ID, chatId)
-                .addValue(TAGS, toPostgresArrayLiteral(tags))
-                .addValue(FILTERS, toPostgresArrayLiteral(filters))
-                .addValue(CREATED_AT, OffsetDateTime.now().toLocalDateTime())
-        );
+                LinkToChatQuery.INSERT.query(),
+                new MapSqlParameterSource()
+                        .addValue(LINK_ID, linkId)
+                        .addValue(CHAT_ID, chatId)
+                        .addValue(TAGS, toPostgresArrayLiteral(tags))
+                        .addValue(FILTERS, toPostgresArrayLiteral(filters))
+                        .addValue(CREATED_AT, OffsetDateTime.now().toLocalDateTime()));
         return chatIsSubscribedOnLink(chatId, linkId);
     }
 
     @Transactional(readOnly = true)
     public boolean chatIsSubscribedOnLink(@NotNull Long chatId, @NotNull Long linkId) {
         return Optional.ofNullable(jdbcTemplate.queryForObject(
-            LinkToChatQuery.SELECT_COUNT_BY_CHAT_ID_AND_LINK_ID.query(),
-            new MapSqlParameterSource()
-                .addValue(CHAT_ID, chatId)
-                .addValue(LINK_ID, linkId),
-            Long.class
-        )).orElse(0L) > 0;
+                                LinkToChatQuery.SELECT_COUNT_BY_CHAT_ID_AND_LINK_ID.query(),
+                                new MapSqlParameterSource()
+                                        .addValue(CHAT_ID, chatId)
+                                        .addValue(LINK_ID, linkId),
+                                Long.class))
+                        .orElse(0L)
+                > 0;
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
     public boolean unsubscribe(Long chatId, Long linkId) {
         return jdbcTemplate.update(
-            LinkToChatQuery.DELETE_BY_CHAT_ID_AND_LINK_ID.query(),
-            new MapSqlParameterSource()
-                .addValue(CHAT_ID, chatId)
-                .addValue(LINK_ID, linkId)
-        ) > 0;
+                        LinkToChatQuery.DELETE_BY_CHAT_ID_AND_LINK_ID.query(),
+                        new MapSqlParameterSource().addValue(CHAT_ID, chatId).addValue(LINK_ID, linkId))
+                > 0;
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
     public void unsubscribeAll(Long chatId) {
         jdbcTemplate.update(
-            LinkToChatQuery.DELETE_BY_CHAT_ID.query(),
-            new MapSqlParameterSource()
-                .addValue(CHAT_ID, chatId)
-        );
+                LinkToChatQuery.DELETE_BY_CHAT_ID.query(), new MapSqlParameterSource().addValue(CHAT_ID, chatId));
     }
 
     @Transactional(readOnly = true)
     public List<Long> findAllIdByChatId(Long chatId) {
         return jdbcTemplate.queryForList(
-            LinkToChatQuery.SELECT_LINKS_BY_CHAT_ID.query(),
-            new MapSqlParameterSource()
-                .addValue(CHAT_ID, chatId),
-            Long.class
-        );
+                LinkToChatQuery.SELECT_LINKS_BY_CHAT_ID.query(),
+                new MapSqlParameterSource().addValue(CHAT_ID, chatId),
+                Long.class);
     }
 
     @Transactional(readOnly = true)
     public List<Long> findAllByLinkId(Long linkId) {
         return jdbcTemplate.queryForList(
-            LinkToChatQuery.SELECT_CHAT_BY_LINK_ID.query(),
-            new MapSqlParameterSource()
-                .addValue(LINK_ID, linkId),
-            Long.class
-        );
+                LinkToChatQuery.SELECT_CHAT_BY_LINK_ID.query(),
+                new MapSqlParameterSource().addValue(LINK_ID, linkId),
+                Long.class);
     }
 
     @Override
@@ -99,9 +91,7 @@ public class LinkToChatRepositoryImpl implements LinkToChatRepository {
         return jdbcTemplate.query(
                 LinkToChatQuery.SELECT_SUBSCRIPTIONS_BY_LINK_ID.query(),
                 new MapSqlParameterSource().addValue(LINK_ID, linkId),
-                (rs, rowNum) -> new LinkSubscription(
-                        rs.getLong("client_id"),
-                        toSet(rs.getArray("filters"))));
+                (rs, rowNum) -> new LinkSubscription(rs.getLong("client_id"), toSet(rs.getArray("filters"))));
     }
 
     private String toPostgresArrayLiteral(Set<String> values) {
@@ -109,8 +99,9 @@ public class LinkToChatRepositoryImpl implements LinkToChatRepository {
             return "{}";
         }
         return values.stream()
-            .map(this::escapeArrayValue)
-            .reduce("{", (acc, value) -> acc.length() == 1 ? acc + value : acc + "," + value) + "}";
+                        .map(this::escapeArrayValue)
+                        .reduce("{", (acc, value) -> acc.length() == 1 ? acc + value : acc + "," + value)
+                + "}";
     }
 
     private String escapeArrayValue(String value) {

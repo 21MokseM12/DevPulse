@@ -22,17 +22,17 @@ import java.util.concurrent.TimeUnit;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.NewTopic;
-import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
@@ -48,19 +48,20 @@ import scrapper.bot.connectivity.model.LinkUpdate;
 @Testcontainers
 @ActiveProfiles("test")
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
-@TestPropertySource(properties = {
-        "spring.task.scheduling.enabled=false",
-        "app.scrapper.github.token=test-token",
-        "app.scrapper.stackoverflow.key=test-key",
-        "app.scrapper.stackoverflow.access-token=test-access-token",
-        "app.scrapper.outbox.topic=link-topic-response",
-        "app.scrapper.outbox.interval=1h",
-        "app.scrapper.outbox.batch-size=100",
-        "kafka.properties.retry-policy.interval=10",
-        "kafka.properties.retry-policy.multiplier=1.0",
-        "kafka.properties.retry-policy.maxDelay=10",
-        "kafka.properties.retry-policy.max-attempts=2"
-})
+@TestPropertySource(
+        properties = {
+            "spring.task.scheduling.enabled=false",
+            "app.scrapper.github.token=test-token",
+            "app.scrapper.stackoverflow.key=test-key",
+            "app.scrapper.stackoverflow.access-token=test-access-token",
+            "app.scrapper.outbox.topic=link-topic-response",
+            "app.scrapper.outbox.interval=1h",
+            "app.scrapper.outbox.batch-size=100",
+            "kafka.properties.retry-policy.interval=10",
+            "kafka.properties.retry-policy.multiplier=1.0",
+            "kafka.properties.retry-policy.maxDelay=10",
+            "kafka.properties.retry-policy.max-attempts=2"
+        })
 class KafkaOutboxProcessorIntegrationTest extends TestApplication {
 
     @Autowired
@@ -111,8 +112,10 @@ class KafkaOutboxProcessorIntegrationTest extends TestApplication {
 
         outboxProcessor.processBatch();
 
-        Integer sentCount = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM kafka_outbox WHERE sent = true", Integer.class);
-        Integer attemptCount = jdbcTemplate.queryForObject("SELECT attempt_count FROM kafka_outbox LIMIT 1", Integer.class);
+        Integer sentCount =
+                jdbcTemplate.queryForObject("SELECT COUNT(*) FROM kafka_outbox WHERE sent = true", Integer.class);
+        Integer attemptCount =
+                jdbcTemplate.queryForObject("SELECT attempt_count FROM kafka_outbox LIMIT 1", Integer.class);
         assertThat(sentCount).isEqualTo(1);
         assertThat(attemptCount).isEqualTo(1);
 
@@ -127,9 +130,10 @@ class KafkaOutboxProcessorIntegrationTest extends TestApplication {
 
         brokenProcessor.processBatch();
 
-        Integer sentCount = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM kafka_outbox WHERE sent = true", Integer.class);
-        Integer attemptCount =
-                jdbcTemplate.queryForObject("SELECT attempt_count FROM kafka_outbox WHERE sent = false LIMIT 1", Integer.class);
+        Integer sentCount =
+                jdbcTemplate.queryForObject("SELECT COUNT(*) FROM kafka_outbox WHERE sent = true", Integer.class);
+        Integer attemptCount = jdbcTemplate.queryForObject(
+                "SELECT attempt_count FROM kafka_outbox WHERE sent = false LIMIT 1", Integer.class);
         assertThat(sentCount).isZero();
         assertThat(attemptCount).isEqualTo(2);
     }
@@ -140,8 +144,8 @@ class KafkaOutboxProcessorIntegrationTest extends TestApplication {
         KafkaOutboxProcessor brokenProcessor = createProcessorWithBrokenKafkaBootstrap();
 
         brokenProcessor.processBatch();
-        Integer attemptsAfterFailure =
-                jdbcTemplate.queryForObject("SELECT attempt_count FROM kafka_outbox WHERE sent = false LIMIT 1", Integer.class);
+        Integer attemptsAfterFailure = jdbcTemplate.queryForObject(
+                "SELECT attempt_count FROM kafka_outbox WHERE sent = false LIMIT 1", Integer.class);
         assertThat(attemptsAfterFailure).isEqualTo(2);
 
         KafkaOutboxProcessor restartedProcessor = new KafkaOutboxProcessor(
@@ -155,20 +159,26 @@ class KafkaOutboxProcessorIntegrationTest extends TestApplication {
 
         restartedProcessor.processBatch();
 
-        Integer sentCount = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM kafka_outbox WHERE sent = true", Integer.class);
-        Integer finalAttempts = jdbcTemplate.queryForObject("SELECT attempt_count FROM kafka_outbox LIMIT 1", Integer.class);
+        Integer sentCount =
+                jdbcTemplate.queryForObject("SELECT COUNT(*) FROM kafka_outbox WHERE sent = true", Integer.class);
+        Integer finalAttempts =
+                jdbcTemplate.queryForObject("SELECT attempt_count FROM kafka_outbox LIMIT 1", Integer.class);
         assertThat(sentCount).isEqualTo(1);
         assertThat(finalAttempts).isEqualTo(3);
     }
 
     private KafkaOutboxProcessor createProcessorWithBrokenKafkaBootstrap() {
         Map<String, Object> producerProps = Map.of(
-                ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:1",
-                ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class,
-                ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class,
-                ProducerConfig.CLIENT_ID_CONFIG, "broken-outbox-test-producer");
-        KafkaTemplate<String, Object> brokenKafkaTemplate = new KafkaTemplate<>(
-                new DefaultKafkaProducerFactory<>(producerProps));
+                ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,
+                "localhost:1",
+                ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
+                StringSerializer.class,
+                ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
+                JsonSerializer.class,
+                ProducerConfig.CLIENT_ID_CONFIG,
+                "broken-outbox-test-producer");
+        KafkaTemplate<String, Object> brokenKafkaTemplate =
+                new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(producerProps));
         return new KafkaOutboxProcessor(
                 outboxRepository,
                 brokenKafkaTemplate,
@@ -216,9 +226,13 @@ class KafkaOutboxProcessorIntegrationTest extends TestApplication {
         int maxAttempts = 20;
         for (int attempt = 1; attempt <= maxAttempts; attempt++) {
             try (AdminClient adminClient = AdminClient.create(Map.of(
-                    AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, TestContainersConfiguration.kafka.getBootstrapServers()))) {
+                    AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG,
+                    TestContainersConfiguration.kafka.getBootstrapServers()))) {
                 try {
-                    adminClient.createTopics(List.of(new NewTopic(topic, 1, (short) 1))).all().get(5, TimeUnit.SECONDS);
+                    adminClient
+                            .createTopics(List.of(new NewTopic(topic, 1, (short) 1)))
+                            .all()
+                            .get(5, TimeUnit.SECONDS);
                 } catch (Exception ignored) {
                     // Topic may already exist.
                 }

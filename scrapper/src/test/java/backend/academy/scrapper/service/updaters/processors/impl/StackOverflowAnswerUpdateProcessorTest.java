@@ -98,8 +98,22 @@ public class StackOverflowAnswerUpdateProcessorTest {
                 new StackOverflowAnswerItem(5L, OWNER, fixedTime, "answer")));
 
         List<LinkUpdateDTO> expected = List.of(
-                new LinkUpdateDTO(2L, question.title(), OWNER.username(), fixedTime, "answer", UpdateType.STACKOVERFLOW_ANSWER, Set.of()),
-                new LinkUpdateDTO(4L, question.title(), OWNER.username(), fixedTime, "answer", UpdateType.STACKOVERFLOW_ANSWER, Set.of()));
+                new LinkUpdateDTO(
+                        2L,
+                        question.title(),
+                        OWNER.username(),
+                        fixedTime,
+                        "answer",
+                        UpdateType.STACKOVERFLOW_ANSWER,
+                        Set.of()),
+                new LinkUpdateDTO(
+                        4L,
+                        question.title(),
+                        OWNER.username(),
+                        fixedTime,
+                        "answer",
+                        UpdateType.STACKOVERFLOW_ANSWER,
+                        Set.of()));
 
         when(client.getAnswersByQuestionId(questionId, site, filter))
                 .thenReturn(ResponseEntity.ok().body(response));
@@ -122,11 +136,46 @@ public class StackOverflowAnswerUpdateProcessorTest {
                 new StackOverflowAnswerItem(5L, OWNER, fixedTime, "answer")));
 
         List<LinkUpdateDTO> expected = List.of(
-                new LinkUpdateDTO(1L, question.title(), OWNER.username(), fixedTime, "answer", UpdateType.STACKOVERFLOW_ANSWER, Set.of()),
-                new LinkUpdateDTO(2L, question.title(), OWNER.username(), fixedTime, "answer", UpdateType.STACKOVERFLOW_ANSWER, Set.of()),
-                new LinkUpdateDTO(3L, question.title(), OWNER.username(), fixedTime, "answer", UpdateType.STACKOVERFLOW_ANSWER, Set.of()),
-                new LinkUpdateDTO(4L, question.title(), OWNER.username(), fixedTime, "answer", UpdateType.STACKOVERFLOW_ANSWER, Set.of()),
-                new LinkUpdateDTO(5L, question.title(), OWNER.username(), fixedTime, "answer", UpdateType.STACKOVERFLOW_ANSWER, Set.of()));
+                new LinkUpdateDTO(
+                        1L,
+                        question.title(),
+                        OWNER.username(),
+                        fixedTime,
+                        "answer",
+                        UpdateType.STACKOVERFLOW_ANSWER,
+                        Set.of()),
+                new LinkUpdateDTO(
+                        2L,
+                        question.title(),
+                        OWNER.username(),
+                        fixedTime,
+                        "answer",
+                        UpdateType.STACKOVERFLOW_ANSWER,
+                        Set.of()),
+                new LinkUpdateDTO(
+                        3L,
+                        question.title(),
+                        OWNER.username(),
+                        fixedTime,
+                        "answer",
+                        UpdateType.STACKOVERFLOW_ANSWER,
+                        Set.of()),
+                new LinkUpdateDTO(
+                        4L,
+                        question.title(),
+                        OWNER.username(),
+                        fixedTime,
+                        "answer",
+                        UpdateType.STACKOVERFLOW_ANSWER,
+                        Set.of()),
+                new LinkUpdateDTO(
+                        5L,
+                        question.title(),
+                        OWNER.username(),
+                        fixedTime,
+                        "answer",
+                        UpdateType.STACKOVERFLOW_ANSWER,
+                        Set.of()));
 
         when(client.getAnswersByQuestionId(questionId, site, filter))
                 .thenReturn(ResponseEntity.ok().body(response));

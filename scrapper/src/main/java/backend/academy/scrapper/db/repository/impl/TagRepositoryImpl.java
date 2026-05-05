@@ -1,9 +1,9 @@
 package backend.academy.scrapper.db.repository.impl;
 
 import backend.academy.scrapper.db.query.TagQuery;
+import backend.academy.scrapper.db.repository.TagRepository;
 import java.util.HashSet;
 import java.util.Set;
-import backend.academy.scrapper.db.repository.TagRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -23,10 +23,8 @@ public class TagRepositoryImpl implements TagRepository {
     @Transactional(propagation = Propagation.MANDATORY)
     public void save(Set<String> tags, Long linkId) {
         MapSqlParameterSource[] tagSources = tags.stream()
-            .map(tag -> new MapSqlParameterSource()
-                .addValue(TAG, tag)
-                .addValue(LINK_ID, linkId)
-            ).toArray(MapSqlParameterSource[]::new);
+                .map(tag -> new MapSqlParameterSource().addValue(TAG, tag).addValue(LINK_ID, linkId))
+                .toArray(MapSqlParameterSource[]::new);
 
         jdbcTemplate.batchUpdate(TagQuery.INSERT.query(), tagSources);
     }
@@ -34,22 +32,18 @@ public class TagRepositoryImpl implements TagRepository {
     @Transactional(propagation = Propagation.MANDATORY)
     public Set<String> findByLinkId(Long linkId) {
         return new HashSet<>(jdbcTemplate.queryForList(
-            TagQuery.SELECT_BY_LINK_ID.query(),
-            new MapSqlParameterSource()
-                .addValue(LINK_ID, linkId),
-            String.class
-        ));
+                TagQuery.SELECT_BY_LINK_ID.query(),
+                new MapSqlParameterSource().addValue(LINK_ID, linkId),
+                String.class));
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
     public Set<String> deleteByLinkId(Long linkId) {
         Set<String> deletedTags = new HashSet<>();
         jdbcTemplate.query(
-            TagQuery.DELETE_BY_LINK_ID.query(),
-            new MapSqlParameterSource()
-                .addValue(LINK_ID, linkId),
-            rs -> {deletedTags.add(rs.getString(TAG));}
-        );
+                TagQuery.DELETE_BY_LINK_ID.query(), new MapSqlParameterSource().addValue(LINK_ID, linkId), rs -> {
+                    deletedTags.add(rs.getString(TAG));
+                });
         return deletedTags;
     }
 }

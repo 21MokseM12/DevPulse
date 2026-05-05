@@ -33,7 +33,8 @@ public class ScrapperHttpNotificationManager implements NotificationManager {
                 kafkaOutboxRepository.save(scrapperConfig.outbox().topic(), linkUpdate);
                 ResponseEntity<?> response = botClient.sendUpdates(linkUpdate);
                 if (!response.getStatusCode().is2xxSuccessful()) {
-                    ApiErrorResponse errorResponse = objectMapper.convertValue(response.getBody(), ApiErrorResponse.class);
+                    ApiErrorResponse errorResponse =
+                            objectMapper.convertValue(response.getBody(), ApiErrorResponse.class);
                     log.error("При отправлении обновления по ссылке произошла ошибка: {}", errorResponse);
                 }
             });

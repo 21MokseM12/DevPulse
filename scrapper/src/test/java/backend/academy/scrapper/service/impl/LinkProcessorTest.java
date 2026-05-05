@@ -1,5 +1,8 @@
 package backend.academy.scrapper.service.impl;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import backend.academy.scrapper.exceptions.ResourceNotFoundException;
 import backend.academy.scrapper.service.LinkOperationProcessor;
 import backend.academy.scrapper.service.validators.LinkValidatorManager;
@@ -22,8 +25,6 @@ import scrapper.bot.connectivity.exceptions.BadRequestException;
 import scrapper.bot.connectivity.model.request.AddLinkRequest;
 import scrapper.bot.connectivity.model.request.RemoveLinkRequest;
 import scrapper.bot.connectivity.model.response.LinkResponse;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ActiveProfiles("test")
 @ExtendWith(MockitoExtension.class)
@@ -42,21 +43,9 @@ public class LinkProcessorTest {
     public void testFindAllLinks_Successfully() {
         Long id = 123L;
         List<LinkResponse> expected = List.of(
-            new LinkResponse(
-                1L,
-                URI.create("https://example.com"),
-                Set.of(),
-                Set.of()
-            ),
-            new LinkResponse(
-                2L,
-                URI.create("https://some-example.com"),
-                Set.of(),
-                Set.of()
-            )
-        );
-        Mockito.when(linkOperationProcessor.findAllByChatId(id))
-            .thenReturn(expected);
+                new LinkResponse(1L, URI.create("https://example.com"), Set.of(), Set.of()),
+                new LinkResponse(2L, URI.create("https://some-example.com"), Set.of(), Set.of()));
+        Mockito.when(linkOperationProcessor.findAllByChatId(id)).thenReturn(expected);
 
         List<LinkResponse> response = linkProcessor.findAll(id);
 
@@ -66,11 +55,8 @@ public class LinkProcessorTest {
     @ParameterizedTest
     @MethodSource("findAllLinksInvalidData")
     public void testFindAllLinks_InvalidInput_ShouldReturnEmptyListLinkResponse(
-        Long chatId,
-        List<LinkResponse> expected
-    ) {
-        Mockito.when(linkOperationProcessor.findAllByChatId(chatId))
-            .thenReturn(expected);
+            Long chatId, List<LinkResponse> expected) {
+        Mockito.when(linkOperationProcessor.findAllByChatId(chatId)).thenReturn(expected);
 
         List<LinkResponse> response = linkProcessor.findAll(chatId);
 
@@ -80,21 +66,12 @@ public class LinkProcessorTest {
     @Test
     public void testSubscribeLink_Successfully() {
         Long id = 123L;
-        AddLinkRequest request = new AddLinkRequest(
-            URI.create("https://some-example.com"),
-            Set.of("tag"),
-            Set.of("filter")
-        );
-        LinkResponse expected = new LinkResponse(
-            456L,
-            request.link(),
-            request.tags(),
-            request.filters()
-        );
+        AddLinkRequest request =
+                new AddLinkRequest(URI.create("https://some-example.com"), Set.of("tag"), Set.of("filter"));
+        LinkResponse expected = new LinkResponse(456L, request.link(), request.tags(), request.filters());
         Mockito.when(linkValidatorManager.isValidLink(request.link().toString()))
-            .thenReturn(true);
-        Mockito.when(linkOperationProcessor.subscribe(id, request))
-            .thenReturn(Optional.of(expected));
+                .thenReturn(true);
+        Mockito.when(linkOperationProcessor.subscribe(id, request)).thenReturn(Optional.of(expected));
 
         LinkResponse response = linkProcessor.subscribeLink(id, request);
 
@@ -104,19 +81,14 @@ public class LinkProcessorTest {
     @Test
     public void testSubscribeLink_InvalidLink_ShouldReturnBadRequestException() {
         Long id = 123L;
-        AddLinkRequest request = new AddLinkRequest(
-            URI.create("https://some-example.com"),
-            Set.of("tag"),
-            Set.of("filter")
-        );
+        AddLinkRequest request =
+                new AddLinkRequest(URI.create("https://some-example.com"), Set.of("tag"), Set.of("filter"));
         String expectedMessage = "Некорректные параметры запроса";
         Mockito.when(linkValidatorManager.isValidLink(request.link().toString()))
-            .thenReturn(false);
+                .thenReturn(false);
 
-        BadRequestException exception = assertThrows(
-            BadRequestException.class,
-            () -> linkProcessor.subscribeLink(id, request)
-        );
+        BadRequestException exception =
+                assertThrows(BadRequestException.class, () -> linkProcessor.subscribeLink(id, request));
 
         assertEquals(expectedMessage, exception.getMessage());
     }
@@ -124,21 +96,15 @@ public class LinkProcessorTest {
     @Test
     public void testSubscribeLink_SubscribeFailed_ShouldReturnBadRequestException() {
         Long id = 123L;
-        AddLinkRequest request = new AddLinkRequest(
-            URI.create("https://some-example.com"),
-            Set.of("tag"),
-            Set.of("filter")
-        );
+        AddLinkRequest request =
+                new AddLinkRequest(URI.create("https://some-example.com"), Set.of("tag"), Set.of("filter"));
         String expectedMessage = "Некорректные параметры запроса";
         Mockito.when(linkValidatorManager.isValidLink(request.link().toString()))
-            .thenReturn(true);
-        Mockito.when(linkOperationProcessor.subscribe(id, request))
-            .thenReturn(Optional.empty());
+                .thenReturn(true);
+        Mockito.when(linkOperationProcessor.subscribe(id, request)).thenReturn(Optional.empty());
 
-        BadRequestException exception = assertThrows(
-            BadRequestException.class,
-            () -> linkProcessor.subscribeLink(id, request)
-        );
+        BadRequestException exception =
+                assertThrows(BadRequestException.class, () -> linkProcessor.subscribeLink(id, request));
 
         assertEquals(expectedMessage, exception.getMessage());
     }
@@ -147,16 +113,10 @@ public class LinkProcessorTest {
     public void testUnsubscribeLink_Successfully() {
         Long id = 123L;
         RemoveLinkRequest request = new RemoveLinkRequest(URI.create("https://some-example.com"));
-        LinkResponse expected = new LinkResponse(
-            456L,
-            request.link(),
-            Set.of("tag"),
-            Set.of("filter")
-        );
+        LinkResponse expected = new LinkResponse(456L, request.link(), Set.of("tag"), Set.of("filter"));
         Mockito.when(linkValidatorManager.isValidLink(request.link().toString()))
-            .thenReturn(true);
-        Mockito.when(linkOperationProcessor.unsubscribe(id, request))
-            .thenReturn(Optional.of(expected));
+                .thenReturn(true);
+        Mockito.when(linkOperationProcessor.unsubscribe(id, request)).thenReturn(Optional.of(expected));
 
         LinkResponse response = linkProcessor.unsubscribeLink(id, request);
 
@@ -169,12 +129,10 @@ public class LinkProcessorTest {
         RemoveLinkRequest request = new RemoveLinkRequest(URI.create("https://some-example.com"));
         String expectedMessage = "Некорректные параметры запроса";
         Mockito.when(linkValidatorManager.isValidLink(request.link().toString()))
-            .thenReturn(false);
+                .thenReturn(false);
 
-        BadRequestException exception = assertThrows(
-            BadRequestException.class,
-            () -> linkProcessor.unsubscribeLink(id, request)
-        );
+        BadRequestException exception =
+                assertThrows(BadRequestException.class, () -> linkProcessor.unsubscribeLink(id, request));
 
         assertEquals(expectedMessage, exception.getMessage());
     }
@@ -185,22 +143,16 @@ public class LinkProcessorTest {
         RemoveLinkRequest request = new RemoveLinkRequest(URI.create("https://some-example.com"));
         String expectedMessage = "Ссылка не найдена";
         Mockito.when(linkValidatorManager.isValidLink(request.link().toString()))
-            .thenReturn(true);
-        Mockito.when(linkOperationProcessor.unsubscribe(id, request))
-            .thenReturn(Optional.empty());
+                .thenReturn(true);
+        Mockito.when(linkOperationProcessor.unsubscribe(id, request)).thenReturn(Optional.empty());
 
-        ResourceNotFoundException exception = assertThrows(
-            ResourceNotFoundException.class,
-            () -> linkProcessor.unsubscribeLink(id, request)
-        );
+        ResourceNotFoundException exception =
+                assertThrows(ResourceNotFoundException.class, () -> linkProcessor.unsubscribeLink(id, request));
 
         assertEquals(expectedMessage, exception.getMessage());
     }
 
     public static Stream<Arguments> findAllLinksInvalidData() {
-        return Stream.of(
-            Arguments.of(123L, List.of()),
-            Arguments.of(null, List.of())
-        );
+        return Stream.of(Arguments.of(123L, List.of()), Arguments.of(null, List.of()));
     }
 }

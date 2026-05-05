@@ -2,13 +2,13 @@ package backend.academy.scrapper.db.repository.impl;
 
 import backend.academy.scrapper.db.model.Link;
 import backend.academy.scrapper.db.query.LinkQuery;
+import backend.academy.scrapper.db.repository.LinkRepository;
 import java.net.URI;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import backend.academy.scrapper.db.repository.LinkRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -40,80 +40,87 @@ public class LinkRepositoryImpl implements LinkRepository {
 
     public Long save(String url, OffsetDateTime createdTime) {
         Long linkId = jdbcTemplate.queryForObject(
-            LinkQuery.INSERT.query(),
-            new MapSqlParameterSource()
-                .addValue(URL, url)
-                .addValue(LAST_CHECKED_AT, createdTime.withOffsetSameInstant(ZoneOffset.UTC).toLocalDateTime())
-                .addValue(CREATED_AT, createdTime.withOffsetSameInstant(ZoneOffset.UTC).toLocalDateTime())
-                .addValue(LINK_TYPE, resolveLinkType(url))
-                .addValue(ETAG, null),
-            Long.class
-        );
+                LinkQuery.INSERT.query(),
+                new MapSqlParameterSource()
+                        .addValue(URL, url)
+                        .addValue(
+                                LAST_CHECKED_AT,
+                                createdTime
+                                        .withOffsetSameInstant(ZoneOffset.UTC)
+                                        .toLocalDateTime())
+                        .addValue(
+                                CREATED_AT,
+                                createdTime
+                                        .withOffsetSameInstant(ZoneOffset.UTC)
+                                        .toLocalDateTime())
+                        .addValue(LINK_TYPE, resolveLinkType(url))
+                        .addValue(ETAG, null),
+                Long.class);
         Long resolvedLinkId = Optional.ofNullable(linkId).orElseThrow();
         jdbcTemplate.update(
-            LinkQuery.INSERT_POLL_STATE.query(),
-            new MapSqlParameterSource()
-                .addValue(LINK_ID, resolvedLinkId)
-                .addValue(NEXT_POLL_AT, createdTime.withOffsetSameInstant(ZoneOffset.UTC).toLocalDateTime())
-        );
+                LinkQuery.INSERT_POLL_STATE.query(),
+                new MapSqlParameterSource()
+                        .addValue(LINK_ID, resolvedLinkId)
+                        .addValue(
+                                NEXT_POLL_AT,
+                                createdTime
+                                        .withOffsetSameInstant(ZoneOffset.UTC)
+                                        .toLocalDateTime()));
         return resolvedLinkId;
     }
 
     public Optional<Link> findIdByLink(String url) {
         return Optional.ofNullable(jdbcTemplate.queryForObject(
-            LinkQuery.SELECT_BY_LINK.query(),
-            new MapSqlParameterSource()
-                .addValue(URL, url),
-            rowMapper
-        ));
+                LinkQuery.SELECT_BY_LINK.query(), new MapSqlParameterSource().addValue(URL, url), rowMapper));
     }
 
     public Optional<Link> findById(Long linkId) {
         return Optional.ofNullable(jdbcTemplate.queryForObject(
-            LinkQuery.SELECT_BY_ID.query(),
-            new MapSqlParameterSource()
-                .addValue(LINK_ID, linkId),
-            rowMapper
-        ));
+                LinkQuery.SELECT_BY_ID.query(), new MapSqlParameterSource().addValue(LINK_ID, linkId), rowMapper));
     }
 
     public boolean existsLink(String url) {
         return Optional.ofNullable(jdbcTemplate.queryForObject(
-            LinkQuery.SELECT_COUNT_BY_LINK.query(),
-            new MapSqlParameterSource()
-                .addValue(URL, url),
-            Integer.class
-        )).orElse(0) == 1;
+                                LinkQuery.SELECT_COUNT_BY_LINK.query(),
+                                new MapSqlParameterSource().addValue(URL, url),
+                                Integer.class))
+                        .orElse(0)
+                == 1;
     }
 
     public Optional<Link> delete(Long id) {
         return Optional.ofNullable(jdbcTemplate.queryForObject(
-            LinkQuery.DELETE_BY_ID.query(),
-            new MapSqlParameterSource()
-                .addValue(LINK_ID, id),
-            rowMapper
-        ));
+                LinkQuery.DELETE_BY_ID.query(), new MapSqlParameterSource().addValue(LINK_ID, id), rowMapper));
     }
 
     public Set<URI> findAllLinksByUpdatedAt(OffsetDateTime highestTimeLimit, int offset, Integer limit) {
-        return jdbcTemplate.queryForList(
-                LinkQuery.SELECT_BY_UPDATED_AT.query(),
-                new MapSqlParameterSource()
-                    .addValue(TIME_LIMIT, highestTimeLimit.withOffsetSameInstant(ZoneOffset.UTC).toLocalDateTime())
-                    .addValue(OFFSET, offset)
-                    .addValue(LIMIT, limit),
-                String.class
-            ).stream()
-            .map(URI::create)
-            .collect(Collectors.toSet());
+        return jdbcTemplate
+                .queryForList(
+                        LinkQuery.SELECT_BY_UPDATED_AT.query(),
+                        new MapSqlParameterSource()
+                                .addValue(
+                                        TIME_LIMIT,
+                                        highestTimeLimit
+                                                .withOffsetSameInstant(ZoneOffset.UTC)
+                                                .toLocalDateTime())
+                                .addValue(OFFSET, offset)
+                                .addValue(LIMIT, limit),
+                        String.class)
+                .stream()
+                .map(URI::create)
+                .collect(Collectors.toSet());
     }
 
     @Override
     public Set<URI> findAllLinksForPolling(OffsetDateTime now, int offset, Integer limit) {
-        return jdbcTemplate.queryForList(
+        return jdbcTemplate
+                .queryForList(
                         LinkQuery.SELECT_FOR_POLLING.query(),
                         new MapSqlParameterSource()
-                                .addValue(NOW, now.withOffsetSameInstant(ZoneOffset.UTC).toLocalDateTime())
+                                .addValue(
+                                        NOW,
+                                        now.withOffsetSameInstant(ZoneOffset.UTC)
+                                                .toLocalDateTime())
                                 .addValue(OFFSET, offset)
                                 .addValue(LIMIT, limit),
                         String.class)
@@ -126,32 +133,28 @@ public class LinkRepositoryImpl implements LinkRepository {
     public void markPollingSuccess(String url, OffsetDateTime checkedAt, OffsetDateTime nextPollAt) {
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue(URL, url)
-                .addValue(CHECKED_AT, checkedAt.withOffsetSameInstant(ZoneOffset.UTC).toLocalDateTime())
-                .addValue(NEXT_POLL_AT, nextPollAt.withOffsetSameInstant(ZoneOffset.UTC).toLocalDateTime());
-        jdbcTemplate.update(
-                "update links set last_checked_at = :checked_at where url = :url",
-                params
-        );
+                .addValue(
+                        CHECKED_AT,
+                        checkedAt.withOffsetSameInstant(ZoneOffset.UTC).toLocalDateTime())
+                .addValue(
+                        NEXT_POLL_AT,
+                        nextPollAt.withOffsetSameInstant(ZoneOffset.UTC).toLocalDateTime());
+        jdbcTemplate.update("update links set last_checked_at = :checked_at where url = :url", params);
         jdbcTemplate.update(LinkQuery.MARK_POLL_SUCCESS.query(), params);
     }
 
     @Override
     public void markPollingFailure(
-            String url,
-            OffsetDateTime checkedAt,
-            String error,
-            long baseBackoffSeconds,
-            long maxBackoffSeconds) {
+            String url, OffsetDateTime checkedAt, String error, long baseBackoffSeconds, long maxBackoffSeconds) {
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue(URL, url)
-                .addValue(CHECKED_AT, checkedAt.withOffsetSameInstant(ZoneOffset.UTC).toLocalDateTime())
+                .addValue(
+                        CHECKED_AT,
+                        checkedAt.withOffsetSameInstant(ZoneOffset.UTC).toLocalDateTime())
                 .addValue(LAST_ERROR, error)
                 .addValue(BASE_BACKOFF_SECONDS, baseBackoffSeconds)
                 .addValue(MAX_BACKOFF_SECONDS, maxBackoffSeconds);
-        jdbcTemplate.update(
-                "update links set last_checked_at = :checked_at where url = :url",
-                params
-        );
+        jdbcTemplate.update("update links set last_checked_at = :checked_at where url = :url", params);
         jdbcTemplate.queryForObject(LinkQuery.MARK_POLL_FAILURE.query(), params, Integer.class);
     }
 

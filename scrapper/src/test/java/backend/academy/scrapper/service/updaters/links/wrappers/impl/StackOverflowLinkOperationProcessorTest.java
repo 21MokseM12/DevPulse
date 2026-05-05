@@ -6,9 +6,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
-import backend.academy.scrapper.service.LinkOperationProcessor;
 import backend.academy.scrapper.enums.ProcessedIdType;
 import backend.academy.scrapper.model.stackoverflow.ProcessedIdDTO;
+import backend.academy.scrapper.service.LinkOperationProcessor;
 import java.net.URI;
 import java.util.List;
 import org.junit.jupiter.api.Test;

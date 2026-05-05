@@ -1,5 +1,16 @@
 package backend.academy.scrapper.service.impl;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import backend.academy.scrapper.config.properties.DatabaseProperty;
 import backend.academy.scrapper.db.DbCommonService;
 import backend.academy.scrapper.db.impl.DbLinkServiceImpl;
@@ -8,9 +19,9 @@ import backend.academy.scrapper.db.model.LinkSubscription;
 import backend.academy.scrapper.db.model.ProcessedId;
 import backend.academy.scrapper.enums.ProcessedIdType;
 import backend.academy.scrapper.mapper.LinkResponseMapper;
-import backend.academy.scrapper.model.stackoverflow.ProcessedIdDTO;
 import backend.academy.scrapper.model.LinkUpdateDTO;
 import backend.academy.scrapper.model.UpdateType;
+import backend.academy.scrapper.model.stackoverflow.ProcessedIdDTO;
 import backend.academy.scrapper.service.ChatOperationProcessor;
 import backend.academy.scrapper.service.filters.SubscriptionFilterService;
 import java.net.URI;
@@ -31,57 +42,47 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import scrapper.bot.connectivity.model.request.AddLinkRequest;
 import scrapper.bot.connectivity.model.request.RemoveLinkRequest;
 import scrapper.bot.connectivity.model.response.LinkResponse;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class LinkOperationProcessorTest {
 
     @Mock
     private Clock clock;
+
     @Mock
     private LinkResponseMapper mapper;
+
     @Mock
     private DatabaseProperty config;
+
     @Mock
     private DbCommonService commonService;
+
     @Mock
     private DbLinkServiceImpl dbLinkService;
+
     @Mock
     private ChatOperationProcessor chatService;
+
     @Mock
     private SubscriptionFilterService subscriptionFilterService;
+
     @InjectMocks
     private LinkOperationProcessorImpl linkOperationProcessor;
 
     @Test
     public void testGetAllLinksSuccess() {
         Long id = 1L;
-        List<Link> links = List.of(
-            new Link(1L, URI.create("uri"), Set.of("tag"), Set.of("filter"), OffsetDateTime.now())
-        );
-        List<LinkResponse> expectedResponse = List.of(
-            new LinkResponse(1L, URI.create("uri"), Set.of("tag"), Set.of("filter"))
-        );
+        List<Link> links =
+                List.of(new Link(1L, URI.create("uri"), Set.of("tag"), Set.of("filter"), OffsetDateTime.now()));
+        List<LinkResponse> expectedResponse =
+                List.of(new LinkResponse(1L, URI.create("uri"), Set.of("tag"), Set.of("filter")));
         when(chatService.isClient(id)).thenReturn(true);
         when(commonService.findAllLinkIdsByChatId(id)).thenReturn(List.of(id));
         when(dbLinkService.findAllLinks(List.of(id))).thenReturn(links);
         when(mapper.toLinkResponse(any())).thenAnswer(invocation -> {
             Link argument = invocation.getArgument(0);
-            return new LinkResponse(
-                argument.id(),
-                argument.url(),
-                argument.tags(),
-                argument.filters()
-            );
+            return new LinkResponse(argument.id(), argument.url(), argument.tags(), argument.filters());
         });
 
         List<LinkResponse> byChatId = linkOperationProcessor.findAllByChatId(id);
@@ -122,17 +123,12 @@ public class LinkOperationProcessorTest {
         when(dbLinkService.saveLink(addLinkRequest)).thenReturn(link);
         when(mapper.toLinkResponse(any())).thenAnswer(invocation -> {
             Link argument = invocation.getArgument(0);
-            return new LinkResponse(
-                argument.id(),
-                argument.url(),
-                argument.tags(),
-                argument.filters()
-            );
+            return new LinkResponse(argument.id(), argument.url(), argument.tags(), argument.filters());
         });
 
         Optional<LinkResponse> linkResponse = linkOperationProcessor.subscribe(id, addLinkRequest);
         assertTrue(linkResponse.isPresent());
-        assertEquals(expected, linkResponse.get());
+        assertEquals(expected, linkResponse.orElseThrow());
         verify(chatService).isClient(id);
         verify(dbLinkService).findByLink(addLinkRequest.link().toString());
         verify(dbLinkService).saveLink(addLinkRequest);
@@ -151,17 +147,12 @@ public class LinkOperationProcessorTest {
         when(dbLinkService.findByLink(addLinkRequest.link().toString())).thenReturn(Optional.of(link));
         when(mapper.toLinkResponse(any())).thenAnswer(invocation -> {
             Link argument = invocation.getArgument(0);
-            return new LinkResponse(
-                argument.id(),
-                argument.url(),
-                argument.tags(),
-                argument.filters()
-            );
+            return new LinkResponse(argument.id(), argument.url(), argument.tags(), argument.filters());
         });
 
         Optional<LinkResponse> linkResponse = linkOperationProcessor.subscribe(id, addLinkRequest);
         assertTrue(linkResponse.isPresent());
-        assertEquals(expected, linkResponse.get());
+        assertEquals(expected, linkResponse.orElseThrow());
         verify(chatService).isClient(id);
         verify(dbLinkService).findByLink(addLinkRequest.link().toString());
         verify(chatService).subscribeChatOnLink(id, linkId, addLinkRequest.tags(), addLinkRequest.filters());
@@ -180,11 +171,7 @@ public class LinkOperationProcessorTest {
         when(dbLinkService.findByLink(addLinkRequest.link().toString())).thenReturn(Optional.of(link));
         when(mapper.toLinkResponse(any())).thenAnswer(invocation -> {
             Link argument = invocation.getArgument(0);
-            return new LinkResponse(
-                    argument.id(),
-                    argument.url(),
-                    argument.tags(),
-                    argument.filters());
+            return new LinkResponse(argument.id(), argument.url(), argument.tags(), argument.filters());
         });
 
         Optional<LinkResponse> first = linkOperationProcessor.subscribe(id, addLinkRequest);
@@ -192,10 +179,10 @@ public class LinkOperationProcessorTest {
 
         assertTrue(first.isPresent());
         assertTrue(second.isPresent());
-        assertEquals(expected, first.get());
-        assertEquals(expected, second.get());
+        assertEquals(expected, first.orElseThrow());
+        assertEquals(expected, second.orElseThrow());
         verify(chatService, times(2))
-            .subscribeChatOnLink(id, link.id(), addLinkRequest.tags(), addLinkRequest.filters());
+                .subscribeChatOnLink(id, link.id(), addLinkRequest.tags(), addLinkRequest.filters());
     }
 
     @Test
@@ -211,18 +198,13 @@ public class LinkOperationProcessorTest {
         when(dbLinkService.delete(removeLinkRequest.link().toString())).thenReturn(Optional.of(link));
         when(mapper.toLinkResponse(any())).thenAnswer(invocation -> {
             Link argument = invocation.getArgument(0);
-            return new LinkResponse(
-                argument.id(),
-                argument.url(),
-                argument.tags(),
-                argument.filters()
-            );
+            return new LinkResponse(argument.id(), argument.url(), argument.tags(), argument.filters());
         });
 
         Optional<LinkResponse> response = linkOperationProcessor.unsubscribe(id, removeLinkRequest);
 
         assertTrue(response.isPresent());
-        assertThat(response.get()).isEqualTo(linkResponse);
+        assertThat(response.orElseThrow()).isEqualTo(linkResponse);
         verify(dbLinkService).delete(removeLinkRequest.link().toString());
     }
 
@@ -242,22 +224,22 @@ public class LinkOperationProcessorTest {
     public void findAllProcessedIds_whenLinkExists_shouldReturnProcessedIdsByLink() {
         Link link = new Link(1L, URI.create("link"), Set.of(), Set.of(), OffsetDateTime.MIN);
         Set<ProcessedId> processedIds = Set.of(
-            new ProcessedId(1L, ProcessedIdType.GITHUB_PULL_REQUEST.type()),
-            new ProcessedId(2L, ProcessedIdType.STACKOVERFLOW_COMMENT.type()),
-            new ProcessedId(3L, ProcessedIdType.STACKOVERFLOW_ANSWER.type()),
-            new ProcessedId(4L, ProcessedIdType.GITHUB_ISSUE.type()));
+                new ProcessedId(1L, ProcessedIdType.GITHUB_PULL_REQUEST.type()),
+                new ProcessedId(2L, ProcessedIdType.STACKOVERFLOW_COMMENT.type()),
+                new ProcessedId(3L, ProcessedIdType.STACKOVERFLOW_ANSWER.type()),
+                new ProcessedId(4L, ProcessedIdType.GITHUB_ISSUE.type()));
         List<ProcessedIdDTO> expected = List.of(
-            new ProcessedIdDTO(1L, ProcessedIdType.GITHUB_PULL_REQUEST),
-            new ProcessedIdDTO(2L, ProcessedIdType.STACKOVERFLOW_COMMENT),
-            new ProcessedIdDTO(3L, ProcessedIdType.STACKOVERFLOW_ANSWER),
-            new ProcessedIdDTO(4L, ProcessedIdType.GITHUB_ISSUE));
+                new ProcessedIdDTO(1L, ProcessedIdType.GITHUB_PULL_REQUEST),
+                new ProcessedIdDTO(2L, ProcessedIdType.STACKOVERFLOW_COMMENT),
+                new ProcessedIdDTO(3L, ProcessedIdType.STACKOVERFLOW_ANSWER),
+                new ProcessedIdDTO(4L, ProcessedIdType.GITHUB_ISSUE));
 
         when(dbLinkService.findByLink(link.url().toString())).thenReturn(Optional.of(link));
         when(commonService.findAllProcessedIdsByLinkId(1L)).thenReturn(processedIds);
 
         List<ProcessedIdDTO> allProcessedIds = linkOperationProcessor.findAllProcessedIds(link.url()).stream()
-            .sorted(Comparator.comparing(ProcessedIdDTO::id))
-            .toList();
+                .sorted(Comparator.comparing(ProcessedIdDTO::id))
+                .toList();
 
         assertNotNull(allProcessedIds);
         assertFalse(allProcessedIds.isEmpty());
@@ -295,8 +277,7 @@ public class LinkOperationProcessorTest {
         when(clock.getZone()).thenReturn(ZoneOffset.UTC);
         when(config.pageSize()).thenReturn(1);
 
-        when(dbLinkService.findAllLinksForPolling(fixed, 0, 1))
-            .thenReturn(new HashSet<>());
+        when(dbLinkService.findAllLinksForPolling(fixed, 0, 1)).thenReturn(new HashSet<>());
         when(config.pageSize()).thenReturn(1);
 
         Set<URI> allLinksByForceCheckDelay = linkOperationProcessor.findAllLinksByForceCheckDelay(duration, 0);
@@ -314,8 +295,7 @@ public class LinkOperationProcessorTest {
         when(clock.getZone()).thenReturn(ZoneOffset.UTC);
         when(config.pageSize()).thenReturn(1);
 
-        when(dbLinkService.findAllLinksForPolling(fixed, 0, 1))
-            .thenReturn(Set.of(URI.create("link")));
+        when(dbLinkService.findAllLinksForPolling(fixed, 0, 1)).thenReturn(Set.of(URI.create("link")));
         when(config.pageSize()).thenReturn(1);
 
         Set<URI> allLinksByForceCheckDelay = linkOperationProcessor.findAllLinksByForceCheckDelay(duration, 0);

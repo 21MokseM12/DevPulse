@@ -57,10 +57,7 @@ public class NotificationRepositoryImpl implements NotificationRepository {
                 .addValue(UPDATE_OWNER, notification.updateOwner())
                 .addValue(DESCRIPTION, notification.description())
                 .addValue(CREATION_DATE, notification.creationDate());
-        Long id = jdbcTemplate.queryForObject(
-                INSERT,
-                params,
-                Long.class);
+        Long id = jdbcTemplate.queryForObject(INSERT, params, Long.class);
         long notificationId = Optional.ofNullable(id).orElseGet(() -> Optional.ofNullable(
                         jdbcTemplate.queryForObject(SELECT_EXISTING_ID, params, Long.class))
                 .orElseThrow());

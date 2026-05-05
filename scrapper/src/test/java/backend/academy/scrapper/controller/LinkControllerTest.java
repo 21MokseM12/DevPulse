@@ -46,9 +46,7 @@ class LinkControllerTest {
         when(chatOperationProcessor.findClientIdByLogin("alice")).thenReturn(java.util.Optional.of(42L));
         when(linkProcessor.findAll(42L)).thenReturn(List.of());
 
-        mockMvc.perform(get("/links")
-                        .header("Client-Login", "alice")
-                        .header(INTERNAL_SECRET_HEADER, INTERNAL_SECRET))
+        mockMvc.perform(get("/links").header("Client-Login", "alice").header(INTERNAL_SECRET_HEADER, INTERNAL_SECRET))
                 .andExpect(status().isOk());
 
         verify(chatOperationProcessor).findClientIdByLogin("alice");
@@ -59,9 +57,7 @@ class LinkControllerTest {
     void get_links_returns404WhenClientUnknown() throws Exception {
         when(chatOperationProcessor.findClientIdByLogin("nobody")).thenReturn(java.util.Optional.empty());
 
-        mockMvc.perform(get("/links")
-                        .header("Client-Login", "nobody")
-                        .header(INTERNAL_SECRET_HEADER, INTERNAL_SECRET))
+        mockMvc.perform(get("/links").header("Client-Login", "nobody").header(INTERNAL_SECRET_HEADER, INTERNAL_SECRET))
                 .andExpect(status().isNotFound());
     }
 

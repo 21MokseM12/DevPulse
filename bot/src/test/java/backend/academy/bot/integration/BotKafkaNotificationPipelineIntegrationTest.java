@@ -32,11 +32,12 @@ import org.testcontainers.utility.DockerImageName;
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Testcontainers
-@TestPropertySource(properties = {
-        "app.kafka.consumers.link-updates.topic=bot-link-updates-test",
-        "app.kafka.consumers.link-updates.group-id=bot-link-updates-test-group",
-        "app.kafka.retry-policy.max-attempts=1"
-})
+@TestPropertySource(
+        properties = {
+            "app.kafka.consumers.link-updates.topic=bot-link-updates-test",
+            "app.kafka.consumers.link-updates.group-id=bot-link-updates-test-group",
+            "app.kafka.retry-policy.max-attempts=1"
+        })
 class BotKafkaNotificationPipelineIntegrationTest {
 
     @Container
@@ -46,8 +47,7 @@ class BotKafkaNotificationPipelineIntegrationTest {
             .withPassword("test");
 
     @Container
-    static final KafkaContainer KAFKA =
-            new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.8.0"));
+    static final KafkaContainer KAFKA = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.8.0"));
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
@@ -116,7 +116,9 @@ class BotKafkaNotificationPipelineIntegrationTest {
 
     private void registerClient(String login, String password) throws Exception {
         String payload = objectMapper.writeValueAsString(Map.of("login", login, "password", password));
-        mockMvc.perform(post("/api/v1/clients").contentType(MediaType.APPLICATION_JSON).content(payload))
+        mockMvc.perform(post("/api/v1/clients")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
                 .andExpect(status().isOk());
     }
 }

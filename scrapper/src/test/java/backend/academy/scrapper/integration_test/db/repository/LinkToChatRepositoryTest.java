@@ -1,5 +1,10 @@
 package backend.academy.scrapper.integration_test.db.repository;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import backend.academy.scrapper.db.repository.LinkToChatRepository;
 import backend.academy.scrapper.db.repository.impl.LinkToChatRepositoryImpl;
 import backend.academy.scrapper.integration_test.config.TestContainersConfiguration;
@@ -17,10 +22,6 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @JdbcTest
 @Testcontainers
@@ -30,6 +31,7 @@ public class LinkToChatRepositoryTest extends TestContainersConfiguration {
 
     @Autowired
     private LinkToChatRepository repository;
+
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
@@ -53,11 +55,7 @@ public class LinkToChatRepositoryTest extends TestContainersConfiguration {
         assertTrue(repository.subscribeChatOnLink(chatId, linkId));
 
         Integer count = jdbcTemplate.queryForObject(
-            "select count(*) from client_links where client_id = ? and link_id = ?",
-            Integer.class,
-            chatId,
-            linkId
-        );
+                "select count(*) from client_links where client_id = ? and link_id = ?", Integer.class, chatId, linkId);
         assertEquals(1, count);
     }
 
@@ -67,18 +65,16 @@ public class LinkToChatRepositoryTest extends TestContainersConfiguration {
         Long linkId = createLink("https://client-link.example/unique-raw");
 
         jdbcTemplate.update(
-            "insert into client_links (client_id, link_id, tags, filters, created_at) values (?, ?, ARRAY[]::text[], ARRAY[]::text[], NOW())",
-            chatId,
-            linkId
-        );
-
-        assertThrows(DuplicateKeyException.class, () ->
-            jdbcTemplate.update(
                 "insert into client_links (client_id, link_id, tags, filters, created_at) values (?, ?, ARRAY[]::text[], ARRAY[]::text[], NOW())",
                 chatId,
-                linkId
-            )
-        );
+                linkId);
+
+        assertThrows(
+                DuplicateKeyException.class,
+                () -> jdbcTemplate.update(
+                        "insert into client_links (client_id, link_id, tags, filters, created_at) values (?, ?, ARRAY[]::text[], ARRAY[]::text[], NOW())",
+                        chatId,
+                        linkId));
     }
 
     @Test
@@ -140,7 +136,9 @@ public class LinkToChatRepositoryTest extends TestContainersConfiguration {
 
         assertEquals(1, subscriptions.size());
         assertEquals(chatId, subscriptions.getFirst().clientId());
-        assertEquals(Set.of("author:octocat", "type:github_issue"), subscriptions.getFirst().filters());
+        assertEquals(
+                Set.of("author:octocat", "type:github_issue"),
+                subscriptions.getFirst().filters());
     }
 
     private Long createChat(Long chatId) {
@@ -151,15 +149,14 @@ public class LinkToChatRepositoryTest extends TestContainersConfiguration {
     private Long createLink(String url) {
         Timestamp now = Timestamp.from(OffsetDateTime.now().toInstant());
         return jdbcTemplate.queryForObject(
-            "insert into links (link, updated_at, url, link_type, last_checked_at, etag, created_at) values (?, ?, ?, ?, ?, ?, ?) returning id",
-            Long.class,
-            url,
-            now,
-            url,
-            "UNKNOWN",
-            now,
-            null,
-            now
-        );
+                "insert into links (link, updated_at, url, link_type, last_checked_at, etag, created_at) values (?, ?, ?, ?, ?, ?, ?) returning id",
+                Long.class,
+                url,
+                now,
+                url,
+                "UNKNOWN",
+                now,
+                null,
+                now);
     }
 }

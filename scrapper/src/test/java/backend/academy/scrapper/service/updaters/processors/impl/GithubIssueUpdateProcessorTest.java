@@ -80,10 +80,14 @@ public class GithubIssueUpdateProcessorTest {
                         fixedTime,
                         new GithubPayload("opened", null, ISSUE)));
         List<LinkUpdateDTO> expected = List.of(
-                new LinkUpdateDTO(1L, "titleIssue", ACTOR.login(), fixedTime, "bodyIssue", UpdateType.GITHUB_ISSUE, Set.of()),
-                new LinkUpdateDTO(2L, "titleIssue", ACTOR.login(), fixedTime, "bodyIssue", UpdateType.GITHUB_ISSUE, Set.of()),
-                new LinkUpdateDTO(3L, "titleIssue", ACTOR.login(), fixedTime, "bodyIssue", UpdateType.GITHUB_ISSUE, Set.of()),
-                new LinkUpdateDTO(4L, "titleIssue", ACTOR.login(), fixedTime, "bodyIssue", UpdateType.GITHUB_ISSUE, Set.of()));
+                new LinkUpdateDTO(
+                        1L, "titleIssue", ACTOR.login(), fixedTime, "bodyIssue", UpdateType.GITHUB_ISSUE, Set.of()),
+                new LinkUpdateDTO(
+                        2L, "titleIssue", ACTOR.login(), fixedTime, "bodyIssue", UpdateType.GITHUB_ISSUE, Set.of()),
+                new LinkUpdateDTO(
+                        3L, "titleIssue", ACTOR.login(), fixedTime, "bodyIssue", UpdateType.GITHUB_ISSUE, Set.of()),
+                new LinkUpdateDTO(
+                        4L, "titleIssue", ACTOR.login(), fixedTime, "bodyIssue", UpdateType.GITHUB_ISSUE, Set.of()));
 
         when(linkService.getProcessedIssueIds(link)).thenReturn(List.of());
 
@@ -120,8 +124,8 @@ public class GithubIssueUpdateProcessorTest {
                         ACTOR,
                         fixedTime,
                         new GithubPayload("closed", null, ISSUE)));
-        List<LinkUpdateDTO> expected =
-                List.of(new LinkUpdateDTO(2L, "titleIssue", ACTOR.login(), fixedTime, "bodyIssue", UpdateType.GITHUB_ISSUE, Set.of()));
+        List<LinkUpdateDTO> expected = List.of(new LinkUpdateDTO(
+                2L, "titleIssue", ACTOR.login(), fixedTime, "bodyIssue", UpdateType.GITHUB_ISSUE, Set.of()));
 
         when(linkService.getProcessedIssueIds(link)).thenReturn(List.of());
 
@@ -228,8 +232,8 @@ public class GithubIssueUpdateProcessorTest {
                         ACTOR,
                         fixedTime,
                         new GithubPayload("opened", PULL_REQUEST, null)));
-        List<LinkUpdateDTO> expected =
-                List.of(new LinkUpdateDTO(3L, "titleIssue", ACTOR.login(), fixedTime, "bodyIssue", UpdateType.GITHUB_ISSUE, Set.of()));
+        List<LinkUpdateDTO> expected = List.of(new LinkUpdateDTO(
+                3L, "titleIssue", ACTOR.login(), fixedTime, "bodyIssue", UpdateType.GITHUB_ISSUE, Set.of()));
 
         when(linkService.getProcessedIssueIds(link)).thenReturn(List.of(2L));
 

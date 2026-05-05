@@ -1,5 +1,8 @@
 package backend.academy.scrapper.integration_test.kafka;
 
+import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import backend.academy.scrapper.config.CommonKafkaConfig;
 import backend.academy.scrapper.db.repository.ChatRepository;
 import backend.academy.scrapper.enums.actions.ClientActions;
@@ -15,8 +18,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import static org.awaitility.Awaitility.await;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers
 @ActiveProfiles("test")
@@ -45,11 +46,13 @@ public class KafkaClientProcessTest extends TestApplication {
         ClientMessage message = new ClientMessage(ClientActions.REGISTER, login, password);
         kafkaTemplate.send(clientListenerTopic, login, message);
 
-        await().until(() -> chatRepository.findAuthDataByLogin(login)
+        await().until(() -> chatRepository
+                .findAuthDataByLogin(login)
                 .map(auth -> passwordEncoder.matches(password, auth.passwordHash()))
                 .orElse(false));
 
-        assertTrue(chatRepository.findAuthDataByLogin(login)
+        assertTrue(chatRepository
+                .findAuthDataByLogin(login)
                 .map(auth -> passwordEncoder.matches(password, auth.passwordHash()))
                 .orElse(false));
     }
@@ -64,7 +67,8 @@ public class KafkaClientProcessTest extends TestApplication {
         ClientMessage message = new ClientMessage(ClientActions.UNREGISTER, login, password);
         kafkaTemplate.send(clientListenerTopic, login, message);
 
-        await().untilAsserted(() -> assertTrue(chatRepository.findAuthDataByLogin(login).isEmpty()));
+        await().untilAsserted(() ->
+                assertTrue(chatRepository.findAuthDataByLogin(login).isEmpty()));
 
         assertTrue(chatRepository.findAuthDataByLogin(login).isEmpty());
     }
@@ -76,12 +80,14 @@ public class KafkaClientProcessTest extends TestApplication {
         assertTrue(chatRepository.findAuthDataByLogin(login).isEmpty(), "Chat should not exist before test");
 
         kafkaTemplate.send(clientListenerTopic, "key", new ClientMessage(ClientActions.REGISTER, login, password));
-        await().until(() -> chatRepository.findAuthDataByLogin(login)
+        await().until(() -> chatRepository
+                .findAuthDataByLogin(login)
                 .map(auth -> passwordEncoder.matches(password, auth.passwordHash()))
                 .orElse(false));
 
         kafkaTemplate.send(clientListenerTopic, "key", new ClientMessage(ClientActions.UNREGISTER, login, password));
-        await().untilAsserted(() -> assertTrue(chatRepository.findAuthDataByLogin(login).isEmpty()));
+        await().untilAsserted(() ->
+                assertTrue(chatRepository.findAuthDataByLogin(login).isEmpty()));
 
         assertTrue(chatRepository.findAuthDataByLogin(login).isEmpty());
     }

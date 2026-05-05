@@ -46,7 +46,7 @@ public class DbCommonServiceImpl implements DbCommonService {
             processedIdRepository.saveAll(linkId, processedIds);
         } catch (DataAccessException e) {
             log.warn("Произошла ошибка при сохранении обработанных id по ссылку с id: {}", linkId);
-            //todo подумать над тем, что вернуть
+            // todo подумать над тем, что вернуть
         }
     }
 }

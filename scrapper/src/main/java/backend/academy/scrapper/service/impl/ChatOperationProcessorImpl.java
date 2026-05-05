@@ -1,8 +1,8 @@
 package backend.academy.scrapper.service.impl;
 
+import backend.academy.scrapper.db.model.LinkSubscription;
 import backend.academy.scrapper.db.repository.ChatRepository;
 import backend.academy.scrapper.db.repository.LinkToChatRepository;
-import backend.academy.scrapper.db.model.LinkSubscription;
 import backend.academy.scrapper.exceptions.InvalidCredentialsException;
 import backend.academy.scrapper.service.ChatOperationProcessor;
 import java.util.List;
@@ -45,11 +45,12 @@ public class ChatOperationProcessorImpl implements ChatOperationProcessor {
             log.info("Произошла ошибка при удалении клиента с login {}", login);
             return false;
         }
-        String passwordHash = authData.get().passwordHash();
+        var chatAuthData = authData.orElseThrow();
+        String passwordHash = chatAuthData.passwordHash();
         if (passwordHash == null || passwordHash.isBlank() || !passwordEncoder.matches(password, passwordHash)) {
             throw new InvalidCredentialsException("Некорректные учетные данные");
         }
-        linkToChatRepository.unsubscribeAll(authData.get().id());
+        linkToChatRepository.unsubscribeAll(chatAuthData.id());
         chatRepository.deleteByLogin(login);
         log.info("Клиент с login {} успешно удален", login);
         return true;

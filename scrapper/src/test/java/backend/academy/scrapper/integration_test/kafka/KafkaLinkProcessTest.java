@@ -1,5 +1,10 @@
 package backend.academy.scrapper.integration_test.kafka;
 
+import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import backend.academy.scrapper.config.CommonKafkaConfig;
 import backend.academy.scrapper.db.repository.LinkToChatRepository;
 import backend.academy.scrapper.enums.actions.LinkActions;
@@ -28,11 +33,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import scrapper.bot.connectivity.model.request.AddLinkRequest;
 import scrapper.bot.connectivity.model.request.RemoveLinkRequest;
 import scrapper.bot.connectivity.model.response.LinkResponse;
-import static org.awaitility.Awaitility.await;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers
 @ActiveProfiles("test")
@@ -47,6 +47,7 @@ public class KafkaLinkProcessTest extends TestApplication {
 
     @Autowired
     private LinkResponseCapture responseCapture;
+
     @Autowired
     private KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry;
 
@@ -55,6 +56,7 @@ public class KafkaLinkProcessTest extends TestApplication {
 
     @Value("${kafka.consumers.link-listener.topic}")
     private String linkListenerTopic;
+
     private static final String CLIENT_LOGIN = "test-client-100";
     private static final String CLIENT_PASSWORD = "test-password-100";
 
@@ -68,24 +70,15 @@ public class KafkaLinkProcessTest extends TestApplication {
     @Test
     void whenFindAllMessageSent_thenResponseReceived() {
         Long chatId = 100L;
-        Set<URI> expectedUrls = Set.of(
-            URI.create("https://github.com/owner/repo1"),
-            URI.create("https://github.com/owner/repo2")
-        );
-        LinkMessage message = new LinkMessage(
-            LinkActions.FIND_ALL,
-            CLIENT_LOGIN,
-            CLIENT_PASSWORD,
-            null,
-            null
-        );
+        Set<URI> expectedUrls =
+                Set.of(URI.create("https://github.com/owner/repo1"), URI.create("https://github.com/owner/repo2"));
+        LinkMessage message = new LinkMessage(LinkActions.FIND_ALL, CLIENT_LOGIN, CLIENT_PASSWORD, null, null);
 
         kafkaTemplate.send(linkListenerTopic, String.valueOf(chatId), message);
         kafkaTemplate.flush();
 
         List<LinkResponse> response = awaitResponseMatching(r ->
-            r.stream().map(LinkResponse::url).collect(Collectors.toSet()).containsAll(expectedUrls)
-        );
+                r.stream().map(LinkResponse::url).collect(Collectors.toSet()).containsAll(expectedUrls));
 
         assertNotNull(response);
         Set<URI> actualUrls = response.stream().map(LinkResponse::url).collect(Collectors.toSet());
@@ -97,25 +90,19 @@ public class KafkaLinkProcessTest extends TestApplication {
         Long chatId = 100L;
         URI linkUri = URI.create("https://github.com/owner/repo3");
         AddLinkRequest addRequest = new AddLinkRequest(linkUri, Set.of("tag"), Set.of("filter"));
-        LinkMessage message = new LinkMessage(
-            LinkActions.SUBSCRIBE,
-            CLIENT_LOGIN,
-            CLIENT_PASSWORD,
-            addRequest,
-            null
-        );
+        LinkMessage message = new LinkMessage(LinkActions.SUBSCRIBE, CLIENT_LOGIN, CLIENT_PASSWORD, addRequest, null);
 
         kafkaTemplate.send(linkListenerTopic, String.valueOf(chatId), message);
         kafkaTemplate.flush();
 
         List<LinkResponse> response = awaitResponseMatching(
-            r -> r.size() == 1 && linkUri.equals(r.getFirst().url())
-        );
+                r -> r.size() == 1 && linkUri.equals(r.getFirst().url()));
 
         assertNotNull(response);
         assertEquals(1, response.size());
         assertEquals(linkUri, response.getFirst().url());
-        assertTrue(linkToChatRepository.chatIsSubscribedOnLink(chatId, response.getFirst().id()));
+        assertTrue(linkToChatRepository.chatIsSubscribedOnLink(
+                chatId, response.getFirst().id()));
     }
 
     @Test
@@ -123,13 +110,8 @@ public class KafkaLinkProcessTest extends TestApplication {
         Long chatId = 100L;
         URI linkUri = URI.create("https://github.com/owner/repo1");
         RemoveLinkRequest removeRequest = new RemoveLinkRequest(linkUri);
-        LinkMessage message = new LinkMessage(
-            LinkActions.UNSUBSCRIBE,
-            CLIENT_LOGIN,
-            CLIENT_PASSWORD,
-            null,
-            removeRequest
-        );
+        LinkMessage message =
+                new LinkMessage(LinkActions.UNSUBSCRIBE, CLIENT_LOGIN, CLIENT_PASSWORD, null, removeRequest);
 
         assertTrue(linkToChatRepository.chatIsSubscribedOnLink(chatId, 1L), "Chat should be subscribed before test");
 
@@ -137,8 +119,7 @@ public class KafkaLinkProcessTest extends TestApplication {
         kafkaTemplate.flush();
 
         List<LinkResponse> response = awaitResponseMatching(
-            r -> r.size() == 1 && linkUri.equals(r.getFirst().url())
-        );
+                r -> r.size() == 1 && linkUri.equals(r.getFirst().url()));
 
         assertNotNull(response);
         assertEquals(1, response.size());
@@ -146,11 +127,9 @@ public class KafkaLinkProcessTest extends TestApplication {
     }
 
     private List<LinkResponse> awaitResponseMatching(Predicate<List<LinkResponse>> matcher) {
-        return await()
-            .atMost(30, TimeUnit.SECONDS)
-            .until(
-                () -> responseCapture.pollResponse(1, TimeUnit.SECONDS),
-                response -> response != null && !response.isEmpty() && matcher.test(response)
-            );
+        return await().atMost(30, TimeUnit.SECONDS)
+                .until(
+                        () -> responseCapture.pollResponse(1, TimeUnit.SECONDS),
+                        response -> response != null && !response.isEmpty() && matcher.test(response));
     }
 }

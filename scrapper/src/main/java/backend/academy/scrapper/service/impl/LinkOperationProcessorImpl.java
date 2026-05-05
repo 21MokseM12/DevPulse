@@ -61,22 +61,20 @@ public class LinkOperationProcessorImpl implements LinkOperationProcessor {
             if (!chatService.isClient(chatId)) {
                 return Optional.empty();
             }
-            Optional<Link> optionalLink = linkService.findByLink(linkRequest.link().toString());
+            Optional<Link> optionalLink =
+                    linkService.findByLink(linkRequest.link().toString());
             Link link;
             if (optionalLink.isEmpty()) {
                 link = linkService.saveLink(linkRequest);
             } else {
-                link = optionalLink.get();
+                link = optionalLink.orElseThrow();
             }
             chatService.subscribeChatOnLink(chatId, link.id(), linkRequest.tags(), linkRequest.filters());
             log.info("Пользователь с id {} подписан на ссылку {}", chatId, link.url());
             return Optional.of(mapper.toLinkResponse(link));
         } catch (Exception e) {
             log.error(
-                "Произошла ошибка при подписке на ссылку с клиентом по id {} по запросу: {}",
-                chatId,
-                linkRequest
-            );
+                    "Произошла ошибка при подписке на ссылку с клиентом по id {} по запросу: {}", chatId, linkRequest);
             return Optional.empty();
         }
     }
@@ -87,8 +85,9 @@ public class LinkOperationProcessorImpl implements LinkOperationProcessor {
         if (!chatService.isClient(chatId) || !linkService.existsLink(uri.link().toString())) {
             return Optional.empty();
         }
-        Link link = linkService.findByLink(uri.link().toString())
-            .orElseThrow(() -> new LinkNotFoundException("Ссылка " + uri.link() + " не найдена"));
+        Link link = linkService
+                .findByLink(uri.link().toString())
+                .orElseThrow(() -> new LinkNotFoundException("Ссылка " + uri.link() + " не найдена"));
         chatService.unsubscribe(chatId, link.id());
         log.info("Пользователь с id {} отписался от ссылки {}", chatId, uri.link());
         if (chatService.findAllByLinkId(link.id()).isEmpty()) {
@@ -100,43 +99,41 @@ public class LinkOperationProcessorImpl implements LinkOperationProcessor {
     @Override
     @Transactional(readOnly = true)
     public List<ProcessedIdDTO> findAllProcessedIds(URI link) {
-        return linkService.findByLink(link.toString())
-            .map(Link::id)
-            .map(commonService::findAllProcessedIdsByLinkId)
-            .stream().flatMap(Set::stream)
-            .map(id -> new ProcessedIdDTO(id.processedId(), ProcessedIdType.fromString(id.type())))
-            .toList();
+        return linkService
+                .findByLink(link.toString())
+                .map(Link::id)
+                .map(commonService::findAllProcessedIdsByLinkId)
+                .stream()
+                .flatMap(Set::stream)
+                .map(id -> new ProcessedIdDTO(id.processedId(), ProcessedIdType.fromString(id.type())))
+                .toList();
     }
 
     @Override
     @Transactional
     public void saveProcessedIds(URI link, List<ProcessedIdDTO> nowProcessedIds) {
-        linkService.findByLink(link.toString())
-            .map(Link::id)
-            .ifPresent(id -> commonService.saveAllProcessedIdsByLinkId(id, nowProcessedIds));
+        linkService
+                .findByLink(link.toString())
+                .map(Link::id)
+                .ifPresent(id -> commonService.saveAllProcessedIdsByLinkId(id, nowProcessedIds));
     }
 
     @Override
     public Set<URI> findAllLinksByForceCheckDelay(Duration duration, int pageNum) {
-        return linkService.findAllLinksForPolling(
-            OffsetDateTime.now(clock),
-            pageNum,
-            config.pageSize()
-        );
+        return linkService.findAllLinksForPolling(OffsetDateTime.now(clock), pageNum, config.pageSize());
     }
 
     @Override
     public List<Long> findSubscribedChats(URI link) {
-        return linkService.findByLink(link.toString())
-            .map(Link::id)
-            .map(chatService::findAllByLinkId)
-            .stream().flatMap(List::stream)
-            .toList();
+        return linkService.findByLink(link.toString()).map(Link::id).map(chatService::findAllByLinkId).stream()
+                .flatMap(List::stream)
+                .toList();
     }
 
     @Override
     public List<Long> findSubscribedChats(URI link, LinkUpdateDTO update) {
-        return linkService.findByLink(link.toString())
+        return linkService
+                .findByLink(link.toString())
                 .map(Link::id)
                 .map(chatService::findSubscriptionsByLinkId)
                 .stream()

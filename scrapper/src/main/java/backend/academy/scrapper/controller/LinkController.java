@@ -28,33 +28,28 @@ public class LinkController {
     private final LinkProcessor processor;
 
     @GetMapping
-    public ResponseEntity<List<LinkResponse>> findAll(
-            @RequestHeader(name = CLIENT_LOGIN_REQUEST_HEADER) String login
-    ) {
+    public ResponseEntity<List<LinkResponse>> findAll(@RequestHeader(name = CLIENT_LOGIN_REQUEST_HEADER) String login) {
         Long chatId = resolveChatId(login);
         return ResponseEntity.ok(processor.findAll(chatId));
     }
 
     @PostMapping
     public ResponseEntity<LinkResponse> subscribeLink(
-            @RequestHeader(name = CLIENT_LOGIN_REQUEST_HEADER) String login,
-            @RequestBody AddLinkRequest request
-    ) {
+            @RequestHeader(name = CLIENT_LOGIN_REQUEST_HEADER) String login, @RequestBody AddLinkRequest request) {
         Long chatId = resolveChatId(login);
         return ResponseEntity.ok(processor.subscribeLink(chatId, request));
     }
 
     @DeleteMapping
     public ResponseEntity<LinkResponse> unsubscribeLink(
-            @RequestHeader(name = CLIENT_LOGIN_REQUEST_HEADER) String login,
-            @RequestBody RemoveLinkRequest request
-    ) {
+            @RequestHeader(name = CLIENT_LOGIN_REQUEST_HEADER) String login, @RequestBody RemoveLinkRequest request) {
         Long chatId = resolveChatId(login);
         return ResponseEntity.ok(processor.unsubscribeLink(chatId, request));
     }
 
     private Long resolveChatId(String login) {
-        return chatProcessor.findClientIdByLogin(login)
-            .orElseThrow(() -> new ResourceNotFoundException("Клиент не найден"));
+        return chatProcessor
+                .findClientIdByLogin(login)
+                .orElseThrow(() -> new ResourceNotFoundException("Клиент не найден"));
     }
 }

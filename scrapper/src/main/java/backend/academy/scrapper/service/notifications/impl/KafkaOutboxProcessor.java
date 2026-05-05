@@ -60,7 +60,8 @@ public class KafkaOutboxProcessor {
     }
 
     public void processBatch() {
-        List<KafkaOutboxMessage> batch = outboxRepository.findPendingBatch(scrapperConfig.outbox().batchSize());
+        List<KafkaOutboxMessage> batch =
+                outboxRepository.findPendingBatch(scrapperConfig.outbox().batchSize());
         if (batch.isEmpty()) {
             updatePendingGauge();
             return;
@@ -116,7 +117,8 @@ public class KafkaOutboxProcessor {
                     Thread.currentThread().interrupt();
                     return new PublishResult(false, attempts, interruptedException);
                 }
-                delay = Math.min((long) (delay * Math.max(1.0, retryPolicy.multiplier())), Math.max(1L, retryPolicy.maxDelay()));
+                delay = Math.min(
+                        (long) (delay * Math.max(1.0, retryPolicy.multiplier())), Math.max(1L, retryPolicy.maxDelay()));
             }
         }
         return new PublishResult(false, attempts, lastError);

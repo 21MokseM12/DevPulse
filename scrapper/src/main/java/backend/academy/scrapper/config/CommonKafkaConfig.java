@@ -35,8 +35,12 @@ public class CommonKafkaConfig {
     public ConsumerFactory<String, Object> consumerFactory(CommonKafkaProperties kafkaProperties) {
         Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProperties.bootstrapServers());
-        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, kafkaProperties.consumer().autoOffsetReset());
-        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, kafkaProperties.consumer().enableAutoCommit());
+        props.put(
+                ConsumerConfig.AUTO_OFFSET_RESET_CONFIG,
+                kafkaProperties.consumer().autoOffsetReset());
+        props.put(
+                ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG,
+                kafkaProperties.consumer().enableAutoCommit());
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
 
@@ -47,24 +51,25 @@ public class CommonKafkaConfig {
 
     @Bean(COMMON_CONTAINER_FACTORY)
     public ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory(
-        @Qualifier(COMMON_CONSUMER_FACTORY) ConsumerFactory<String, Object> consumerFactory,
-        CommonKafkaProperties kafkaProperties
-    ) {
-        ConcurrentKafkaListenerContainerFactory<String, Object> factory
-            = new ConcurrentKafkaListenerContainerFactory<>();
+            @Qualifier(COMMON_CONSUMER_FACTORY) ConsumerFactory<String, Object> consumerFactory,
+            CommonKafkaProperties kafkaProperties) {
+        ConcurrentKafkaListenerContainerFactory<String, Object> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory);
         factory.getContainerProperties().setAckMode(kafkaProperties.consumer().ackMode());
         return factory;
     }
 
     @Bean(STRING_VALUE_CONSUMER_FACTORY)
-    public ConsumerFactory<String, String> stringValueConsumerFactory(
-        CommonKafkaProperties kafkaProperties
-    ) {
+    public ConsumerFactory<String, String> stringValueConsumerFactory(CommonKafkaProperties kafkaProperties) {
         Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProperties.bootstrapServers());
-        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, kafkaProperties.consumer().autoOffsetReset());
-        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, kafkaProperties.consumer().enableAutoCommit());
+        props.put(
+                ConsumerConfig.AUTO_OFFSET_RESET_CONFIG,
+                kafkaProperties.consumer().autoOffsetReset());
+        props.put(
+                ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG,
+                kafkaProperties.consumer().enableAutoCommit());
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         return new DefaultKafkaConsumerFactory<>(props);
@@ -72,11 +77,10 @@ public class CommonKafkaConfig {
 
     @Bean(STRING_VALUE_CONTAINER_FACTORY)
     public ConcurrentKafkaListenerContainerFactory<String, String> stringValueContainerFactory(
-        @Qualifier(STRING_VALUE_CONSUMER_FACTORY) ConsumerFactory<String, String> consumerFactory,
-        CommonKafkaProperties kafkaProperties
-    ) {
-        ConcurrentKafkaListenerContainerFactory<String, String> factory
-            = new ConcurrentKafkaListenerContainerFactory<>();
+            @Qualifier(STRING_VALUE_CONSUMER_FACTORY) ConsumerFactory<String, String> consumerFactory,
+            CommonKafkaProperties kafkaProperties) {
+        ConcurrentKafkaListenerContainerFactory<String, String> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory);
         factory.getContainerProperties().setAckMode(kafkaProperties.consumer().ackMode());
         return factory;
@@ -93,7 +97,9 @@ public class CommonKafkaConfig {
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
 
         props.put(ProducerConfig.ACKS_CONFIG, kafkaProperties.producer().acksConfig());
-        props.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, kafkaProperties.producer().enableIdempotenceConfig());
+        props.put(
+                ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG,
+                kafkaProperties.producer().enableIdempotenceConfig());
 
         JsonSerializer<Object> jsonSerializer = new JsonSerializer<>();
         jsonSerializer.setAddTypeInfo(false);
@@ -103,8 +109,7 @@ public class CommonKafkaConfig {
 
     @Bean(COMMON_KAFKA_TEMPLATE)
     public KafkaTemplate<String, Object> kafkaTemplate(
-        @Qualifier(COMMON_PRODUCER_FACTORY) ProducerFactory<String, Object> producerFactory
-    ) {
+            @Qualifier(COMMON_PRODUCER_FACTORY) ProducerFactory<String, Object> producerFactory) {
         return new KafkaTemplate<>(producerFactory);
     }
 }

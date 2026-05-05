@@ -35,10 +35,11 @@ public class ClientListenerProvider implements ListenerProvider {
     }
 
     private void provideAction(@NonNull ClientMessage request) {
-        boolean success = switch (request.action()) {
-            case REGISTER -> chatOperationProcessor.register(request.login(), request.password());
-            case UNREGISTER -> chatOperationProcessor.unregister(request.login(), request.password());
-        };
+        boolean success =
+                switch (request.action()) {
+                    case REGISTER -> chatOperationProcessor.register(request.login(), request.password());
+                    case UNREGISTER -> chatOperationProcessor.unregister(request.login(), request.password());
+                };
         if (!success) {
             throw new KafkaProcessException("Произошла ошибка при проведении операции по запросу: " + request);
         }

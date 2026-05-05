@@ -27,12 +27,16 @@ class LinkUpdateScheduledListenerTest {
 
     @Mock
     private DatabaseProperty databaseProperty;
+
     @Mock
     private LinkUpdaterServiceFactory updaterFactory;
+
     @Mock
     private LinkOperationProcessor linkOperationProcessor;
+
     @Mock
     private ScrapperHttpNotificationManager notificationManager;
+
     @Mock
     private LinkUpdater linkUpdater;
 
@@ -45,9 +49,11 @@ class LinkUpdateScheduledListenerTest {
 
         URI link = URI.create("https://github.com/acme/repo");
         when(databaseProperty.pageSize()).thenReturn(1000);
-        when(linkOperationProcessor.findAllLinksByForceCheckDelay(config.scheduler().forceCheckDelay(), 0))
+        when(linkOperationProcessor.findAllLinksByForceCheckDelay(
+                        config.scheduler().forceCheckDelay(), 0))
                 .thenReturn(Set.of(link));
-        when(linkOperationProcessor.findAllLinksByForceCheckDelay(config.scheduler().forceCheckDelay(), 1))
+        when(linkOperationProcessor.findAllLinksByForceCheckDelay(
+                        config.scheduler().forceCheckDelay(), 1))
                 .thenReturn(Set.of());
         when(updaterFactory.get(link)).thenReturn(linkUpdater);
         when(linkUpdater.getUpdates(link)).thenReturn(List.<LinkUpdateDTO>of());
@@ -56,8 +62,7 @@ class LinkUpdateScheduledListenerTest {
 
         verify(linkOperationProcessor, times(1))
                 .markPollingSuccess(eq(link), any(), eq(config.scheduler().forceCheckDelay()));
-        verify(linkOperationProcessor, times(0))
-                .markPollingFailure(any(), any(), any(), any());
+        verify(linkOperationProcessor, times(0)).markPollingFailure(any(), any(), any(), any());
     }
 
     @Test
@@ -69,9 +74,11 @@ class LinkUpdateScheduledListenerTest {
 
         URI link = URI.create("https://github.com/acme/repo");
         when(databaseProperty.pageSize()).thenReturn(1000);
-        when(linkOperationProcessor.findAllLinksByForceCheckDelay(config.scheduler().forceCheckDelay(), 0))
+        when(linkOperationProcessor.findAllLinksByForceCheckDelay(
+                        config.scheduler().forceCheckDelay(), 0))
                 .thenReturn(Set.of(link));
-        when(linkOperationProcessor.findAllLinksByForceCheckDelay(config.scheduler().forceCheckDelay(), 1))
+        when(linkOperationProcessor.findAllLinksByForceCheckDelay(
+                        config.scheduler().forceCheckDelay(), 1))
                 .thenReturn(Set.of());
         when(updaterFactory.get(link)).thenReturn(linkUpdater);
         when(linkUpdater.getUpdates(link)).thenThrow(new RuntimeException("upstream 503"));

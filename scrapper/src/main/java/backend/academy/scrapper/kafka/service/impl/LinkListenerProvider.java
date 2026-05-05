@@ -9,12 +9,12 @@ import backend.academy.scrapper.service.LinkProcessor;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
-import java.util.List;
 
 @Slf4j
 @Service
@@ -82,7 +82,8 @@ public class LinkListenerProvider implements ListenerProvider {
     }
 
     private Long resolveChatId(@NonNull LinkMessage request) {
-        return chatOperationProcessor.findClientIdByLogin(request.login())
-            .orElseThrow(() -> new KafkaProcessException("Клиент не найден"));
+        return chatOperationProcessor
+                .findClientIdByLogin(request.login())
+                .orElseThrow(() -> new KafkaProcessException("Клиент не найден"));
     }
 }

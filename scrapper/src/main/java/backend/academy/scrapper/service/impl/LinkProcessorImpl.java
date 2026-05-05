@@ -5,9 +5,9 @@ import backend.academy.scrapper.service.LinkOperationProcessor;
 import backend.academy.scrapper.service.LinkProcessor;
 import backend.academy.scrapper.service.validators.LinkValidatorManager;
 import java.util.List;
-import org.springframework.lang.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import scrapper.bot.connectivity.exceptions.BadRequestException;
 import scrapper.bot.connectivity.model.request.AddLinkRequest;
@@ -38,8 +38,9 @@ public class LinkProcessorImpl implements LinkProcessor {
             throw new BadRequestException(BAD_REQUEST_MESSAGE);
         }
         log.info("Начинается обработка запроса на подписку ссылки {} с id чата: {}", request, chatId);
-        return linkOperationProcessor.subscribe(chatId, request)
-            .orElseThrow(() -> new BadRequestException(BAD_REQUEST_MESSAGE));
+        return linkOperationProcessor
+                .subscribe(chatId, request)
+                .orElseThrow(() -> new BadRequestException(BAD_REQUEST_MESSAGE));
     }
 
     @Override
@@ -49,7 +50,8 @@ public class LinkProcessorImpl implements LinkProcessor {
             throw new BadRequestException(BAD_REQUEST_MESSAGE);
         }
         log.info("Начинается обработка запроса на отписку ссылки {} с id чата: {}", request, chatId);
-        return linkOperationProcessor.unsubscribe(chatId, request)
-            .orElseThrow(() -> new ResourceNotFoundException(NOT_FOUND_MESSAGE));
+        return linkOperationProcessor
+                .unsubscribe(chatId, request)
+                .orElseThrow(() -> new ResourceNotFoundException(NOT_FOUND_MESSAGE));
     }
 }

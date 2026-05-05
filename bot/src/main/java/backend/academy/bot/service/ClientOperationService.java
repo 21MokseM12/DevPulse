@@ -3,8 +3,8 @@ package backend.academy.bot.service;
 import backend.academy.bot.db.repository.ClientRepository;
 import backend.academy.bot.exceptions.ChatNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 import scrapper.bot.connectivity.exceptions.BadRequestException;
 
 @Service
@@ -24,8 +24,8 @@ public class ClientOperationService {
 
     public void unregisterClient(String login, String password) throws BadRequestException {
         validateCredentials(login, password);
-        var storedClient = clientRepository.findByLogin(login)
-                .orElseThrow(() -> new ChatNotFoundException("Клиент не найден"));
+        var storedClient =
+                clientRepository.findByLogin(login).orElseThrow(() -> new ChatNotFoundException("Клиент не найден"));
         String passwordHash = storedClient.passwordHash();
         if (passwordHash == null || passwordHash.isBlank() || !passwordEncoder.matches(password, passwordHash)) {
             throw new BadRequestException("Некорректные учетные данные");

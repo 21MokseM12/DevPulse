@@ -10,8 +10,7 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 @ConfigurationProperties(prefix = "app.kafka")
 public record BotKafkaProperties(
-        @NotNull @Valid ConsumersProperties consumers,
-        @NotNull @Valid RetryPolicyProperties retryPolicy) {
+        @NotNull @Valid ConsumersProperties consumers, @NotNull @Valid RetryPolicyProperties retryPolicy) {
 
     public record ConsumersProperties(@NotNull @Valid LinkUpdatesConsumerProperties linkUpdates) {}
 

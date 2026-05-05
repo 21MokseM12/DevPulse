@@ -1,8 +1,6 @@
 package backend.academy.scrapper.mapper;
 
 import backend.academy.scrapper.db.model.Link;
-import org.springframework.jdbc.core.RowMapper;
-import org.springframework.stereotype.Component;
 import java.net.URI;
 import java.sql.Array;
 import java.sql.ResultSet;
@@ -12,6 +10,8 @@ import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.stereotype.Component;
 
 @Component
 public class LinkRowMapper implements RowMapper<Link> {
@@ -22,15 +22,14 @@ public class LinkRowMapper implements RowMapper<Link> {
             Set<String> columns = getColumns(rs);
             String urlColumn = columns.contains("url") ? "url" : "link";
             String createdAtColumn = columns.contains("created_at")
-                ? "created_at"
-                : (columns.contains("last_checked_at") ? "last_checked_at" : "updated_at");
+                    ? "created_at"
+                    : columns.contains("last_checked_at") ? "last_checked_at" : "updated_at";
             return new Link(
-                rs.getLong("id"),
-                URI.create(rs.getString(urlColumn)),
-                extractSetFromArray(rs, columns, "tags"),
-                extractSetFromArray(rs,columns, "filters"),
-                rs.getObject(createdAtColumn, OffsetDateTime.class)
-            );
+                    rs.getLong("id"),
+                    URI.create(rs.getString(urlColumn)),
+                    extractSetFromArray(rs, columns, "tags"),
+                    extractSetFromArray(rs, columns, "filters"),
+                    rs.getObject(createdAtColumn, OffsetDateTime.class));
         } catch (SQLException e) {
             throw new RuntimeException("Произошли ошибка маппинга ссылки", e);
         }
@@ -47,7 +46,7 @@ public class LinkRowMapper implements RowMapper<Link> {
     }
 
     private Set<String> extractSetFromArray(ResultSet rs, Set<String> columnNames, String columnName)
-        throws SQLException {
+            throws SQLException {
         if (!columnNames.contains(columnName.toLowerCase())) {
             return new HashSet<>();
         }
@@ -58,8 +57,6 @@ public class LinkRowMapper implements RowMapper<Link> {
         }
 
         String[] stringArray = (String[]) array.getArray();
-        return stringArray != null
-            ? new HashSet<>(Arrays.asList(stringArray))
-            : new HashSet<>();
+        return stringArray != null ? new HashSet<>(Arrays.asList(stringArray)) : new HashSet<>();
     }
 }

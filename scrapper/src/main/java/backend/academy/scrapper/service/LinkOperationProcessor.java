@@ -1,7 +1,7 @@
 package backend.academy.scrapper.service;
 
-import backend.academy.scrapper.model.stackoverflow.ProcessedIdDTO;
 import backend.academy.scrapper.model.LinkUpdateDTO;
+import backend.academy.scrapper.model.stackoverflow.ProcessedIdDTO;
 import java.net.URI;
 import java.time.Duration;
 import java.time.OffsetDateTime;

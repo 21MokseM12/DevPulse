@@ -1,6 +1,5 @@
 package backend.academy.scrapper.integration_test.config;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.nio.file.Path;
 import java.sql.Connection;
@@ -32,11 +31,8 @@ public class TestContainersConfiguration {
     private static final String MIGRATIONS_PATH = "scrapper/src/main/resources/db/migrations/";
     private static final String MIGRATIONS_FILE_NAME = "master.xml";
 
-    private static final List<String> KAFKA_TOPICS = List.of(
-        "client-listener-topic-request",
-        "link-listener-topic-request",
-        "link-topic-response"
-    );
+    private static final List<String> KAFKA_TOPICS =
+            List.of("client-listener-topic-request", "link-listener-topic-request", "link-topic-response");
     private static final int PARTITIONS = 2;
     private static final short REPLICATION_FACTOR = 1;
 
@@ -50,10 +46,10 @@ public class TestContainersConfiguration {
 
     private static void runPostgres() {
         postgres = new PostgreSQLContainer<>("postgres:17")
-            .withDatabaseName("scrapper")
-            .withUsername("postgres")
-            .withPassword("postgres")
-            .withCommand("postgres", "-c", "timezone=UTC");
+                .withDatabaseName("scrapper")
+                .withUsername("postgres")
+                .withPassword("postgres")
+                .withCommand("postgres", "-c", "timezone=UTC");
         postgres.start();
         try {
             runLiquibaseMigrations(postgres);
@@ -72,7 +68,10 @@ public class TestContainersConfiguration {
         try (AdminClient adminClient = createAdminClient()) {
             for (String topicName : KAFKA_TOPICS) {
                 NewTopic topic = new NewTopic(topicName, PARTITIONS, REPLICATION_FACTOR);
-                adminClient.createTopics(java.util.Collections.singletonList(topic)).all().get();
+                adminClient
+                        .createTopics(java.util.Collections.singletonList(topic))
+                        .all()
+                        .get();
                 System.out.println("Created topic: " + topicName);
             }
         } catch (InterruptedException | ExecutionException e) {
@@ -81,32 +80,29 @@ public class TestContainersConfiguration {
     }
 
     private static AdminClient createAdminClient() {
-        Map<String, Object> config = Map.of(
-            AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers()
-        );
+        Map<String, Object> config = Map.of(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
         return AdminClient.create(config);
     }
 
     private static void runLiquibaseMigrations(PostgreSQLContainer<?> postgres)
-        throws FileNotFoundException, SQLException, LiquibaseException {
+            throws FileNotFoundException, SQLException, LiquibaseException {
         Connection connection =
-            DriverManager.getConnection(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
+                DriverManager.getConnection(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
 
         Database database =
-            DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(connection));
-        Path path =
-            new File(".").toPath().toAbsolutePath().getParent().getParent().resolve(MIGRATIONS_PATH);
+                DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(connection));
+        Path path = Path.of(".").toAbsolutePath().getParent().getParent().resolve(MIGRATIONS_PATH);
         Liquibase liquibase = new Liquibase(MIGRATIONS_FILE_NAME, new DirectoryResourceAccessor(path), database);
         liquibase.update(new Contexts("test"), new LabelExpression());
     }
 
     @DynamicPropertySource
     static void jdbcProperties(DynamicPropertyRegistry registry) {
-        //Postgres
+        // Postgres
         registry.add("spring.datasource.url", postgres::getJdbcUrl);
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
-        //Kafka - both custom config and Spring Kafka (RetryableTopic AdminClient) use these
+        // Kafka - both custom config and Spring Kafka (RetryableTopic AdminClient) use these
         String bootstrapServers = kafka.getBootstrapServers();
         registry.add("kafka.properties.bootstrap-servers", () -> bootstrapServers);
         registry.add("spring.kafka.bootstrap-servers", () -> bootstrapServers);

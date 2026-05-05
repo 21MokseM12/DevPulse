@@ -101,9 +101,8 @@ public class ScrapperConnectionService {
         switch (response.getStatusCode().value()) {
             case 200:
                 return MAPPER.convertValue(
-                    response.getBody(),
-                    MAPPER.getTypeFactory().constructCollectionType(List.class, LinkResponse.class)
-                );
+                        response.getBody(),
+                        MAPPER.getTypeFactory().constructCollectionType(List.class, LinkResponse.class));
             case 400:
             case 404:
                 ApiErrorResponse error = MAPPER.convertValue(response.getBody(), ApiErrorResponse.class);
@@ -130,7 +129,9 @@ public class ScrapperConnectionService {
         switch (response.getStatusCode().value()) {
             case 200:
                 LinkResponse linkResponse = MAPPER.convertValue(response.getBody(), LinkResponse.class);
-                log.info("Link was subscribed: {}", Objects.requireNonNull(linkResponse).url());
+                log.info(
+                        "Link was subscribed: {}",
+                        Objects.requireNonNull(linkResponse).url());
                 return linkResponse;
             case 400:
             case 404:
@@ -158,7 +159,9 @@ public class ScrapperConnectionService {
         switch (response.getStatusCode().value()) {
             case 200:
                 LinkResponse linkResponse = MAPPER.convertValue(response.getBody(), LinkResponse.class);
-                log.info("Link was unsubscribed: {}", Objects.requireNonNull(linkResponse).url());
+                log.info(
+                        "Link was unsubscribed: {}",
+                        Objects.requireNonNull(linkResponse).url());
                 return true;
             case 400:
             case 404:

@@ -46,15 +46,15 @@ public class BotRestController {
     }
 
     @GetMapping("/links")
-    public ResponseEntity<List<LinkResponse>> getLinks(
-            @RequestHeader(name = CLIENT_LOGIN_HEADER) String login) throws BadRequestException {
+    public ResponseEntity<List<LinkResponse>> getLinks(@RequestHeader(name = CLIENT_LOGIN_HEADER) String login)
+            throws BadRequestException {
         return ResponseEntity.ok(scrapperConnectionService.getAllLinks(login));
     }
 
     @PostMapping("/links")
     public ResponseEntity<LinkResponse> trackLink(
-            @RequestHeader(name = CLIENT_LOGIN_HEADER) String login,
-            @RequestBody AddLinkRequest request) throws BadRequestException {
+            @RequestHeader(name = CLIENT_LOGIN_HEADER) String login, @RequestBody AddLinkRequest request)
+            throws BadRequestException {
         var link = new LinkDTO();
         link.uri(request.link().toString());
         link.tags(request.tags());
@@ -64,15 +64,15 @@ public class BotRestController {
 
     @DeleteMapping("/links")
     public ResponseEntity<BotApiMessageResponse> untrackLink(
-            @RequestHeader(name = CLIENT_LOGIN_HEADER) String login,
-            @RequestBody RemoveLinkRequest request) throws BadRequestException {
+            @RequestHeader(name = CLIENT_LOGIN_HEADER) String login, @RequestBody RemoveLinkRequest request)
+            throws BadRequestException {
         var links = scrapperConnectionService.getAllLinks(login);
         var deleted = links.stream()
-            .filter(link -> link.url().equals(request.link()))
-            .findFirst()
-            .map(LinkResponse::id)
-            .map(id -> scrapperConnectionService.unsubscribeLink(login, links, id))
-            .orElse(false);
+                .filter(link -> link.url().equals(request.link()))
+                .findFirst()
+                .map(LinkResponse::id)
+                .map(id -> scrapperConnectionService.unsubscribeLink(login, links, id))
+                .orElse(false);
         if (!deleted) {
             throw new BadRequestException(Messages.ERROR.toString());
         }

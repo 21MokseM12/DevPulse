@@ -13,18 +13,16 @@ import scrapper.bot.connectivity.model.request.RemoveLinkRequest;
 @HttpExchange("/links")
 public interface LinkClient {
 
-    public static final String CLIENT_LOGIN_HEADER = "Client-Login";
+    String CLIENT_LOGIN_HEADER = "Client-Login";
 
     @GetExchange
     ResponseEntity<?> getAllLinks(@RequestHeader(name = CLIENT_LOGIN_HEADER) String login);
 
     @PostExchange
     ResponseEntity<?> subscribeLink(
-            @RequestHeader(name = CLIENT_LOGIN_HEADER) String login,
-            @RequestBody AddLinkRequest link);
+            @RequestHeader(name = CLIENT_LOGIN_HEADER) String login, @RequestBody AddLinkRequest link);
 
     @DeleteExchange
     ResponseEntity<?> unsubscribeLink(
-            @RequestHeader(name = CLIENT_LOGIN_HEADER) String login,
-            @RequestBody RemoveLinkRequest uri);
+            @RequestHeader(name = CLIENT_LOGIN_HEADER) String login, @RequestBody RemoveLinkRequest uri);
 }

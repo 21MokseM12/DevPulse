@@ -339,7 +339,7 @@
                         <printFailingErrors>true</printFailingErrors>
                         <linkXRef>false</linkXRef>
                         <rulesets>
-                            <ruleset>pmd.xml</ruleset>
+                            <ruleset>${maven.multiModuleProjectDirectory}/pmd.xml</ruleset>
                         </rulesets>
                     </configuration>
                     <dependencies>
@@ -426,16 +426,69 @@
                 <executions>
                     <execution>
                         <id>jacoco-report</id>
-                        <phase>package</phase>
                         <goals>
                             <goal>report</goal>
                         </goals>
+                        <phase>package</phase>
                     </execution>
                     <execution>
                         <id>prepare-agent</id>
                         <goals>
                             <goal>prepare-agent</goal>
                         </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>spotless-verify</id>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <phase>verify</phase>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.github.spotbugs</groupId>
+                <artifactId>spotbugs-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>spotbugs-verify</id>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <phase>verify</phase>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-pmd-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>pmd-verify</id>
+                        <goals>
+                            <goal>check</goal>
+                            <goal>cpd-check</goal>
+                        </goals>
+                        <phase>verify</phase>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.gaul</groupId>
+                <artifactId>modernizer-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>modernizer-verify</id>
+                        <goals>
+                            <goal>modernizer</goal>
+                        </goals>
+                        <phase>verify</phase>
                     </execution>
                 </executions>
             </plugin>
@@ -467,7 +520,8 @@
                     </annotationProcessorPaths>
 
                     <compilerArgs>
-                        <arg>-Amapstruct.defaultComponentModel=spring</arg> <!-- для Spring интеграции -->
+                        <arg>-Amapstruct.defaultComponentModel=spring</arg>
+                        <!-- для Spring интеграции -->
                     </compilerArgs>
                 </configuration>
             </plugin>

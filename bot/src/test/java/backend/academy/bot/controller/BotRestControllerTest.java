@@ -46,7 +46,8 @@ class BotRestControllerTest {
 
     @Test
     void registerClient_returnsWelcomeMessage() throws Exception {
-        var payload = """
+        var payload =
+                """
                 {
                   "login": "user",
                   "password": "pass"
@@ -64,7 +65,8 @@ class BotRestControllerTest {
 
     @Test
     void unregisterClient_returnsDeleteMessage() throws Exception {
-        var payload = """
+        var payload =
+                """
                 {
                   "login": "user",
                   "password": "pass"
@@ -82,7 +84,8 @@ class BotRestControllerTest {
 
     @Test
     void unregisterClient_returns404WhenChatNotFound() throws Exception {
-        var payload = """
+        var payload =
+                """
                 {
                   "login": "user",
                   "password": "pass"
@@ -112,15 +115,18 @@ class BotRestControllerTest {
 
     @Test
     void trackLink_mapsRequestToLinkDtoAndReturnsResponse() throws Exception {
-        var addRequest = """
+        var addRequest =
+                """
                 {
                   "link": "https://github.com/u/r",
                   "tags": ["java", "spring"],
                   "filters": ["f1"]
                 }
                 """;
-        var response = new LinkResponse(5L, URI.create("https://github.com/u/r"), Set.of("java", "spring"), Set.of("f1"));
-        when(scrapperConnectionService.subscribeLink(eq("user"), any(LinkDTO.class))).thenReturn(response);
+        var response =
+                new LinkResponse(5L, URI.create("https://github.com/u/r"), Set.of("java", "spring"), Set.of("f1"));
+        when(scrapperConnectionService.subscribeLink(eq("user"), any(LinkDTO.class)))
+                .thenReturn(response);
 
         mockMvc.perform(post("/api/v1/links")
                         .header("Client-Login", "user")
@@ -145,7 +151,8 @@ class BotRestControllerTest {
         when(scrapperConnectionService.getAllLinks("user")).thenReturn(links);
         when(scrapperConnectionService.unsubscribeLink("user", links, 10L)).thenReturn(true);
 
-        var request = objectMapper.writeValueAsString(new scrapper.bot.connectivity.model.request.RemoveLinkRequest(url));
+        var request =
+                objectMapper.writeValueAsString(new scrapper.bot.connectivity.model.request.RemoveLinkRequest(url));
         mockMvc.perform(delete("/api/v1/links")
                         .header("Client-Login", "user")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -159,7 +166,8 @@ class BotRestControllerTest {
         when(scrapperConnectionService.getAllLinks("user"))
                 .thenReturn(List.of(new LinkResponse(10L, URI.create("https://github.com/u/r"), Set.of(), Set.of())));
 
-        var request = """
+        var request =
+                """
                 {
                   "link": "https://github.com/u/another"
                 }

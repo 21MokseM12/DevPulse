@@ -36,12 +36,15 @@ public class KafkaOutboxRepositoryImpl implements KafkaOutboxRepository {
     public void save(String topic, LinkUpdate payload) {
         try {
             jdbcTemplate.update(
-                KafkaOutboxQuery.INSERT.query(),
-                new MapSqlParameterSource()
-                    .addValue(TOPIC, topic)
-                    .addValue(PAYLOAD, objectMapper.writeValueAsString(payload))
-                    .addValue(CREATED_AT, OffsetDateTime.now().withOffsetSameInstant(ZoneOffset.UTC).toLocalDateTime())
-            );
+                    KafkaOutboxQuery.INSERT.query(),
+                    new MapSqlParameterSource()
+                            .addValue(TOPIC, topic)
+                            .addValue(PAYLOAD, objectMapper.writeValueAsString(payload))
+                            .addValue(
+                                    CREATED_AT,
+                                    OffsetDateTime.now()
+                                            .withOffsetSameInstant(ZoneOffset.UTC)
+                                            .toLocalDateTime()));
         } catch (JsonProcessingException e) {
             throw new IllegalStateException("Cannot serialize outbox payload", e);
         }
@@ -52,10 +55,7 @@ public class KafkaOutboxRepositoryImpl implements KafkaOutboxRepository {
         return jdbcTemplate.query(
                 KafkaOutboxQuery.SELECT_PENDING_BATCH.query(),
                 new MapSqlParameterSource().addValue(BATCH_SIZE, batchSize),
-                (rs, _) -> new KafkaOutboxMessage(
-                        rs.getLong(ID),
-                        rs.getString(TOPIC),
-                        rs.getString(PAYLOAD)));
+                (rs, rowNum) -> new KafkaOutboxMessage(rs.getLong(ID), rs.getString(TOPIC), rs.getString(PAYLOAD)));
     }
 
     @Override
@@ -72,14 +72,13 @@ public class KafkaOutboxRepositoryImpl implements KafkaOutboxRepository {
     public void incrementAttemptCount(long id, int attempts) {
         jdbcTemplate.update(
                 KafkaOutboxQuery.INCREMENT_ATTEMPT_COUNT.query(),
-                new MapSqlParameterSource()
-                        .addValue(ID, id)
-                        .addValue(ATTEMPTS, attempts));
+                new MapSqlParameterSource().addValue(ID, id).addValue(ATTEMPTS, attempts));
     }
 
     @Override
     public long countPending() {
-        Long count = jdbcTemplate.queryForObject(KafkaOutboxQuery.COUNT_PENDING.query(), new MapSqlParameterSource(), Long.class);
+        Long count = jdbcTemplate.queryForObject(
+                KafkaOutboxQuery.COUNT_PENDING.query(), new MapSqlParameterSource(), Long.class);
         return count == null ? 0L : count;
     }
 }

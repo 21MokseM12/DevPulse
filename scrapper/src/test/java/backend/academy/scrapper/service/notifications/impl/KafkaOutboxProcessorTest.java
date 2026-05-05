@@ -48,16 +48,14 @@ class KafkaOutboxProcessorTest {
                 new ScrapperConfig.GitHubCredentials("token", "https://api.github.com"),
                 new ScrapperConfig.StackOverflowCredentials("https://api.stackexchange.com", "key", "token"),
                 "http://localhost:8080",
-                new ScrapperConfig.SchedulerCredentials(java.time.Duration.ofSeconds(15), java.time.Duration.ofSeconds(30), 4),
+                new ScrapperConfig.SchedulerCredentials(
+                        java.time.Duration.ofSeconds(15), java.time.Duration.ofSeconds(30), 4),
                 new ScrapperConfig.OutboxCredentials("link-updates", java.time.Duration.ofSeconds(5), 100),
                 new ScrapperConfig.AuthCredentials("X-Internal-Secret", "test-secret"));
         CommonKafkaProperties kafkaProperties = new CommonKafkaProperties(
                 "localhost:9092",
                 new CommonKafkaProperties.ConsumerProperties(
-                        false,
-                        org.springframework.kafka.listener.ContainerProperties.AckMode.MANUAL,
-                        "earliest",
-                        "*"),
+                        false, org.springframework.kafka.listener.ContainerProperties.AckMode.MANUAL, "earliest", "*"),
                 new CommonKafkaProperties.ProducerProperties("test-client", "all", true),
                 new CommonKafkaProperties.RetryPolicyProperties(1, 1.0, 1, 2, true));
         processor = new KafkaOutboxProcessor(
@@ -80,7 +78,8 @@ class KafkaOutboxProcessorTest {
                 "desc",
                 OffsetDateTime.parse("2026-01-01T00:00:00Z"),
                 List.of(1L)));
-        when(outboxRepository.findPendingBatch(100)).thenReturn(List.of(new KafkaOutboxMessage(10L, "link-updates", payload)));
+        when(outboxRepository.findPendingBatch(100))
+                .thenReturn(List.of(new KafkaOutboxMessage(10L, "link-updates", payload)));
         when(kafkaTemplate.send(eq("link-updates"), any())).thenReturn(CompletableFuture.completedFuture(null));
         when(outboxRepository.countPending()).thenReturn(0L);
 
@@ -100,7 +99,8 @@ class KafkaOutboxProcessorTest {
                 "desc",
                 OffsetDateTime.parse("2026-01-01T00:00:00Z"),
                 List.of(1L)));
-        when(outboxRepository.findPendingBatch(100)).thenReturn(List.of(new KafkaOutboxMessage(10L, "link-updates", payload)));
+        when(outboxRepository.findPendingBatch(100))
+                .thenReturn(List.of(new KafkaOutboxMessage(10L, "link-updates", payload)));
         when(kafkaTemplate.send(eq("link-updates"), any()))
                 .thenReturn(CompletableFuture.failedFuture(new RuntimeException("broker down")));
         when(outboxRepository.countPending()).thenReturn(1L);

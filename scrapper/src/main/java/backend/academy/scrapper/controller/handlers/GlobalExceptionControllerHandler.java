@@ -16,7 +16,12 @@ import scrapper.bot.connectivity.model.response.ApiErrorResponse;
 @RestControllerAdvice
 public class GlobalExceptionControllerHandler {
 
-    @ExceptionHandler(exception = {BadRequestException.class, ConstraintViolationException.class, InvalidCredentialsException.class})
+    @ExceptionHandler(
+            exception = {
+                BadRequestException.class,
+                ConstraintViolationException.class,
+                InvalidCredentialsException.class
+            })
     public ResponseEntity<ApiErrorResponse> badRequestException(Exception e) {
         List<String> stacktrace = Arrays.stream(e.getStackTrace())
                 .map(StackTraceElement::toString)

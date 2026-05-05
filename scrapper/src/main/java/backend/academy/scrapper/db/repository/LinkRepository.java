@@ -25,9 +25,5 @@ public interface LinkRepository {
     void markPollingSuccess(String url, OffsetDateTime checkedAt, OffsetDateTime nextPollAt);
 
     void markPollingFailure(
-            String url,
-            OffsetDateTime checkedAt,
-            String error,
-            long baseBackoffSeconds,
-            long maxBackoffSeconds);
+            String url, OffsetDateTime checkedAt, String error, long baseBackoffSeconds, long maxBackoffSeconds);
 }

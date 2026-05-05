@@ -9,6 +9,7 @@ import backend.academy.scrapper.service.LinkOperationProcessor;
 import backend.academy.scrapper.service.notifications.impl.ScrapperHttpNotificationManager;
 import jakarta.annotation.PostConstruct;
 import java.net.URI;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -18,7 +19,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import java.time.OffsetDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
@@ -84,7 +84,8 @@ public class LinkUpdateScheduledListener {
             OffsetDateTime checkedAt = OffsetDateTime.now();
             try {
                 List<LinkUpdateDTO> response = updaterFactory.get(link).getUpdates(link);
-                linkOperationProcessor.markPollingSuccess(link, checkedAt, scrapperConfig.scheduler().forceCheckDelay());
+                linkOperationProcessor.markPollingSuccess(
+                        link, checkedAt, scrapperConfig.scheduler().forceCheckDelay());
                 response.forEach(update -> {
                     List<Long> chatIdsNeededNotify = linkOperationProcessor.findSubscribedChats(link, update);
                     if (!chatIdsNeededNotify.isEmpty()) {
@@ -94,10 +95,7 @@ public class LinkUpdateScheduledListener {
             } catch (Exception ex) {
                 log.warn("Ошибка опроса ссылки {}: {}", link, ex.getMessage());
                 linkOperationProcessor.markPollingFailure(
-                        link,
-                        checkedAt,
-                        scrapperConfig.scheduler().forceCheckDelay(),
-                        ex.getMessage());
+                        link, checkedAt, scrapperConfig.scheduler().forceCheckDelay(), ex.getMessage());
             }
         });
         return notifyList;

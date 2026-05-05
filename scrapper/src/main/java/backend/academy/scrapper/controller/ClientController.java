@@ -1,7 +1,7 @@
 package backend.academy.scrapper.controller;
 
-import backend.academy.scrapper.service.ChatOperationProcessor;
 import backend.academy.scrapper.exceptions.ResourceNotFoundException;
+import backend.academy.scrapper.service.ChatOperationProcessor;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,9 +26,12 @@ public class ClientController {
     private final ChatOperationProcessor chatOperationProcessor;
 
     @PostMapping
-    public ResponseEntity<Void> register(@Valid @RequestBody ClientCredentialsRequest request) throws BadRequestException {
-        if (request.login() == null || request.password() == null
-            || request.login().isBlank() || request.password().isBlank()) {
+    public ResponseEntity<Void> register(@Valid @RequestBody ClientCredentialsRequest request)
+            throws BadRequestException {
+        if (request.login() == null
+                || request.password() == null
+                || request.login().isBlank()
+                || request.password().isBlank()) {
             throw new BadRequestException("Некорректные параметры запроса");
         }
         log.info("Получен запрос на регистрацию пользователя с login {}", request.login());
@@ -40,9 +43,11 @@ public class ClientController {
 
     @DeleteMapping
     public ResponseEntity<Void> unregister(@Valid @RequestBody ClientCredentialsRequest request)
-        throws BadRequestException, ResourceNotFoundException {
-        if (request.login() == null || request.password() == null
-            || request.login().isBlank() || request.password().isBlank()) {
+            throws BadRequestException, ResourceNotFoundException {
+        if (request.login() == null
+                || request.password() == null
+                || request.login().isBlank()
+                || request.password().isBlank()) {
             throw new BadRequestException("Некорректные параметры запроса");
         }
         log.info("Получен запрос на удаление пользователя с login {}", request.login());
@@ -52,4 +57,3 @@ public class ClientController {
         return ResponseEntity.ok().build();
     }
 }
-

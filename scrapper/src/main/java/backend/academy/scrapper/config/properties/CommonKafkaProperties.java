@@ -9,29 +9,19 @@ import org.springframework.kafka.listener.ContainerProperties;
 @Valid
 @ConfigurationProperties(prefix = "kafka.properties")
 public record CommonKafkaProperties(
-    @NotBlank String bootstrapServers,
-    @NotNull ConsumerProperties consumer,
-    @NotNull ProducerProperties producer,
-    @NotNull RetryPolicyProperties retryPolicy
-) {
+        @NotBlank String bootstrapServers,
+        @NotNull ConsumerProperties consumer,
+        @NotNull ProducerProperties producer,
+        @NotNull RetryPolicyProperties retryPolicy) {
     public record ConsumerProperties(
-        boolean enableAutoCommit,
-        @NotNull ContainerProperties.AckMode ackMode,
-        @NotBlank String autoOffsetReset,
-        @NotBlank String trustedPackages
-    ) { }
+            boolean enableAutoCommit,
+            @NotNull ContainerProperties.AckMode ackMode,
+            @NotBlank String autoOffsetReset,
+            @NotBlank String trustedPackages) {}
 
     public record ProducerProperties(
-        @NotBlank String clientId,
-        @NotBlank String acksConfig,
-        boolean enableIdempotenceConfig
-    ) { }
+            @NotBlank String clientId, @NotBlank String acksConfig, boolean enableIdempotenceConfig) {}
 
     public record RetryPolicyProperties(
-        long interval,
-        double multiplier,
-        long maxDelay,
-        int maxAttempts,
-        boolean autoCreateTopics
-    ) { }
+            long interval, double multiplier, long maxDelay, int maxAttempts, boolean autoCreateTopics) {}
 }

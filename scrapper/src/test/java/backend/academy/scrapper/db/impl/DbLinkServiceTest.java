@@ -1,5 +1,16 @@
 package backend.academy.scrapper.db.impl;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import backend.academy.scrapper.db.model.Link;
 import backend.academy.scrapper.db.repository.LinkRepository;
 import backend.academy.scrapper.mapper.LinkMapper;
@@ -18,26 +29,19 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.EmptyResultDataAccessException;
 import scrapper.bot.connectivity.model.request.AddLinkRequest;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class DbLinkServiceTest {
 
     @Mock
     private Clock clock;
+
     @Mock
     private LinkMapper linkMapper;
+
     @Mock
     private LinkRepository linkRepository;
+
     @InjectMocks
     private DbLinkServiceImpl dbLinkService;
 
@@ -48,9 +52,8 @@ public class DbLinkServiceTest {
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
         when(clock.instant()).thenReturn(Instant.now());
         when(linkRepository.save(anyString(), any())).thenReturn(linkId);
-        when(linkMapper.toLink(any(), anyLong(), any())).thenReturn(
-            new Link(linkId, request.link(), request.tags(), request.filters(), OffsetDateTime.now())
-        );
+        when(linkMapper.toLink(any(), anyLong(), any()))
+                .thenReturn(new Link(linkId, request.link(), request.tags(), request.filters(), OffsetDateTime.now()));
 
         Link response = dbLinkService.saveLink(request);
 
@@ -66,7 +69,7 @@ public class DbLinkServiceTest {
 
         Optional<Link> response = dbLinkService.findByLink(url);
         assertTrue(response.isPresent());
-        assertEquals(expected, response.get());
+        assertEquals(expected, response.orElseThrow());
     }
 
     @Test
@@ -79,7 +82,7 @@ public class DbLinkServiceTest {
         Optional<Link> response = dbLinkService.delete(url.toString());
 
         assertTrue(response.isPresent());
-        assertEquals(expected, response.get());
+        assertEquals(expected, response.orElseThrow());
         verify(linkRepository).delete(expected.id());
     }
 

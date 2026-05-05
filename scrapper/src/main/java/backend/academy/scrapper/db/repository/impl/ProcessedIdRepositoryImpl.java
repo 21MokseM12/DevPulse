@@ -24,25 +24,21 @@ public class ProcessedIdRepositoryImpl implements ProcessedIdRepository {
     public Set<ProcessedId> findAll(Long linkId) {
         Set<ProcessedId> resultList = new HashSet<>();
         jdbcTemplate.query(
-            ProcessedIdQuery.SELECT_BY_LINK_ID.query(),
-            new MapSqlParameterSource()
-                .addValue(LINK_ID, linkId),
-            rs -> {
-                resultList.add(
-                    new ProcessedId(rs.getLong("processed_id"), rs.getString(TYPE))
-                );
-            }
-        );
+                ProcessedIdQuery.SELECT_BY_LINK_ID.query(),
+                new MapSqlParameterSource().addValue(LINK_ID, linkId),
+                rs -> {
+                    resultList.add(new ProcessedId(rs.getLong("processed_id"), rs.getString(TYPE)));
+                });
         return resultList;
     }
 
     public void saveAll(Long linkId, List<ProcessedIdDTO> nowProcessedIds) {
         MapSqlParameterSource[] params = nowProcessedIds.stream()
                 .map(item -> new MapSqlParameterSource()
-                    .addValue(LINK_ID, linkId)
-                    .addValue("processedId", item.id())
-                    .addValue(TYPE, item.type().type())
-                ).toArray(MapSqlParameterSource[]::new);
+                        .addValue(LINK_ID, linkId)
+                        .addValue("processedId", item.id())
+                        .addValue(TYPE, item.type().type()))
+                .toArray(MapSqlParameterSource[]::new);
 
         jdbcTemplate.batchUpdate(ProcessedIdQuery.INSERT_BATCH.query(), params);
     }

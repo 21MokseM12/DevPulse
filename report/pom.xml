@@ -39,15 +39,16 @@
                     <execution>
                         <id>prepare-agent</id>
                         <goals>
-                            <goal>prepare-agent</goal> <!-- Подготавливает агент для сбора данных -->
+                            <goal>prepare-agent</goal>
+                            <!-- Подготавливает агент для сбора данных -->
                         </goals>
                     </execution>
                     <execution>
                         <id>report</id>
-                        <phase>test</phase>
                         <goals>
                             <goal>report</goal>
                         </goals>
+                        <phase>test</phase>
                     </execution>
                 </executions>
             </plugin>

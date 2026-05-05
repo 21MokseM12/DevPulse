@@ -127,7 +127,9 @@ public class ScrapperConnectionServiceTest {
     void getAllLinks_BadRequestException() {
         ApiErrorResponse errorResponse =
                 new ApiErrorResponse("Invalid request", "400", "BadRequestException", "Bad request", List.of());
-        doReturn(ResponseEntity.badRequest().body(errorResponse)).when(linkClient).getAllLinks(login);
+        doReturn(ResponseEntity.badRequest().body(errorResponse))
+                .when(linkClient)
+                .getAllLinks(login);
 
         BadRequestException exception =
                 assertThrows(BadRequestException.class, () -> scrapperConnectionService.getAllLinks(chatId));

@@ -30,7 +30,8 @@ public class SubscriptionFilterService {
     private boolean matchesRule(LinkUpdateDTO update, FilterRule rule) {
         return switch (rule.key()) {
             case "author" -> equalsIgnoreCase(update.updateOwner(), rule.value());
-            case "type" -> update.type() != null && equalsIgnoreCase(update.type().name(), normalizeType(rule.value()));
+            case "type" -> update.type() != null
+                    && equalsIgnoreCase(update.type().name(), normalizeType(rule.value()));
             case "label" -> update.labels().stream().anyMatch(label -> equalsIgnoreCase(label, rule.value()));
             default -> {
                 log.warn("Неизвестный фильтр подписки '{}', правило будет пропущено", rule.key());

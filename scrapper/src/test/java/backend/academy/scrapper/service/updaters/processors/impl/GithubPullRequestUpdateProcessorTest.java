@@ -80,10 +80,14 @@ public class GithubPullRequestUpdateProcessorTest {
                         fixedTime,
                         new GithubPayload("opened", PULL_REQUEST, null)));
         List<LinkUpdateDTO> expected = List.of(
-                new LinkUpdateDTO(1L, "titlePR", ACTOR.login(), fixedTime, "bodyPR", UpdateType.GITHUB_PULL_REQUEST, Set.of()),
-                new LinkUpdateDTO(2L, "titlePR", ACTOR.login(), fixedTime, "bodyPR", UpdateType.GITHUB_PULL_REQUEST, Set.of()),
-                new LinkUpdateDTO(3L, "titlePR", ACTOR.login(), fixedTime, "bodyPR", UpdateType.GITHUB_PULL_REQUEST, Set.of()),
-                new LinkUpdateDTO(4L, "titlePR", ACTOR.login(), fixedTime, "bodyPR", UpdateType.GITHUB_PULL_REQUEST, Set.of()));
+                new LinkUpdateDTO(
+                        1L, "titlePR", ACTOR.login(), fixedTime, "bodyPR", UpdateType.GITHUB_PULL_REQUEST, Set.of()),
+                new LinkUpdateDTO(
+                        2L, "titlePR", ACTOR.login(), fixedTime, "bodyPR", UpdateType.GITHUB_PULL_REQUEST, Set.of()),
+                new LinkUpdateDTO(
+                        3L, "titlePR", ACTOR.login(), fixedTime, "bodyPR", UpdateType.GITHUB_PULL_REQUEST, Set.of()),
+                new LinkUpdateDTO(
+                        4L, "titlePR", ACTOR.login(), fixedTime, "bodyPR", UpdateType.GITHUB_PULL_REQUEST, Set.of()));
 
         when(linkService.getProcessedPullRequestIds(link)).thenReturn(List.of());
 

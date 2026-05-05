@@ -1,12 +1,12 @@
 package backend.academy.scrapper.mapper;
 
 import backend.academy.scrapper.db.model.Link;
+import java.time.OffsetDateTime;
+import java.util.Set;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
 import scrapper.bot.connectivity.model.request.AddLinkRequest;
-import java.time.OffsetDateTime;
-import java.util.Set;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.ERROR)
 public interface LinkMapper {

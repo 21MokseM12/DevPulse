@@ -12,6 +12,7 @@ public class ApplicationConfig {
 
     @NotEmpty
     private String scrapperUrl;
+
     @NotEmpty
     private String sharedSecret;
 

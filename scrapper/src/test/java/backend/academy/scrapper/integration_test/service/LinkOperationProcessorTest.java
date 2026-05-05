@@ -1,5 +1,8 @@
 package backend.academy.scrapper.integration_test.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import backend.academy.scrapper.ScrapperApplication;
 import backend.academy.scrapper.integration_test.config.TestContainersConfiguration;
 import backend.academy.scrapper.service.ChatOperationProcessor;
@@ -14,8 +17,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 import scrapper.bot.connectivity.model.request.AddLinkRequest;
 import scrapper.bot.connectivity.model.response.LinkResponse;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest(classes = {ScrapperApplication.class})
 @ActiveProfiles("test")
@@ -39,23 +40,21 @@ class LinkOperationProcessorTest extends TestContainersConfiguration {
 
         chatOperationProcessor.register(chatId);
 
-        LinkResponse firstResponse = linkOperationProcessor.subscribe(chatId, request).orElseThrow();
-        LinkResponse secondResponse = linkOperationProcessor.subscribe(chatId, request).orElseThrow();
+        LinkResponse firstResponse =
+                linkOperationProcessor.subscribe(chatId, request).orElseThrow();
+        LinkResponse secondResponse =
+                linkOperationProcessor.subscribe(chatId, request).orElseThrow();
 
         assertEquals(firstResponse.id(), secondResponse.id());
         assertEquals(firstResponse.url(), secondResponse.url());
 
         Integer relationCount = jdbcTemplate.queryForObject(
-            "select count(*) from client_links where client_id = ? and link_id = ?",
-            Integer.class,
-            chatId,
-            firstResponse.id()
-        );
-        Integer linksCount = jdbcTemplate.queryForObject(
-            "select count(*) from links where url = ?",
-            Integer.class,
-            url.toString()
-        );
+                "select count(*) from client_links where client_id = ? and link_id = ?",
+                Integer.class,
+                chatId,
+                firstResponse.id());
+        Integer linksCount =
+                jdbcTemplate.queryForObject("select count(*) from links where url = ?", Integer.class, url.toString());
 
         assertEquals(1, relationCount);
         assertEquals(1, linksCount);

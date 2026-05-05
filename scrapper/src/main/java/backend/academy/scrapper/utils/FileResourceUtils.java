@@ -1,8 +1,8 @@
 package backend.academy.scrapper.utils;
 
+import java.nio.charset.StandardCharsets;
 import lombok.experimental.UtilityClass;
 import org.apache.commons.io.IOUtils;
-import java.nio.charset.StandardCharsets;
 
 @UtilityClass
 public class FileResourceUtils {

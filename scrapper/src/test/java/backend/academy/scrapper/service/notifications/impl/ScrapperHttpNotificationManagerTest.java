@@ -1,5 +1,9 @@
 package backend.academy.scrapper.service.notifications.impl;
 
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import backend.academy.scrapper.client.BotClient;
 import backend.academy.scrapper.config.ScrapperConfig;
 import backend.academy.scrapper.db.repository.KafkaOutboxRepository;
@@ -16,50 +20,41 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 import scrapper.bot.connectivity.model.LinkUpdate;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ScrapperHttpNotificationManagerTest {
 
     @Mock
     private BotClient botClient;
+
     @Mock
     private LinkUpdateMapper mapper;
+
     @Mock
     private KafkaOutboxRepository kafkaOutboxRepository;
+
     @Mock
     private ScrapperConfig scrapperConfig;
+
     @Mock
     private ScrapperConfig.OutboxCredentials outboxCredentials;
 
     @Test
     void notify_writesEveryUpdateToKafkaOutbox() {
-        ScrapperHttpNotificationManager manager =
-            new ScrapperHttpNotificationManager(
-                botClient,
-                mapper,
-                kafkaOutboxRepository,
-                scrapperConfig,
-                new ObjectMapper()
-            );
+        ScrapperHttpNotificationManager manager = new ScrapperHttpNotificationManager(
+                botClient, mapper, kafkaOutboxRepository, scrapperConfig, new ObjectMapper());
 
         LinkUpdateDTO update = new LinkUpdateDTO(10L, "title", "owner", OffsetDateTime.now(), "desc");
-        NotifyUpdateEntity entity = new NotifyUpdateEntity(
-            URI.create("https://github.com/acme/repo"),
-            List.of(update),
-            List.of(1L, 2L)
-        );
+        NotifyUpdateEntity entity =
+                new NotifyUpdateEntity(URI.create("https://github.com/acme/repo"), List.of(update), List.of(1L, 2L));
         LinkUpdate payload = new LinkUpdate(
-            10L,
-            URI.create("https://github.com/acme/repo"),
-            "title",
-            "owner",
-            "desc",
-            OffsetDateTime.now(),
-            List.of(1L, 2L)
-        );
+                10L,
+                URI.create("https://github.com/acme/repo"),
+                "title",
+                "owner",
+                "desc",
+                OffsetDateTime.now(),
+                List.of(1L, 2L));
 
         when(mapper.toLinkUpdate(update, entity)).thenReturn(payload);
         when(botClient.sendUpdates(payload)).thenReturn(ResponseEntity.ok().build());

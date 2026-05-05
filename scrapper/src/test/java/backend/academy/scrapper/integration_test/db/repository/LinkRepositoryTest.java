@@ -1,5 +1,11 @@
 package backend.academy.scrapper.integration_test.db.repository;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import backend.academy.scrapper.config.ApplicationConfig;
 import backend.academy.scrapper.db.model.Link;
 import backend.academy.scrapper.db.repository.LinkRepository;
@@ -24,11 +30,6 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @JdbcTest
 @Testcontainers
@@ -44,8 +45,10 @@ public class LinkRepositoryTest extends TestContainersConfiguration {
 
     @Autowired
     private LinkRepository repository;
+
     @Autowired
     private Clock clock;
+
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
@@ -56,18 +59,17 @@ public class LinkRepositoryTest extends TestContainersConfiguration {
 
         Long id = repository.save(url, createdAt);
         Optional<Link> found = repository.findById(id);
+        Link foundLink = found.orElseThrow();
 
         assertNotNull(id);
         assertTrue(found.isPresent());
-        assertEquals(id, found.get().id());
-        assertEquals(URI.create(url), found.get().url());
+        assertEquals(id, foundLink.id());
+        assertEquals(URI.create(url), foundLink.url());
         long deltaMicros = Math.abs(ChronoUnit.MICROS.between(
-            createdAt.toInstant(),
-            found.get().createdAt().toInstant()
-        ));
+                createdAt.toInstant(), foundLink.createdAt().toInstant()));
         assertTrue(deltaMicros <= 1);
-        assertEquals(Set.of(), found.get().tags());
-        assertEquals(Set.of(), found.get().filters());
+        assertEquals(Set.of(), foundLink.tags());
+        assertEquals(Set.of(), foundLink.filters());
     }
 
     @Test
@@ -94,10 +96,11 @@ public class LinkRepositoryTest extends TestContainersConfiguration {
         Long id = repository.save(url, createdAt);
 
         Optional<Link> deleted = repository.delete(id);
+        Link deletedLink = deleted.orElseThrow();
 
         assertTrue(deleted.isPresent());
-        assertEquals(id, deleted.get().id());
-        assertEquals(URI.create(url), deleted.get().url());
+        assertEquals(id, deletedLink.id());
+        assertEquals(URI.create(url), deletedLink.url());
         assertFalse(repository.existsLink(url));
     }
 
@@ -177,9 +180,7 @@ public class LinkRepositoryTest extends TestContainersConfiguration {
         assertEquals(0, retryAfterSuccess);
 
         OffsetDateTime lastCheckedAt = jdbcTemplate.queryForObject(
-                "select last_checked_at from links where url = ?",
-                OffsetDateTime.class,
-                url);
+                "select last_checked_at from links where url = ?", OffsetDateTime.class, url);
         assertEquals(successCheckedAt.toInstant(), lastCheckedAt.toInstant());
     }
 }

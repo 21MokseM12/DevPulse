@@ -64,19 +64,23 @@ class BotPersistenceIntegrationTest {
     void registerAndDeleteClient_persistsClientInDatabase() throws Exception {
         String payload = objectMapper.writeValueAsString(Map.of("login", "user-1", "password", "pass-1"));
 
-        mockMvc.perform(post("/api/v1/clients").contentType(MediaType.APPLICATION_JSON).content(payload))
+        mockMvc.perform(post("/api/v1/clients")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
                 .andExpect(status().isOk());
 
         Integer existingAfterRegister =
                 jdbcTemplate.queryForObject("SELECT COUNT(*) FROM clients WHERE login = 'user-1'", Integer.class);
         assertThat(existingAfterRegister).isEqualTo(1);
-        String storedHash = jdbcTemplate.queryForObject(
-                "SELECT password_hash FROM clients WHERE login = 'user-1'", String.class);
+        String storedHash =
+                jdbcTemplate.queryForObject("SELECT password_hash FROM clients WHERE login = 'user-1'", String.class);
         assertThat(storedHash).isNotBlank();
         assertThat(storedHash).isNotEqualTo("pass-1");
         assertThat(storedHash).startsWith("$2");
 
-        mockMvc.perform(delete("/api/v1/clients").contentType(MediaType.APPLICATION_JSON).content(payload))
+        mockMvc.perform(delete("/api/v1/clients")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
                 .andExpect(status().isOk());
 
         Integer existingAfterDelete =
@@ -129,7 +133,9 @@ class BotPersistenceIntegrationTest {
         assertThat(recipientsBeforeDelete).isEqualTo(1);
 
         String clientPayload = objectMapper.writeValueAsString(Map.of("login", "1", "password", "1"));
-        mockMvc.perform(delete("/api/v1/clients").contentType(MediaType.APPLICATION_JSON).content(clientPayload))
+        mockMvc.perform(delete("/api/v1/clients")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(clientPayload))
                 .andExpect(status().isOk());
 
         Integer recipientsAfterDelete = jdbcTemplate.queryForObject(
@@ -139,7 +145,9 @@ class BotPersistenceIntegrationTest {
 
     private void registerClient(String login, String password) throws Exception {
         String payload = objectMapper.writeValueAsString(Map.of("login", login, "password", password));
-        mockMvc.perform(post("/api/v1/clients").contentType(MediaType.APPLICATION_JSON).content(payload))
+        mockMvc.perform(post("/api/v1/clients")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
                 .andExpect(status().isOk());
     }
 }

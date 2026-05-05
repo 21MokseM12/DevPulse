@@ -98,8 +98,22 @@ public class StackOverflowCommentUpdateProcessorTest {
                 new StackOverflowCommentItem(5L, OWNER, fixedTime, "comment")));
 
         List<LinkUpdateDTO> expected = List.of(
-                new LinkUpdateDTO(2L, question.title(), OWNER.username(), fixedTime, "comment", UpdateType.STACKOVERFLOW_COMMENT, Set.of()),
-                new LinkUpdateDTO(4L, question.title(), OWNER.username(), fixedTime, "comment", UpdateType.STACKOVERFLOW_COMMENT, Set.of()));
+                new LinkUpdateDTO(
+                        2L,
+                        question.title(),
+                        OWNER.username(),
+                        fixedTime,
+                        "comment",
+                        UpdateType.STACKOVERFLOW_COMMENT,
+                        Set.of()),
+                new LinkUpdateDTO(
+                        4L,
+                        question.title(),
+                        OWNER.username(),
+                        fixedTime,
+                        "comment",
+                        UpdateType.STACKOVERFLOW_COMMENT,
+                        Set.of()));
 
         when(client.getCommentsByQuestionId(questionId, site, filter))
                 .thenReturn(ResponseEntity.ok().body(response));
@@ -122,11 +136,46 @@ public class StackOverflowCommentUpdateProcessorTest {
                 new StackOverflowCommentItem(5L, OWNER, fixedTime, "comment")));
 
         List<LinkUpdateDTO> expected = List.of(
-                new LinkUpdateDTO(1L, question.title(), OWNER.username(), fixedTime, "comment", UpdateType.STACKOVERFLOW_COMMENT, Set.of()),
-                new LinkUpdateDTO(2L, question.title(), OWNER.username(), fixedTime, "comment", UpdateType.STACKOVERFLOW_COMMENT, Set.of()),
-                new LinkUpdateDTO(3L, question.title(), OWNER.username(), fixedTime, "comment", UpdateType.STACKOVERFLOW_COMMENT, Set.of()),
-                new LinkUpdateDTO(4L, question.title(), OWNER.username(), fixedTime, "comment", UpdateType.STACKOVERFLOW_COMMENT, Set.of()),
-                new LinkUpdateDTO(5L, question.title(), OWNER.username(), fixedTime, "comment", UpdateType.STACKOVERFLOW_COMMENT, Set.of()));
+                new LinkUpdateDTO(
+                        1L,
+                        question.title(),
+                        OWNER.username(),
+                        fixedTime,
+                        "comment",
+                        UpdateType.STACKOVERFLOW_COMMENT,
+                        Set.of()),
+                new LinkUpdateDTO(
+                        2L,
+                        question.title(),
+                        OWNER.username(),
+                        fixedTime,
+                        "comment",
+                        UpdateType.STACKOVERFLOW_COMMENT,
+                        Set.of()),
+                new LinkUpdateDTO(
+                        3L,
+                        question.title(),
+                        OWNER.username(),
+                        fixedTime,
+                        "comment",
+                        UpdateType.STACKOVERFLOW_COMMENT,
+                        Set.of()),
+                new LinkUpdateDTO(
+                        4L,
+                        question.title(),
+                        OWNER.username(),
+                        fixedTime,
+                        "comment",
+                        UpdateType.STACKOVERFLOW_COMMENT,
+                        Set.of()),
+                new LinkUpdateDTO(
+                        5L,
+                        question.title(),
+                        OWNER.username(),
+                        fixedTime,
+                        "comment",
+                        UpdateType.STACKOVERFLOW_COMMENT,
+                        Set.of()));
 
         when(client.getCommentsByQuestionId(questionId, site, filter))
                 .thenReturn(ResponseEntity.ok().body(response));

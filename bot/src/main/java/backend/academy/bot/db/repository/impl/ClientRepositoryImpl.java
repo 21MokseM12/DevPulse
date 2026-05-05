@@ -29,9 +29,7 @@ public class ClientRepositoryImpl implements ClientRepository {
     @Override
     public Optional<Client> findByLogin(String login) {
         var client = jdbcTemplate.query(
-                SELECT_BY_LOGIN,
-                new MapSqlParameterSource().addValue(LOGIN, login),
-                CLIENT_ROW_MAPPER);
+                SELECT_BY_LOGIN, new MapSqlParameterSource().addValue(LOGIN, login), CLIENT_ROW_MAPPER);
         return client.stream().findFirst();
     }
 

@@ -78,7 +78,7 @@ public class DbLinkServiceImpl implements DbLinkService {
             log.info("Начинается удаление ссылки: {}", link);
             Optional<Link> optId = linkRepository.findIdByLink(link);
             if (optId.isPresent()) {
-                Long id = optId.get().id();
+                Long id = optId.orElseThrow().id();
                 return linkRepository.delete(id);
             }
             log.warn("id для ссылки {} не найден", link);
@@ -94,9 +94,9 @@ public class DbLinkServiceImpl implements DbLinkService {
         log.info("Начинается поиск ссылок по списку id: {}", linkIds);
         if (!linkIds.isEmpty()) {
             return linkIds.stream()
-                .map(this::findById)
-                .flatMap(Optional::stream)
-                .toList();
+                    .map(this::findById)
+                    .flatMap(Optional::stream)
+                    .toList();
         }
         log.warn("Переданный список id ссылок пуст");
         return List.of();
@@ -133,11 +133,7 @@ public class DbLinkServiceImpl implements DbLinkService {
     @Override
     @Transactional(rollbackFor = DataAccessException.class)
     public void markPollingFailure(
-            URI link,
-            OffsetDateTime checkedAt,
-            String error,
-            long baseBackoffSeconds,
-            long maxBackoffSeconds) {
+            URI link, OffsetDateTime checkedAt, String error, long baseBackoffSeconds, long maxBackoffSeconds) {
         linkRepository.markPollingFailure(link.toString(), checkedAt, error, baseBackoffSeconds, maxBackoffSeconds);
     }
 }

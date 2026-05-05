@@ -22,29 +22,26 @@ public class ClientListener {
     private final ClientListenerProvider clientProvider;
 
     @RetryableTopic(
-        attempts = "${kafka.properties.retry-policy.max-attempts}",
-        backoff = @Backoff(
-            delayExpression = "${kafka.properties.retry-policy.interval}",
-            multiplierExpression = "${kafka.properties.retry-policy.multiplier}",
-            maxDelayExpression = "${kafka.properties.retry-policy.max-delay}"
-        ),
-        autoCreateTopics = "${kafka.properties.retry-policy.auto-create-topics}",
-        topicSuffixingStrategy = TopicSuffixingStrategy.SUFFIX_WITH_INDEX_VALUE
-    )
+            attempts = "${kafka.properties.retry-policy.max-attempts}",
+            backoff =
+                    @Backoff(
+                            delayExpression = "${kafka.properties.retry-policy.interval}",
+                            multiplierExpression = "${kafka.properties.retry-policy.multiplier}",
+                            maxDelayExpression = "${kafka.properties.retry-policy.max-delay}"),
+            autoCreateTopics = "${kafka.properties.retry-policy.auto-create-topics}",
+            topicSuffixingStrategy = TopicSuffixingStrategy.SUFFIX_WITH_INDEX_VALUE)
     @KafkaListener(
-        id = CONSUMER_ID,
-        groupId = "${kafka.consumers.client-listener.group-id}",
-        concurrency = "${kafka.consumers.client-listener.concurrency}",
-        topics = {"${kafka.consumers.client-listener.topic}"},
-        containerFactory = CommonKafkaConfig.STRING_VALUE_CONTAINER_FACTORY
-    )
+            id = CONSUMER_ID,
+            groupId = "${kafka.consumers.client-listener.group-id}",
+            concurrency = "${kafka.consumers.client-listener.concurrency}",
+            topics = {"${kafka.consumers.client-listener.topic}"},
+            containerFactory = CommonKafkaConfig.STRING_VALUE_CONTAINER_FACTORY)
     public void process(ConsumerRecord<String, String> record, Acknowledgment acknowledgment) {
         try {
             clientProvider.provide(record);
             acknowledgment.acknowledge();
         } catch (Exception e) {
-            log.error(
-                "Ошибка при получении сообщения в consumer с id: {} по ошибке: {}", CONSUMER_ID, e.getMessage());
+            log.error("Ошибка при получении сообщения в consumer с id: {} по ошибке: {}", CONSUMER_ID, e.getMessage());
         }
     }
 }

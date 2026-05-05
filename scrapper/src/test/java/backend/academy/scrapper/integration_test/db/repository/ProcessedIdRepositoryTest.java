@@ -1,5 +1,9 @@
 package backend.academy.scrapper.integration_test.db.repository;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import backend.academy.scrapper.db.model.ProcessedId;
 import backend.academy.scrapper.db.repository.ProcessedIdRepository;
 import backend.academy.scrapper.db.repository.impl.ProcessedIdRepositoryImpl;
@@ -18,9 +22,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @JdbcTest
 @Testcontainers
@@ -30,6 +31,7 @@ public class ProcessedIdRepositoryTest extends TestContainersConfiguration {
 
     @Autowired
     private ProcessedIdRepository repository;
+
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
@@ -46,22 +48,19 @@ public class ProcessedIdRepositoryTest extends TestContainersConfiguration {
     public void saveAll_whenValidPayload_thenAllEntriesArePersisted() {
         Long linkId = createLink("https://processed.example/1");
         List<ProcessedIdDTO> payload = List.of(
-            new ProcessedIdDTO(34L, ProcessedIdType.STACKOVERFLOW_ANSWER),
-            new ProcessedIdDTO(35L, ProcessedIdType.STACKOVERFLOW_COMMENT),
-            new ProcessedIdDTO(36L, ProcessedIdType.GITHUB_ISSUE)
-        );
+                new ProcessedIdDTO(34L, ProcessedIdType.STACKOVERFLOW_ANSWER),
+                new ProcessedIdDTO(35L, ProcessedIdType.STACKOVERFLOW_COMMENT),
+                new ProcessedIdDTO(36L, ProcessedIdType.GITHUB_ISSUE));
 
         repository.saveAll(linkId, payload);
 
         Set<ProcessedId> actual = repository.findAll(linkId);
         assertEquals(
-            Set.of(
-                new ProcessedId(34L, ProcessedIdType.STACKOVERFLOW_ANSWER.type()),
-                new ProcessedId(35L, ProcessedIdType.STACKOVERFLOW_COMMENT.type()),
-                new ProcessedId(36L, ProcessedIdType.GITHUB_ISSUE.type())
-            ),
-            actual
-        );
+                Set.of(
+                        new ProcessedId(34L, ProcessedIdType.STACKOVERFLOW_ANSWER.type()),
+                        new ProcessedId(35L, ProcessedIdType.STACKOVERFLOW_COMMENT.type()),
+                        new ProcessedId(36L, ProcessedIdType.GITHUB_ISSUE.type())),
+                actual);
     }
 
     @Test
@@ -77,27 +76,23 @@ public class ProcessedIdRepositoryTest extends TestContainersConfiguration {
     public void saveAll_whenPayloadContainsDuplicates_thenStoresEachRow() {
         Long linkId = createLink("https://processed.example/3");
         List<ProcessedIdDTO> payload = List.of(
-            new ProcessedIdDTO(77L, ProcessedIdType.GITHUB_PULL_REQUEST),
-            new ProcessedIdDTO(77L, ProcessedIdType.GITHUB_PULL_REQUEST)
-        );
+                new ProcessedIdDTO(77L, ProcessedIdType.GITHUB_PULL_REQUEST),
+                new ProcessedIdDTO(77L, ProcessedIdType.GITHUB_PULL_REQUEST));
 
         repository.saveAll(linkId, payload);
 
         Integer count = jdbcTemplate.queryForObject(
-            "select count(*) from processed_ids where link_id = ? and processed_id = ? and type = ?",
-            Integer.class,
-            linkId,
-            77L,
-            ProcessedIdType.GITHUB_PULL_REQUEST.type()
-        );
+                "select count(*) from processed_ids where link_id = ? and processed_id = ? and type = ?",
+                Integer.class,
+                linkId,
+                77L,
+                ProcessedIdType.GITHUB_PULL_REQUEST.type());
         assertEquals(2, count);
     }
 
     @Test
     public void saveAll_whenLinkIdDoesNotExist_thenThrowsDataIntegrityViolationException() {
-        List<ProcessedIdDTO> payload = List.of(
-            new ProcessedIdDTO(34L, ProcessedIdType.STACKOVERFLOW_ANSWER)
-        );
+        List<ProcessedIdDTO> payload = List.of(new ProcessedIdDTO(34L, ProcessedIdType.STACKOVERFLOW_ANSWER));
 
         assertThrows(DataIntegrityViolationException.class, () -> repository.saveAll(Long.MAX_VALUE, payload));
     }
@@ -112,15 +107,14 @@ public class ProcessedIdRepositoryTest extends TestContainersConfiguration {
     private Long createLink(String url) {
         Timestamp now = Timestamp.from(OffsetDateTime.now().toInstant());
         return jdbcTemplate.queryForObject(
-            "insert into links (link, updated_at, url, link_type, last_checked_at, etag, created_at) values (?, ?, ?, ?, ?, ?, ?) returning id",
-            Long.class,
-            url,
-            now,
-            url,
-            "UNKNOWN",
-            now,
-            null,
-            now
-        );
+                "insert into links (link, updated_at, url, link_type, last_checked_at, etag, created_at) values (?, ?, ?, ?, ?, ?, ?) returning id",
+                Long.class,
+                url,
+                now,
+                url,
+                "UNKNOWN",
+                now,
+                null,
+                now);
     }
 }

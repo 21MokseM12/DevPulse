@@ -1,5 +1,9 @@
 package backend.academy.scrapper.integration_test.db.repository;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import backend.academy.scrapper.db.repository.ChatRepository;
 import backend.academy.scrapper.db.repository.impl.ChatRepositoryImpl;
 import backend.academy.scrapper.integration_test.config.TestContainersConfiguration;
@@ -10,9 +14,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @JdbcTest
 @Testcontainers
