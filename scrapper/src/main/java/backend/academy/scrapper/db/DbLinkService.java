@@ -23,5 +23,10 @@ public interface DbLinkService {
 
     Set<URI> findAllLinksByUpdatedAt(OffsetDateTime highestTimeLimit, int offsetMultiplier, Integer limit);
 
+    Set<URI> findAllLinksForPolling(OffsetDateTime now, int offsetMultiplier, Integer limit);
+
+    void markPollingSuccess(URI link, OffsetDateTime checkedAt, OffsetDateTime nextPollAt);
+
+    void markPollingFailure(URI link, OffsetDateTime checkedAt, String error, long baseBackoffSeconds, long maxBackoffSeconds);
 
 }

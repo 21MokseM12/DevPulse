@@ -112,4 +112,32 @@ public class DbLinkServiceImpl implements DbLinkService {
             return Set.of();
         }
     }
+
+    @Override
+    public Set<URI> findAllLinksForPolling(OffsetDateTime now, int offsetMultiplier, Integer limit) {
+        try {
+            int offset = offsetMultiplier * limit;
+            return linkRepository.findAllLinksForPolling(now, offset, limit);
+        } catch (DataAccessException e) {
+            log.warn("Произошла ошибка при выборе ссылок для polling: {}", e.getMessage());
+            return Set.of();
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = DataAccessException.class)
+    public void markPollingSuccess(URI link, OffsetDateTime checkedAt, OffsetDateTime nextPollAt) {
+        linkRepository.markPollingSuccess(link.toString(), checkedAt, nextPollAt);
+    }
+
+    @Override
+    @Transactional(rollbackFor = DataAccessException.class)
+    public void markPollingFailure(
+            URI link,
+            OffsetDateTime checkedAt,
+            String error,
+            long baseBackoffSeconds,
+            long maxBackoffSeconds) {
+        linkRepository.markPollingFailure(link.toString(), checkedAt, error, baseBackoffSeconds, maxBackoffSeconds);
+    }
 }

@@ -1,0 +1,3 @@
+insert into poll_state (link_id, next_poll_at, retry_count, backoff_until, last_event_hash, last_success_at, last_error)
+values (:link_id, :next_poll_at, 0, null, null, :next_poll_at, null)
+on conflict (link_id) do nothing;

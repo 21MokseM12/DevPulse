@@ -289,14 +289,14 @@ public class LinkOperationProcessorTest {
         when(clock.getZone()).thenReturn(ZoneOffset.UTC);
         when(config.pageSize()).thenReturn(1);
 
-        when(dbLinkService.findAllLinksByUpdatedAt(fixed.minus(duration), 0, 1))
+        when(dbLinkService.findAllLinksForPolling(fixed, 0, 1))
             .thenReturn(new HashSet<>());
         when(config.pageSize()).thenReturn(1);
 
         Set<URI> allLinksByForceCheckDelay = linkOperationProcessor.findAllLinksByForceCheckDelay(duration, 0);
         assertNotNull(allLinksByForceCheckDelay);
         assertTrue(allLinksByForceCheckDelay.isEmpty());
-        verify(dbLinkService, times(1)).findAllLinksByUpdatedAt(fixed.minus(duration), 0, 1);
+        verify(dbLinkService, times(1)).findAllLinksForPolling(fixed, 0, 1);
     }
 
     @Test
@@ -308,14 +308,36 @@ public class LinkOperationProcessorTest {
         when(clock.getZone()).thenReturn(ZoneOffset.UTC);
         when(config.pageSize()).thenReturn(1);
 
-        when(dbLinkService.findAllLinksByUpdatedAt(fixed.minus(duration), 0, 1))
+        when(dbLinkService.findAllLinksForPolling(fixed, 0, 1))
             .thenReturn(Set.of(URI.create("link")));
         when(config.pageSize()).thenReturn(1);
 
         Set<URI> allLinksByForceCheckDelay = linkOperationProcessor.findAllLinksByForceCheckDelay(duration, 0);
         assertNotNull(allLinksByForceCheckDelay);
         assertFalse(allLinksByForceCheckDelay.isEmpty());
-        verify(dbLinkService).findAllLinksByUpdatedAt(fixed.minus(duration), 0, 1);
+        verify(dbLinkService).findAllLinksForPolling(fixed, 0, 1);
+    }
+
+    @Test
+    public void markPollingSuccess_shouldScheduleNextPollAndResetState() {
+        URI link = URI.create("https://example.com/a");
+        OffsetDateTime checkedAt = OffsetDateTime.parse("2026-05-05T12:00:00Z");
+        Duration delay = Duration.ofSeconds(30);
+
+        linkOperationProcessor.markPollingSuccess(link, checkedAt, delay);
+
+        verify(dbLinkService).markPollingSuccess(link, checkedAt, checkedAt.plus(delay));
+    }
+
+    @Test
+    public void markPollingFailure_shouldUseExponentialBackoffBounds() {
+        URI link = URI.create("https://example.com/b");
+        OffsetDateTime checkedAt = OffsetDateTime.parse("2026-05-05T12:00:00Z");
+        Duration delay = Duration.ofSeconds(20);
+
+        linkOperationProcessor.markPollingFailure(link, checkedAt, delay, "network");
+
+        verify(dbLinkService).markPollingFailure(link, checkedAt, "network", 20L, 640L);
     }
 
     @Test

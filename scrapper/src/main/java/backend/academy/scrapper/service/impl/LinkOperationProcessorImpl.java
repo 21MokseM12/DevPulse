@@ -114,8 +114,8 @@ public class LinkOperationProcessorImpl implements LinkOperationProcessor {
 
     @Override
     public Set<URI> findAllLinksByForceCheckDelay(Duration duration, int pageNum) {
-        return linkService.findAllLinksByUpdatedAt(
-            OffsetDateTime.now(clock).minus(duration),
+        return linkService.findAllLinksForPolling(
+            OffsetDateTime.now(clock),
             pageNum,
             config.pageSize()
         );
@@ -128,5 +128,19 @@ public class LinkOperationProcessorImpl implements LinkOperationProcessor {
             .map(chatService::findAllByLinkId)
             .stream().flatMap(List::stream)
             .toList();
+    }
+
+    @Override
+    @Transactional
+    public void markPollingSuccess(URI link, OffsetDateTime checkedAt, Duration forceCheckDelay) {
+        linkService.markPollingSuccess(link, checkedAt, checkedAt.plus(forceCheckDelay));
+    }
+
+    @Override
+    @Transactional
+    public void markPollingFailure(URI link, OffsetDateTime checkedAt, Duration forceCheckDelay, String error) {
+        long baseBackoffSeconds = Math.max(1L, forceCheckDelay.toSeconds());
+        long maxBackoffSeconds = Math.max(baseBackoffSeconds, baseBackoffSeconds * 32L);
+        linkService.markPollingFailure(link, checkedAt, error, baseBackoffSeconds, maxBackoffSeconds);
     }
 }

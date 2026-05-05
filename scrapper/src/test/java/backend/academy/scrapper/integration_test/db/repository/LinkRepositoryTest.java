@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -45,6 +46,8 @@ public class LinkRepositoryTest extends TestContainersConfiguration {
     private LinkRepository repository;
     @Autowired
     private Clock clock;
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @Test
     public void save_thenFindById_returnsStoredLinkWithEmptyTagsAndFilters() {
@@ -116,5 +119,67 @@ public class LinkRepositoryTest extends TestContainersConfiguration {
 
         assertTrue(expiredLinks.contains(expiredUrl));
         assertFalse(expiredLinks.contains(freshUrl));
+    }
+
+    @Test
+    public void findAllLinksForPolling_whenBackoffActive_thenSkipsLink() {
+        OffsetDateTime now = OffsetDateTime.now(clock).truncatedTo(ChronoUnit.SECONDS);
+        String readyUrl = "https://poll.example/ready-" + UUID.randomUUID();
+        String delayedUrl = "https://poll.example/delayed-" + UUID.randomUUID();
+
+        Long readyId = repository.save(readyUrl, now.minusMinutes(5));
+        Long delayedId = repository.save(delayedUrl, now.minusMinutes(5));
+
+        jdbcTemplate.update(
+                "update poll_state set next_poll_at = ?, backoff_until = ? where link_id = ?",
+                java.sql.Timestamp.from(now.minusSeconds(1).toInstant()),
+                null,
+                readyId);
+        jdbcTemplate.update(
+                "update poll_state set next_poll_at = ?, backoff_until = ? where link_id = ?",
+                java.sql.Timestamp.from(now.minusSeconds(1).toInstant()),
+                java.sql.Timestamp.from(now.plusMinutes(10).toInstant()),
+                delayedId);
+
+        Set<URI> dueLinks = repository.findAllLinksForPolling(now, 0, 20);
+
+        assertTrue(dueLinks.contains(URI.create(readyUrl)));
+        assertFalse(dueLinks.contains(URI.create(delayedUrl)));
+    }
+
+    @Test
+    public void markPollingFailureAndSuccess_shouldUpdatePollStateAndLastChecked() {
+        OffsetDateTime now = OffsetDateTime.now(clock).truncatedTo(ChronoUnit.SECONDS);
+        String url = "https://poll.example/state-" + UUID.randomUUID();
+        repository.save(url, now.minusMinutes(1));
+
+        repository.markPollingFailure(url, now, "timeout", 10, 320);
+
+        Integer retryAfterFailure = jdbcTemplate.queryForObject(
+                "select retry_count from poll_state ps join links l on l.id = ps.link_id where l.url = ?",
+                Integer.class,
+                url);
+        assertEquals(1, retryAfterFailure);
+
+        OffsetDateTime nextPollAfterFailure = jdbcTemplate.queryForObject(
+                "select next_poll_at from poll_state ps join links l on l.id = ps.link_id where l.url = ?",
+                OffsetDateTime.class,
+                url);
+        assertTrue(nextPollAfterFailure.isAfter(now));
+
+        OffsetDateTime successCheckedAt = now.plusMinutes(1);
+        repository.markPollingSuccess(url, successCheckedAt, successCheckedAt.plusMinutes(5));
+
+        Integer retryAfterSuccess = jdbcTemplate.queryForObject(
+                "select retry_count from poll_state ps join links l on l.id = ps.link_id where l.url = ?",
+                Integer.class,
+                url);
+        assertEquals(0, retryAfterSuccess);
+
+        OffsetDateTime lastCheckedAt = jdbcTemplate.queryForObject(
+                "select last_checked_at from links where url = ?",
+                OffsetDateTime.class,
+                url);
+        assertEquals(successCheckedAt.toInstant(), lastCheckedAt.toInstant());
     }
 }

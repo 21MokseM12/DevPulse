@@ -19,4 +19,15 @@ public interface LinkRepository {
     Optional<Link> delete(Long id);
 
     Set<URI> findAllLinksByUpdatedAt(OffsetDateTime highestTimeLimit, int offset, Integer limit);
+
+    Set<URI> findAllLinksForPolling(OffsetDateTime now, int offset, Integer limit);
+
+    void markPollingSuccess(String url, OffsetDateTime checkedAt, OffsetDateTime nextPollAt);
+
+    void markPollingFailure(
+            String url,
+            OffsetDateTime checkedAt,
+            String error,
+            long baseBackoffSeconds,
+            long maxBackoffSeconds);
 }
