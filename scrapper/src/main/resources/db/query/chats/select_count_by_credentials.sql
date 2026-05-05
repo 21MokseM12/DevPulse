@@ -1,4 +1,4 @@
 select count(id)
-from chats
+from clients
 where login = :login
-  and password = :password;
+  and password_hash = :password;

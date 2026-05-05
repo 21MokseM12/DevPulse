@@ -130,7 +130,7 @@ public class LinkToChatRepositoryTest extends TestContainersConfiguration {
     }
 
     private Long createChat(Long chatId) {
-        jdbcTemplate.update("insert into chats (id) values (?)", chatId);
+        jdbcTemplate.update("insert into clients (id) values (?)", chatId);
         return chatId;
     }
 

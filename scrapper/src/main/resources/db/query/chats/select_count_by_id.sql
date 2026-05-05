@@ -1,3 +1,3 @@
 select count(id)
-from chats
+from clients
 where id = :id;

@@ -1,2 +1,2 @@
-insert into chats (id)
+insert into clients (id)
 values (:id);

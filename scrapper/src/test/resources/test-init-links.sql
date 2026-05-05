@@ -4,10 +4,10 @@ DELETE FROM processed_ids WHERE link_id IN (1, 2);
 DELETE FROM tags WHERE link_id IN (1, 2);
 DELETE FROM filters WHERE link_id IN (1, 2);
 DELETE FROM links WHERE id IN (1, 2);
-DELETE FROM chats WHERE id IN (100, 101);
+DELETE FROM clients WHERE id IN (100, 101);
 
 -- Insert fresh test data
-INSERT INTO chats (id, login, password_hash) VALUES
+INSERT INTO clients (id, login, password_hash) VALUES
     (100, 'test-client-100', '$2a$10$8H1IRUUScxQY12LT9fXJuewRkQx82Uu35xrlS6U79x1QgzjKEGv7e'),
     (101, 'test-client-101', '$2a$10$8H1IRUUScxQY12LT9fXJuewRkQx82Uu35xrlS6U79x1QgzjKEGv7e');
 INSERT INTO links (id, link, updated_at, url, link_type, last_checked_at, etag, created_at) VALUES

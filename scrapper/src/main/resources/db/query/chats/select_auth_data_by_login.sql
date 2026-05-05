@@ -1,3 +1,3 @@
 select id, password_hash
-from chats
+from clients
 where login = :login;

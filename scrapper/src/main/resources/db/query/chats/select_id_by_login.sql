@@ -1,3 +1,3 @@
 select id
-from chats
+from clients
 where login = :login;

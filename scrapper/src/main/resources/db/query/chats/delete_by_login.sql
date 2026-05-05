@@ -1,3 +1,3 @@
 delete
-from chats
+from clients
 where login = :login;
