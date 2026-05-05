@@ -5,7 +5,6 @@ services:
       dockerfile: bot/Dockerfile
     environment:
       - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
-      - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
       - SCRAPPER_URL=http://scrapper:8081
       - BOT_POSTGRES_URL=jdbc:postgresql://postgres-db:5432/${POSTGRES_DB_NAME}
     ports:
