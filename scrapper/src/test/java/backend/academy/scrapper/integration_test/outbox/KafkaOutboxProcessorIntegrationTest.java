@@ -176,7 +176,15 @@ class KafkaOutboxProcessorIntegrationTest extends TestApplication {
                 ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
                 JsonSerializer.class,
                 ProducerConfig.CLIENT_ID_CONFIG,
-                "broken-outbox-test-producer");
+                "broken-outbox-test-producer",
+                ProducerConfig.MAX_BLOCK_MS_CONFIG,
+                1_000,
+                ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG,
+                1_000,
+                ProducerConfig.DELIVERY_TIMEOUT_MS_CONFIG,
+                2_000,
+                ProducerConfig.RETRIES_CONFIG,
+                0);
         KafkaTemplate<String, Object> brokenKafkaTemplate =
                 new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(producerProps));
         return new KafkaOutboxProcessor(
