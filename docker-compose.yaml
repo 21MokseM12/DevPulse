@@ -9,6 +9,9 @@ services:
       - BOT_POSTGRES_USER=${BOT_POSTGRES_USER:-postgres}
       - BOT_POSTGRES_PASSWORD=${BOT_POSTGRES_PASSWORD:-postgres}
       - BOT_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - BOT_REDIS_HOST=redis
+      - BOT_REDIS_PORT=6379
+      - BOT_REDIS_DATABASE=${BOT_REDIS_DATABASE:-1}
       - INTERNAL_SHARED_SECRET=${INTERNAL_SHARED_SECRET:-devpulse-internal-secret}
     ports:
       - "8080:8080"
@@ -20,6 +23,8 @@ services:
         condition: service_healthy
       kafka:
         condition: service_started
+      redis:
+        condition: service_healthy
     healthcheck:
       test: "curl --fail --silent http://localhost:8080/actuator/health | grep UP || exit 1"
       interval: 20s
@@ -36,6 +41,9 @@ services:
       - SCRAPPER_POSTGRES_USER=${SCRAPPER_POSTGRES_USER:-postgres}
       - SCRAPPER_POSTGRES_PASSWORD=${SCRAPPER_POSTGRES_PASSWORD:-postgres}
       - SCRAPPER_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - SCRAPPER_REDIS_HOST=redis
+      - SCRAPPER_REDIS_PORT=6379
+      - SCRAPPER_REDIS_DATABASE=${SCRAPPER_REDIS_DATABASE:-0}
       - INTERNAL_SHARED_SECRET=${INTERNAL_SHARED_SECRET:-devpulse-internal-secret}
       - GITHUB_TOKEN=${GITHUB_TOKEN}
       - SO_TOKEN_KEY=${SO_TOKEN_KEY}
@@ -45,6 +53,8 @@ services:
         condition: service_healthy
       kafka:
         condition: service_started
+      redis:
+        condition: service_healthy
     ports:
       - "8081:8081"
       - "25005:5005"
@@ -116,6 +126,17 @@ services:
       interval: 10s
       timeout: 5s
       retries: 20
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
 volumes:
   bot-db-data:

@@ -14,6 +14,7 @@ import static org.mockito.Mockito.when;
 import backend.academy.scrapper.db.model.Link;
 import backend.academy.scrapper.db.repository.LinkRepository;
 import backend.academy.scrapper.mapper.LinkMapper;
+import backend.academy.scrapper.service.cache.RedisPollingCacheService;
 import java.net.URI;
 import java.time.Clock;
 import java.time.Instant;
@@ -41,6 +42,9 @@ public class DbLinkServiceTest {
 
     @Mock
     private LinkRepository linkRepository;
+
+    @Mock
+    private RedisPollingCacheService redisPollingCacheService;
 
     @InjectMocks
     private DbLinkServiceImpl dbLinkService;

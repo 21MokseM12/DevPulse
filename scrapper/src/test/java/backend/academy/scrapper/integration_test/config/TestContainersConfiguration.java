@@ -21,9 +21,11 @@ import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.kafka.KafkaContainer;
+import org.testcontainers.utility.DockerImageName;
 
 @Testcontainers
 public class TestContainersConfiguration {
@@ -38,10 +40,12 @@ public class TestContainersConfiguration {
 
     public static PostgreSQLContainer<?> postgres;
     public static KafkaContainer kafka;
+    public static GenericContainer<?> redis;
 
     static {
         runPostgres();
         runKafka();
+        runRedis();
     }
 
     private static void runPostgres() {
@@ -79,6 +83,11 @@ public class TestContainersConfiguration {
         }
     }
 
+    private static void runRedis() {
+        redis = new GenericContainer<>(DockerImageName.parse("redis:7-alpine")).withExposedPorts(6379);
+        redis.start();
+    }
+
     private static AdminClient createAdminClient() {
         Map<String, Object> config = Map.of(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
         return AdminClient.create(config);
@@ -106,5 +115,7 @@ public class TestContainersConfiguration {
         String bootstrapServers = kafka.getBootstrapServers();
         registry.add("kafka.properties.bootstrap-servers", () -> bootstrapServers);
         registry.add("spring.kafka.bootstrap-servers", () -> bootstrapServers);
+        registry.add("spring.data.redis.host", redis::getHost);
+        registry.add("spring.data.redis.port", () -> redis.getMappedPort(6379));
     }
 }

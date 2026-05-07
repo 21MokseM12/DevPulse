@@ -31,6 +31,11 @@ app:
     bot-url: ${SCRAPPER_BOT_URL:${BOT_URL:http://bot:8080}}
   database:
     page-size: 1000
+  cache:
+    redis:
+      enabled: ${SCRAPPER_REDIS_CACHE_ENABLED:true}
+      etag-ttl: ${SCRAPPER_REDIS_ETAG_TTL:6h}
+      poll-hint-ttl: ${SCRAPPER_REDIS_POLL_HINT_TTL:30m}
 
 kafka:
   properties:
@@ -66,6 +71,12 @@ kafka:
 spring:
   kafka:
     bootstrap-servers: ${SCRAPPER_KAFKA_BOOTSTRAP_SERVERS:${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}}
+  data:
+    redis:
+      host: ${SCRAPPER_REDIS_HOST:${REDIS_HOST:localhost}}
+      port: ${SCRAPPER_REDIS_PORT:${REDIS_PORT:6379}}
+      password: ${SCRAPPER_REDIS_PASSWORD:${REDIS_PASSWORD:}}
+      database: ${SCRAPPER_REDIS_DATABASE:${REDIS_DATABASE:0}}
   datasource:
     username: ${SCRAPPER_POSTGRES_USER:${POSTGRES_USER:postgres}}
     password: ${SCRAPPER_POSTGRES_PASSWORD:${POSTGRES_PASSWORD:postgres}}

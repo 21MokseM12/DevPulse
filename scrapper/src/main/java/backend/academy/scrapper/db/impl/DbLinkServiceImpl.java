@@ -4,6 +4,7 @@ import backend.academy.scrapper.db.DbLinkService;
 import backend.academy.scrapper.db.model.Link;
 import backend.academy.scrapper.db.repository.LinkRepository;
 import backend.academy.scrapper.mapper.LinkMapper;
+import backend.academy.scrapper.service.cache.RedisPollingCacheService;
 import java.net.URI;
 import java.time.Clock;
 import java.time.OffsetDateTime;
@@ -25,6 +26,7 @@ public class DbLinkServiceImpl implements DbLinkService {
     private final Clock clock;
     private final LinkMapper mapper;
     private final LinkRepository linkRepository;
+    private final RedisPollingCacheService redisPollingCacheService;
 
     @Override
     @Transactional(rollbackFor = DataAccessException.class)
@@ -126,8 +128,14 @@ public class DbLinkServiceImpl implements DbLinkService {
 
     @Override
     public Optional<String> findEtagByLink(URI link) {
+        Optional<String> cachedEtag = redisPollingCacheService.getEtag(link);
+        if (cachedEtag.isPresent()) {
+            return cachedEtag;
+        }
         try {
-            return linkRepository.findEtagByLink(link.toString());
+            Optional<String> etag = linkRepository.findEtagByLink(link.toString());
+            etag.ifPresent(value -> redisPollingCacheService.saveEtag(link, value));
+            return etag;
         } catch (DataAccessException e) {
             log.warn("Произошла ошибка при получении etag для ссылки {}: {}", link, e.getMessage());
             return Optional.empty();
@@ -138,12 +146,19 @@ public class DbLinkServiceImpl implements DbLinkService {
     @Transactional(rollbackFor = DataAccessException.class)
     public void updateEtag(URI link, String etag) {
         linkRepository.updateEtag(link.toString(), etag);
+        redisPollingCacheService.saveEtag(link, etag);
     }
 
     @Override
     public Optional<OffsetDateTime> findLastEventDateByLink(URI link) {
+        Optional<OffsetDateTime> cachedDate = redisPollingCacheService.getLastEventDate(link);
+        if (cachedDate.isPresent()) {
+            return cachedDate;
+        }
         try {
-            return linkRepository.findLastEventDateByLink(link.toString());
+            Optional<OffsetDateTime> date = linkRepository.findLastEventDateByLink(link.toString());
+            date.ifPresent(value -> redisPollingCacheService.saveLastEventDate(link, value));
+            return date;
         } catch (DataAccessException e) {
             log.warn("Произошла ошибка при получении last_event_date для ссылки {}: {}", link, e.getMessage());
             return Optional.empty();
@@ -154,12 +169,14 @@ public class DbLinkServiceImpl implements DbLinkService {
     @Transactional(rollbackFor = DataAccessException.class)
     public void updateLastEventDate(URI link, OffsetDateTime lastEventDate) {
         linkRepository.updateLastEventDate(link.toString(), lastEventDate);
+        redisPollingCacheService.saveLastEventDate(link, lastEventDate);
     }
 
     @Override
     @Transactional(rollbackFor = DataAccessException.class)
     public void markPollingSuccess(URI link, OffsetDateTime checkedAt, OffsetDateTime nextPollAt) {
         linkRepository.markPollingSuccess(link.toString(), checkedAt, nextPollAt);
+        redisPollingCacheService.saveLastCheckedAt(link, checkedAt);
     }
 
     @Override
@@ -167,5 +184,6 @@ public class DbLinkServiceImpl implements DbLinkService {
     public void markPollingFailure(
             URI link, OffsetDateTime checkedAt, String error, long baseBackoffSeconds, long maxBackoffSeconds) {
         linkRepository.markPollingFailure(link.toString(), checkedAt, error, baseBackoffSeconds, maxBackoffSeconds);
+        redisPollingCacheService.saveLastCheckedAt(link, checkedAt);
     }
 }

@@ -11,6 +11,11 @@ app:
       key: stackoverflow-key
       access-token: stackoverflow-access-token
     bot-url: https://example.eu
+  cache:
+    redis:
+      enabled: false
+      etag-ttl: 5m
+      poll-hint-ttl: 5m
 
 spring:
   task:

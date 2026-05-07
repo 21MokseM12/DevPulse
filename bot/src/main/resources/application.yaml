@@ -23,6 +23,12 @@ app:
       auto-create-topics: ${BOT_KAFKA_RETRY_AUTO_CREATE_TOPICS:true}
 
 spring:
+  data:
+    redis:
+      host: ${BOT_REDIS_HOST:${REDIS_HOST:localhost}}
+      port: ${BOT_REDIS_PORT:${REDIS_PORT:6379}}
+      password: ${BOT_REDIS_PASSWORD:${REDIS_PASSWORD:}}
+      database: ${BOT_REDIS_DATABASE:${REDIS_DATABASE:0}}
   datasource:
     username: ${BOT_POSTGRES_USER:${POSTGRES_USER:postgres}}
     password: ${BOT_POSTGRES_PASSWORD:${POSTGRES_PASSWORD:postgres}}
