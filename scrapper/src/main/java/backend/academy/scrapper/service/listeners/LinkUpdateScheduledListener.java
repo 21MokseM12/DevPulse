@@ -6,7 +6,7 @@ import backend.academy.scrapper.factory.LinkUpdaterServiceFactory;
 import backend.academy.scrapper.model.LinkUpdateDTO;
 import backend.academy.scrapper.model.NotifyUpdateEntity;
 import backend.academy.scrapper.service.LinkOperationProcessor;
-import backend.academy.scrapper.service.notifications.impl.ScrapperHttpNotificationManager;
+import backend.academy.scrapper.service.notifications.NotificationManager;
 import jakarta.annotation.PostConstruct;
 import java.net.URI;
 import java.time.OffsetDateTime;
@@ -36,7 +36,7 @@ public class LinkUpdateScheduledListener {
     private final DatabaseProperty databaseProperty;
     private final LinkUpdaterServiceFactory updaterFactory;
     private final LinkOperationProcessor linkOperationProcessor;
-    private final ScrapperHttpNotificationManager notificationManager;
+    private final NotificationManager notificationManager;
 
     private ExecutorService executor;
 

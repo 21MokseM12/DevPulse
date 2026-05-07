@@ -54,6 +54,7 @@ import scrapper.bot.connectivity.model.LinkUpdate;
             "app.scrapper.github.token=test-token",
             "app.scrapper.stackoverflow.key=test-key",
             "app.scrapper.stackoverflow.access-token=test-access-token",
+            "app.scrapper.delivery.mode=kafka",
             "app.scrapper.outbox.topic=link-topic-response",
             "app.scrapper.outbox.interval=1h",
             "app.scrapper.outbox.batch-size=100",

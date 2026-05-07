@@ -17,6 +17,7 @@ public record ScrapperConfig(
         @NotEmpty String botUrl,
         @NotNull @Bean SchedulerCredentials scheduler,
         @NotNull @Bean OutboxCredentials outbox,
+        @NotNull @Bean DeliveryCredentials delivery,
         @NotNull @Bean AuthCredentials auth) {
 
     public record SchedulerCredentials(
@@ -30,6 +31,13 @@ public record ScrapperConfig(
 
     public record OutboxCredentials(
             @NotEmpty String topic, @NotEmpty Duration interval, @NotEmpty @Min(1) @Max(10_000) int batchSize) {}
+
+    public record DeliveryCredentials(@NotNull DeliveryMode mode) {}
+
+    public enum DeliveryMode {
+        HTTP,
+        KAFKA
+    }
 
     public record AuthCredentials(@NotEmpty String header, @NotEmpty String sharedSecret) {}
 }

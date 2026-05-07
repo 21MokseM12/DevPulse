@@ -2,6 +2,7 @@ package backend.academy.scrapper.service.notifications.impl;
 
 import backend.academy.scrapper.config.CommonKafkaConfig;
 import backend.academy.scrapper.config.ScrapperConfig;
+import backend.academy.scrapper.config.ScrapperConfig.DeliveryMode;
 import backend.academy.scrapper.config.properties.CommonKafkaProperties;
 import backend.academy.scrapper.db.model.KafkaOutboxMessage;
 import backend.academy.scrapper.db.repository.KafkaOutboxRepository;
@@ -60,6 +61,9 @@ public class KafkaOutboxProcessor {
     }
 
     public void processBatch() {
+        if (scrapperConfig.delivery().mode() != DeliveryMode.KAFKA) {
+            return;
+        }
         List<KafkaOutboxMessage> batch =
                 outboxRepository.findPendingBatch(scrapperConfig.outbox().batchSize());
         if (batch.isEmpty()) {

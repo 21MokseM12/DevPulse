@@ -11,7 +11,7 @@ import backend.academy.scrapper.config.properties.DatabaseProperty;
 import backend.academy.scrapper.factory.LinkUpdaterServiceFactory;
 import backend.academy.scrapper.model.LinkUpdateDTO;
 import backend.academy.scrapper.service.LinkOperationProcessor;
-import backend.academy.scrapper.service.notifications.impl.ScrapperHttpNotificationManager;
+import backend.academy.scrapper.service.notifications.NotificationManager;
 import backend.academy.scrapper.service.updaters.LinkUpdater;
 import java.net.URI;
 import java.time.Duration;
@@ -35,7 +35,7 @@ class LinkUpdateScheduledListenerTest {
     private LinkOperationProcessor linkOperationProcessor;
 
     @Mock
-    private ScrapperHttpNotificationManager notificationManager;
+    private NotificationManager notificationManager;
 
     @Mock
     private LinkUpdater linkUpdater;
@@ -96,6 +96,7 @@ class LinkUpdateScheduledListenerTest {
                 "http://localhost:8080",
                 new ScrapperConfig.SchedulerCredentials(Duration.ofSeconds(15), Duration.ofSeconds(30), 1),
                 new ScrapperConfig.OutboxCredentials("link-updates", Duration.ofSeconds(5), 100),
+                new ScrapperConfig.DeliveryCredentials(ScrapperConfig.DeliveryMode.HTTP),
                 new ScrapperConfig.AuthCredentials("X-Internal-Secret", "secret"));
     }
 }

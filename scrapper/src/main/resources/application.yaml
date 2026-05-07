@@ -8,6 +8,8 @@ springdoc:
 
 app:
   scrapper:
+    delivery:
+      mode: ${SCRAPPER_DELIVERY_MODE:http}
     scheduler:
       interval: 15s
       force-check-delay: 30s
