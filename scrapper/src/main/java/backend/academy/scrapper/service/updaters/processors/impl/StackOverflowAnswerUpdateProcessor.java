@@ -8,6 +8,7 @@ import backend.academy.scrapper.model.stackoverflow.StackOverflowAnswerItem;
 import backend.academy.scrapper.model.stackoverflow.StackOverflowQuestionItem;
 import backend.academy.scrapper.model.stackoverflow.StackOverflowResponse;
 import backend.academy.scrapper.model.stackoverflow.mappers.StackOverflowResponseMapper;
+import backend.academy.scrapper.service.resilience.ExternalApiResilienceExecutor;
 import backend.academy.scrapper.service.updaters.links.wrappers.impl.StackOverflowLinkService;
 import backend.academy.scrapper.service.updaters.processors.StackOverflowQuestionUpdateProcessor;
 import java.net.URI;
@@ -25,6 +26,7 @@ public class StackOverflowAnswerUpdateProcessor implements StackOverflowQuestion
 
     private final StackOverflowLinkService linkService;
     private final StackOverflowClient stackOverflowClient;
+    private final ExternalApiResilienceExecutor resilienceExecutor;
 
     @Override
     public List<LinkUpdateDTO> processUpdates(
@@ -32,8 +34,9 @@ public class StackOverflowAnswerUpdateProcessor implements StackOverflowQuestion
         List<LinkUpdateDTO> resultUpdatesList = new ArrayList<>();
         List<ProcessedIdDTO> nowProcessedIds = new ArrayList<>();
 
-        ResponseEntity<StackOverflowResponse<StackOverflowAnswerItem>> answersResponse =
-                stackOverflowClient.getAnswersByQuestionId(questionId, "stackoverflow", "withbody", fromDate);
+        ResponseEntity<StackOverflowResponse<StackOverflowAnswerItem>> answersResponse = resilienceExecutor.execute(
+                "stackoverflow-api",
+                () -> stackOverflowClient.getAnswersByQuestionId(questionId, "stackoverflow", "withbody", fromDate));
         if (answersResponse.getStatusCode() == HttpStatus.OK) {
             List<Long> alreadyProcessedAnswersIds = linkService.getProcessedAnswersIds(link);
             var answers = Objects.requireNonNull(answersResponse.getBody());

@@ -6,6 +6,7 @@ import backend.academy.scrapper.db.repository.KafkaOutboxRepository;
 import backend.academy.scrapper.mapper.LinkUpdateMapper;
 import backend.academy.scrapper.model.NotifyUpdateEntity;
 import backend.academy.scrapper.service.notifications.NotificationManager;
+import backend.academy.scrapper.service.resilience.ExternalApiResilienceExecutor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ public class ScrapperHttpNotificationManager implements NotificationManager {
     private final KafkaOutboxRepository kafkaOutboxRepository;
     private final ScrapperConfig scrapperConfig;
     private final ObjectMapper objectMapper;
+    private final ExternalApiResilienceExecutor resilienceExecutor;
 
     @Override
     public void notify(List<NotifyUpdateEntity> notifications) {
@@ -31,11 +33,16 @@ public class ScrapperHttpNotificationManager implements NotificationManager {
             notification.updates().forEach(update -> {
                 var linkUpdate = mapper.toLinkUpdate(update, notification);
                 kafkaOutboxRepository.save(scrapperConfig.outbox().topic(), linkUpdate);
-                ResponseEntity<?> response = botClient.sendUpdates(linkUpdate);
-                if (!response.getStatusCode().is2xxSuccessful()) {
-                    ApiErrorResponse errorResponse =
-                            objectMapper.convertValue(response.getBody(), ApiErrorResponse.class);
-                    log.error("При отправлении обновления по ссылке произошла ошибка: {}", errorResponse);
+                try {
+                    ResponseEntity<?> response =
+                            resilienceExecutor.execute("bot-api", () -> botClient.sendUpdates(linkUpdate));
+                    if (!response.getStatusCode().is2xxSuccessful()) {
+                        ApiErrorResponse errorResponse =
+                                objectMapper.convertValue(response.getBody(), ApiErrorResponse.class);
+                        log.error("При отправлении обновления по ссылке произошла ошибка: {}", errorResponse);
+                    }
+                } catch (Exception ex) {
+                    log.error("Ошибка resilient-отправки обновления в bot: {}", ex.getMessage());
                 }
             });
         }

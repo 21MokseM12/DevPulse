@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -17,6 +18,7 @@ import backend.academy.scrapper.model.stackoverflow.StackOverflowCommentItem;
 import backend.academy.scrapper.model.stackoverflow.StackOverflowOwner;
 import backend.academy.scrapper.model.stackoverflow.StackOverflowQuestionItem;
 import backend.academy.scrapper.model.stackoverflow.StackOverflowResponse;
+import backend.academy.scrapper.service.resilience.ExternalApiResilienceExecutor;
 import backend.academy.scrapper.service.updaters.links.wrappers.impl.StackOverflowLinkService;
 import java.net.URI;
 import java.time.LocalDate;
@@ -43,6 +45,9 @@ public class StackOverflowCommentUpdateProcessorTest {
     @Mock
     private StackOverflowLinkService linkService;
 
+    @Mock
+    private ExternalApiResilienceExecutor resilienceExecutor;
+
     @InjectMocks
     private StackOverflowCommentUpdateProcessor processor;
 
@@ -64,7 +69,7 @@ public class StackOverflowCommentUpdateProcessorTest {
         StackOverflowResponse<StackOverflowCommentItem> response =
                 new StackOverflowResponse<>(List.of(new StackOverflowCommentItem(1L, OWNER, fixedTime, "comment")));
 
-        when(client.getCommentsByQuestionId(questionId, site, filter, null))
+        when(resilienceExecutor.execute(eq("stackoverflow-api"), any()))
                 .thenReturn(ResponseEntity.badRequest().body(response));
 
         List<LinkUpdateDTO> linkUpdateDTOS = processor.processUpdates(link, questionId, question, null);
@@ -78,7 +83,7 @@ public class StackOverflowCommentUpdateProcessorTest {
         StackOverflowResponse<StackOverflowCommentItem> response =
                 new StackOverflowResponse<>(List.of(new StackOverflowCommentItem(1L, OWNER, fixedTime, "comment")));
 
-        when(client.getCommentsByQuestionId(questionId, site, filter, null))
+        when(resilienceExecutor.execute(eq("stackoverflow-api"), any()))
                 .thenReturn(ResponseEntity.ok().body(response));
         when(linkService.getProcessedCommentsIds(link)).thenReturn(List.of(1L));
 
@@ -115,7 +120,7 @@ public class StackOverflowCommentUpdateProcessorTest {
                         UpdateType.STACKOVERFLOW_COMMENT,
                         Set.of()));
 
-        when(client.getCommentsByQuestionId(questionId, site, filter, null))
+        when(resilienceExecutor.execute(eq("stackoverflow-api"), any()))
                 .thenReturn(ResponseEntity.ok().body(response));
         when(linkService.getProcessedCommentsIds(link)).thenReturn(List.of(1L, 3L, 5L));
 
@@ -177,7 +182,7 @@ public class StackOverflowCommentUpdateProcessorTest {
                         UpdateType.STACKOVERFLOW_COMMENT,
                         Set.of()));
 
-        when(client.getCommentsByQuestionId(questionId, site, filter, null))
+        when(resilienceExecutor.execute(eq("stackoverflow-api"), any()))
                 .thenReturn(ResponseEntity.ok().body(response));
         when(linkService.getProcessedCommentsIds(link)).thenReturn(List.of());
 

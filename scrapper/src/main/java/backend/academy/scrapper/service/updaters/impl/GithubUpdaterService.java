@@ -5,6 +5,7 @@ import backend.academy.scrapper.db.DbLinkService;
 import backend.academy.scrapper.model.LinkUpdateDTO;
 import backend.academy.scrapper.model.github.GithubResponse;
 import backend.academy.scrapper.service.parsers.GithubLinkParser;
+import backend.academy.scrapper.service.resilience.ExternalApiResilienceExecutor;
 import backend.academy.scrapper.service.updaters.LinkUpdater;
 import backend.academy.scrapper.service.updaters.processors.GithubRepoUpdateProcessor;
 import java.net.URI;
@@ -26,12 +27,15 @@ public class GithubUpdaterService implements LinkUpdater {
     private final DbLinkService dbLinkService;
     private final GithubLinkParser linkParser;
     private final List<GithubRepoUpdateProcessor> updateProcessors;
+    private final ExternalApiResilienceExecutor resilienceExecutor;
 
     @Override
     public List<LinkUpdateDTO> getUpdates(URI link) {
         String etag = dbLinkService.findEtagByLink(link).orElse(null);
-        ResponseEntity<List<GithubResponse>> events = githubClient.getEvents(
-                linkParser.parseUsername(link.toString()), linkParser.parseRepo(link.toString()), etag);
+        ResponseEntity<List<GithubResponse>> events = resilienceExecutor.execute(
+                "github-api",
+                () -> githubClient.getEvents(
+                        linkParser.parseUsername(link.toString()), linkParser.parseRepo(link.toString()), etag));
 
         if (events.getStatusCode().is2xxSuccessful() && events.getHeaders().getETag() != null) {
             dbLinkService.updateEtag(link, events.getHeaders().getETag());

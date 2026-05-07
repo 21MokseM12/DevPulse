@@ -74,3 +74,47 @@ spring:
   liquibase:
     enabled: true
     change-log: classpath:db/migrations/master.xml
+
+resilience4j:
+  retry:
+    configs:
+      default:
+        max-attempts: 3
+        wait-duration: 500ms
+        retry-exceptions:
+          - java.lang.RuntimeException
+    instances:
+      github-api:
+        base-config: default
+      stackoverflow-api:
+        base-config: default
+      bot-api:
+        base-config: default
+  circuitbreaker:
+    configs:
+      default:
+        sliding-window-size: 20
+        minimum-number-of-calls: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 30s
+        permitted-number-of-calls-in-half-open-state: 3
+    instances:
+      github-api:
+        base-config: default
+      stackoverflow-api:
+        base-config: default
+      bot-api:
+        base-config: default
+  ratelimiter:
+    configs:
+      default:
+        limit-for-period: 10
+        limit-refresh-period: 1s
+        timeout-duration: 0
+    instances:
+      github-api:
+        base-config: default
+      stackoverflow-api:
+        base-config: default
+      bot-api:
+        base-config: default

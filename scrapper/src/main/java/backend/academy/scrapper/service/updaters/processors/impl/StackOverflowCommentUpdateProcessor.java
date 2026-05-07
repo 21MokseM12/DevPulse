@@ -8,6 +8,7 @@ import backend.academy.scrapper.model.stackoverflow.StackOverflowCommentItem;
 import backend.academy.scrapper.model.stackoverflow.StackOverflowQuestionItem;
 import backend.academy.scrapper.model.stackoverflow.StackOverflowResponse;
 import backend.academy.scrapper.model.stackoverflow.mappers.StackOverflowResponseMapper;
+import backend.academy.scrapper.service.resilience.ExternalApiResilienceExecutor;
 import backend.academy.scrapper.service.updaters.links.wrappers.impl.StackOverflowLinkService;
 import backend.academy.scrapper.service.updaters.processors.StackOverflowQuestionUpdateProcessor;
 import java.net.URI;
@@ -25,6 +26,7 @@ public class StackOverflowCommentUpdateProcessor implements StackOverflowQuestio
 
     private final StackOverflowLinkService linkService;
     private final StackOverflowClient stackOverflowClient;
+    private final ExternalApiResilienceExecutor resilienceExecutor;
 
     @Override
     public List<LinkUpdateDTO> processUpdates(
@@ -33,8 +35,9 @@ public class StackOverflowCommentUpdateProcessor implements StackOverflowQuestio
         List<ProcessedIdDTO> nowProcessedIds = new ArrayList<>();
 
         List<Long> alreadyProcessedCommentsIds = linkService.getProcessedCommentsIds(link);
-        ResponseEntity<StackOverflowResponse<StackOverflowCommentItem>> commentsResponse =
-                stackOverflowClient.getCommentsByQuestionId(questionId, "stackoverflow", "withbody", fromDate);
+        ResponseEntity<StackOverflowResponse<StackOverflowCommentItem>> commentsResponse = resilienceExecutor.execute(
+                "stackoverflow-api",
+                () -> stackOverflowClient.getCommentsByQuestionId(questionId, "stackoverflow", "withbody", fromDate));
         if (commentsResponse.getStatusCode() == HttpStatus.OK) {
             var comments = Objects.requireNonNull(commentsResponse.getBody());
             comments.items().stream()

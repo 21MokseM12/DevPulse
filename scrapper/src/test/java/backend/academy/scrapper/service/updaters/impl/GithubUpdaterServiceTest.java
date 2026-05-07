@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -17,6 +19,7 @@ import backend.academy.scrapper.model.github.GithubActor;
 import backend.academy.scrapper.model.github.GithubPayload;
 import backend.academy.scrapper.model.github.GithubResponse;
 import backend.academy.scrapper.service.parsers.GithubLinkParser;
+import backend.academy.scrapper.service.resilience.ExternalApiResilienceExecutor;
 import backend.academy.scrapper.service.updaters.processors.GithubRepoUpdateProcessor;
 import java.net.URI;
 import java.time.OffsetDateTime;
@@ -35,6 +38,7 @@ public class GithubUpdaterServiceTest {
     private GithubClient githubClient;
 
     private DbLinkService dbLinkService;
+    private ExternalApiResilienceExecutor resilienceExecutor;
 
     private GithubRepoUpdateProcessor processor;
 
@@ -45,9 +49,11 @@ public class GithubUpdaterServiceTest {
         githubLinkParser = mock(GithubLinkParser.class);
         githubClient = mock(GithubClient.class);
         dbLinkService = mock(DbLinkService.class);
+        resilienceExecutor = mock(ExternalApiResilienceExecutor.class);
         processor = mock(GithubRepoUpdateProcessor.class);
         List<GithubRepoUpdateProcessor> processors = List.of(processor);
-        githubUpdaterService = new GithubUpdaterService(githubClient, dbLinkService, githubLinkParser, processors);
+        githubUpdaterService =
+                new GithubUpdaterService(githubClient, dbLinkService, githubLinkParser, processors, resilienceExecutor);
     }
 
     @Test
@@ -59,7 +65,7 @@ public class GithubUpdaterServiceTest {
         when(dbLinkService.findEtagByLink(link)).thenReturn(Optional.empty());
         when(githubLinkParser.parseUsername(link.toString())).thenReturn("username");
         when(githubLinkParser.parseRepo(link.toString())).thenReturn("repo");
-        when(githubClient.getEvents("username", "repo", null))
+        when(resilienceExecutor.execute(eq("github-api"), any()))
                 .thenReturn(ResponseEntity.badRequest().body(List.of(response)));
 
         List<LinkUpdateDTO> updates = githubUpdaterService.getUpdates(link);
@@ -80,7 +86,7 @@ public class GithubUpdaterServiceTest {
         when(githubLinkParser.parseRepo(link.toString())).thenReturn("repo");
         HttpHeaders headers = new HttpHeaders();
         headers.setETag("\"new-etag\"");
-        when(githubClient.getEvents("username", "repo", "\"old-etag\""))
+        when(resilienceExecutor.execute(eq("github-api"), any()))
                 .thenReturn(new ResponseEntity<>(List.of(response), headers, HttpStatus.OK));
 
         List<LinkUpdateDTO> updates = githubUpdaterService.getUpdates(link);
@@ -97,7 +103,7 @@ public class GithubUpdaterServiceTest {
         when(dbLinkService.findEtagByLink(link)).thenReturn(Optional.of("\"same-etag\""));
         when(githubLinkParser.parseUsername(link.toString())).thenReturn("username");
         when(githubLinkParser.parseRepo(link.toString())).thenReturn("repo");
-        when(githubClient.getEvents("username", "repo", "\"same-etag\""))
+        when(resilienceExecutor.execute(eq("github-api"), any()))
                 .thenReturn(ResponseEntity.status(HttpStatus.NOT_MODIFIED).build());
 
         List<LinkUpdateDTO> updates = githubUpdaterService.getUpdates(link);

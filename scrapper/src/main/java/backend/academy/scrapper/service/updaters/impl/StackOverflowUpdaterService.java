@@ -6,6 +6,7 @@ import backend.academy.scrapper.model.LinkUpdateDTO;
 import backend.academy.scrapper.model.stackoverflow.StackOverflowQuestionItem;
 import backend.academy.scrapper.model.stackoverflow.StackOverflowResponse;
 import backend.academy.scrapper.service.parsers.StackOverflowLinkParser;
+import backend.academy.scrapper.service.resilience.ExternalApiResilienceExecutor;
 import backend.academy.scrapper.service.updaters.LinkUpdater;
 import backend.academy.scrapper.service.updaters.processors.StackOverflowQuestionUpdateProcessor;
 import java.net.URI;
@@ -27,6 +28,7 @@ public class StackOverflowUpdaterService implements LinkUpdater {
     private final DbLinkService dbLinkService;
     private final StackOverflowLinkParser stackOverflowLinkParser;
     private final List<StackOverflowQuestionUpdateProcessor> questionUpdateProcessors;
+    private final ExternalApiResilienceExecutor resilienceExecutor;
 
     @Override
     public List<LinkUpdateDTO> getUpdates(URI link) {
@@ -37,8 +39,8 @@ public class StackOverflowUpdaterService implements LinkUpdater {
                 .findLastEventDateByLink(link)
                 .map(OffsetDateTime::toEpochSecond)
                 .orElse(null);
-        ResponseEntity<StackOverflowResponse<StackOverflowQuestionItem>> questionsResponse =
-                stackOverflowClient.getQuestionById(questionId, "stackoverflow", fromDate);
+        ResponseEntity<StackOverflowResponse<StackOverflowQuestionItem>> questionsResponse = resilienceExecutor.execute(
+                "stackoverflow-api", () -> stackOverflowClient.getQuestionById(questionId, "stackoverflow", fromDate));
 
         if (!(questionsResponse.getStatusCode() == HttpStatus.OK)
                 || Objects.requireNonNull(questionsResponse.getBody()).items().isEmpty()) {

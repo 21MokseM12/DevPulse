@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -15,6 +17,7 @@ import backend.academy.scrapper.model.LinkUpdateDTO;
 import backend.academy.scrapper.model.stackoverflow.StackOverflowQuestionItem;
 import backend.academy.scrapper.model.stackoverflow.StackOverflowResponse;
 import backend.academy.scrapper.service.parsers.StackOverflowLinkParser;
+import backend.academy.scrapper.service.resilience.ExternalApiResilienceExecutor;
 import backend.academy.scrapper.service.updaters.processors.StackOverflowQuestionUpdateProcessor;
 import java.net.URI;
 import java.time.OffsetDateTime;
@@ -28,6 +31,7 @@ public class StackOverflowUpdaterServiceTest {
 
     private StackOverflowClient stackOverflowClient;
     private DbLinkService dbLinkService;
+    private ExternalApiResilienceExecutor resilienceExecutor;
 
     private StackOverflowQuestionUpdateProcessor processor;
 
@@ -39,12 +43,13 @@ public class StackOverflowUpdaterServiceTest {
     public void setUp() {
         stackOverflowClient = mock(StackOverflowClient.class);
         dbLinkService = mock(DbLinkService.class);
+        resilienceExecutor = mock(ExternalApiResilienceExecutor.class);
         StackOverflowLinkParser stackOverflowLinkParser = mock(StackOverflowLinkParser.class);
         processor = mock(StackOverflowQuestionUpdateProcessor.class);
         List<StackOverflowQuestionUpdateProcessor> processors = List.of(processor);
 
         updaterService = new StackOverflowUpdaterService(
-                stackOverflowClient, dbLinkService, stackOverflowLinkParser, processors);
+                stackOverflowClient, dbLinkService, stackOverflowLinkParser, processors, resilienceExecutor);
 
         when(stackOverflowLinkParser.parseQuestionId(link.toString())).thenReturn(1L);
     }
@@ -52,7 +57,7 @@ public class StackOverflowUpdaterServiceTest {
     @Test
     public void getUpdates_whenStatusCodeNotSuccessful_shouldReturnEmptyList() {
         when(dbLinkService.findLastEventDateByLink(link)).thenReturn(Optional.empty());
-        when(stackOverflowClient.getQuestionById(1L, "stackoverflow", null))
+        when(resilienceExecutor.execute(eq("stackoverflow-api"), any()))
                 .thenReturn(ResponseEntity.badRequest().body(new StackOverflowResponse<>(List.of())));
 
         List<LinkUpdateDTO> updates = updaterService.getUpdates(link);
@@ -67,7 +72,7 @@ public class StackOverflowUpdaterServiceTest {
         LinkUpdateDTO expected = new LinkUpdateDTO(1L, "title", "owner", updateTime, "desc");
 
         when(dbLinkService.findLastEventDateByLink(link)).thenReturn(Optional.empty());
-        when(stackOverflowClient.getQuestionById(1L, "stackoverflow", null))
+        when(resilienceExecutor.execute(eq("stackoverflow-api"), any()))
                 .thenReturn(ResponseEntity.ok().body(new StackOverflowResponse<>(List.of(questionItem))));
         when(processor.processUpdates(link, 1L, questionItem, null)).thenReturn(List.of(expected));
 
@@ -85,7 +90,7 @@ public class StackOverflowUpdaterServiceTest {
         StackOverflowQuestionItem questionItem = new StackOverflowQuestionItem("title", List.of());
 
         when(dbLinkService.findLastEventDateByLink(link)).thenReturn(Optional.of(lastEventDate));
-        when(stackOverflowClient.getQuestionById(1L, "stackoverflow", fromDate))
+        when(resilienceExecutor.execute(eq("stackoverflow-api"), any()))
                 .thenReturn(ResponseEntity.ok().body(new StackOverflowResponse<>(List.of(questionItem))));
         when(processor.processUpdates(link, 1L, questionItem, fromDate)).thenReturn(List.of());
 
