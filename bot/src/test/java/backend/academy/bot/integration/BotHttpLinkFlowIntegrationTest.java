@@ -3,6 +3,7 @@ package backend.academy.bot.integration;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.sun.net.httpserver.HttpExchange;
@@ -114,6 +115,23 @@ class BotHttpLinkFlowIntegrationTest {
         mockMvc.perform(get("/api/v1/links").header("Client-Login", "alice")).andExpect(status().isBadRequest());
     }
 
+    @Test
+    void notificationsFilterByTags_returnsOnlyMatchingLinks() throws Exception {
+        registerClient("1", "1");
+        getBody.set("["
+                + linkResponseJsonWithTags(1001L, "https://github.com/org/repo/issues/1", "[\"backend\"]", "[]")
+                + ","
+                + linkResponseJsonWithTags(1002L, "https://github.com/org/repo/issues/2", "[\"mobile\"]", "[]")
+                + "]");
+        postInternalUpdate(updatePayload(1001L, "https://github.com/org/repo/issues/1", 1));
+        postInternalUpdate(updatePayload(1002L, "https://github.com/org/repo/issues/2", 1));
+
+        mockMvc.perform(get("/api/v1/notifications").header("Client-Login", "1").param("tags", "backend"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.notifications.length()").value(1))
+                .andExpect(jsonPath("$.notifications[0].url").value("https://github.com/org/repo/issues/1"));
+    }
+
     private static HttpServer createStubServer() {
         try {
             HttpServer server = HttpServer.create(new InetSocketAddress(0), 0);
@@ -129,6 +147,22 @@ class BotHttpLinkFlowIntegrationTest {
         return "{" + "\"id\":" + id + "," + "\"url\":\"" + url + "\"," + "\"tags\":[]," + "\"filters\":[]" + "}";
     }
 
+    private static String linkResponseJsonWithTags(long id, String url, String tagsJson, String filtersJson) {
+        return "{"
+                + "\"id\":"
+                + id
+                + ","
+                + "\"url\":\""
+                + url
+                + "\","
+                + "\"tags\":"
+                + tagsJson
+                + ","
+                + "\"filters\":"
+                + filtersJson
+                + "}";
+    }
+
     private static String apiErrorJson(String description, String code, String exceptionName, String message) {
         return "{"
                 + "\"description\":\"" + description + "\","
@@ -137,6 +171,39 @@ class BotHttpLinkFlowIntegrationTest {
                 + "\"exceptionMessage\":\"" + message + "\","
                 + "\"stacktrace\":[]"
                 + "}";
+    }
+
+    private String updatePayload(long id, String url, long clientId) {
+        return "{"
+                + "\"id\":"
+                + id
+                + ","
+                + "\"url\":\""
+                + url
+                + "\","
+                + "\"title\":\"title\","
+                + "\"updateOwner\":\"owner\","
+                + "\"description\":\"description\","
+                + "\"creationDate\":\"2026-04-26T00:00:00Z\","
+                + "\"clientsIds\":["
+                + clientId
+                + "]"
+                + "}";
+    }
+
+    private void registerClient(String login, String password) throws Exception {
+        mockMvc.perform(post("/api/v1/clients")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"login\":\"" + login + "\",\"password\":\"" + password + "\"}"))
+                .andExpect(status().isOk());
+    }
+
+    private void postInternalUpdate(String payload) throws Exception {
+        mockMvc.perform(post("/updates")
+                        .header("X-Internal-Secret", "test-internal-secret")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isOk());
     }
 
     private static class StubLinksHandler implements HttpHandler {

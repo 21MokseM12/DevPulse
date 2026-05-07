@@ -13,5 +13,6 @@
     <include relativeToChangelogFile="true" file="004_drop_notifications_clients_ids.sql"/>
     <include relativeToChangelogFile="true" file="005_add_notifications_dedup_constraint.sql"/>
     <include relativeToChangelogFile="true" file="006_hash_existing_client_passwords.sql"/>
+    <include relativeToChangelogFile="true" file="007_add_notification_read_state.sql"/>
 
 </databaseChangeLog>

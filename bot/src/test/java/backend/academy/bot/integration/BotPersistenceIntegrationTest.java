@@ -2,6 +2,7 @@ package backend.academy.bot.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -101,11 +102,7 @@ class BotPersistenceIntegrationTest {
                 "creationDate", OffsetDateTime.parse("2026-04-26T00:00:00Z"),
                 "clientsIds", List.of(1)));
 
-        mockMvc.perform(post("/updates")
-                        .header("X-Internal-Secret", "test-internal-secret")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(updatePayload))
-                .andExpect(status().isOk());
+        postInternalUpdate(updatePayload);
 
         Integer notifications =
                 jdbcTemplate.queryForObject("SELECT COUNT(*) FROM notifications WHERE link_id = 101", Integer.class);
@@ -128,11 +125,7 @@ class BotPersistenceIntegrationTest {
                 "creationDate", OffsetDateTime.parse("2026-04-26T00:00:00Z"),
                 "clientsIds", List.of(1)));
 
-        mockMvc.perform(post("/updates")
-                        .header("X-Internal-Secret", "test-internal-secret")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(updatePayload))
-                .andExpect(status().isOk());
+        postInternalUpdate(updatePayload);
 
         Integer recipientsBeforeDelete = jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM notification_recipients WHERE client_login = '1'", Integer.class);
@@ -159,11 +152,104 @@ class BotPersistenceIntegrationTest {
                 .andExpect(status().isNotFound());
     }
 
+    @Test
+    void notificationLifecycle_newUnread_thenMarkRead_thenIdempotentRepeat() throws Exception {
+        registerClient("1", "1");
+        String first = objectMapper.writeValueAsString(Map.of(
+                "id", 901,
+                "url", "https://github.com/org/repo/issues/901",
+                "title", "Issue 901",
+                "updateOwner", "octocat",
+                "description", "Details 901",
+                "creationDate", OffsetDateTime.parse("2026-04-26T00:00:00Z"),
+                "clientsIds", List.of(1)));
+        String second = objectMapper.writeValueAsString(Map.of(
+                "id", 902,
+                "url", "https://github.com/org/repo/issues/902",
+                "title", "Issue 902",
+                "updateOwner", "octocat",
+                "description", "Details 902",
+                "creationDate", OffsetDateTime.parse("2026-04-26T00:01:00Z"),
+                "clientsIds", List.of(1)));
+        postInternalUpdate(first);
+        postInternalUpdate(second);
+
+        mockMvc.perform(get("/api/v1/notifications/unread-count").header("Client-Login", "1"))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.unreadCount")
+                        .value(2));
+
+        Long latestNotificationId =
+                jdbcTemplate.queryForObject("SELECT id FROM notifications WHERE link_id = 902", Long.class);
+        String markReadPayload = objectMapper.writeValueAsString(Map.of("ids", List.of(latestNotificationId)));
+
+        mockMvc.perform(post("/api/v1/notifications/mark-read")
+                        .header("Client-Login", "1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(markReadPayload))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.updatedCount")
+                        .value(1));
+
+        mockMvc.perform(post("/api/v1/notifications/mark-read")
+                        .header("Client-Login", "1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(markReadPayload))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.updatedCount")
+                        .value(0));
+
+        mockMvc.perform(get("/api/v1/notifications/unread-count").header("Client-Login", "1"))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.unreadCount")
+                        .value(1));
+    }
+
+    @Test
+    void markRead_shouldNotAffectOtherClientNotifications() throws Exception {
+        registerClient("1", "1");
+        registerClient("2", "2");
+
+        String updateForSecond = objectMapper.writeValueAsString(Map.of(
+                "id", 999,
+                "url", "https://github.com/org/repo/issues/999",
+                "title", "Issue 999",
+                "updateOwner", "octocat",
+                "description", "Details 999",
+                "creationDate", OffsetDateTime.parse("2026-04-26T00:00:00Z"),
+                "clientsIds", List.of(2)));
+        postInternalUpdate(updateForSecond);
+        Long notificationId =
+                jdbcTemplate.queryForObject("SELECT id FROM notifications WHERE link_id = 999", Long.class);
+
+        String markReadPayload = objectMapper.writeValueAsString(Map.of("ids", List.of(notificationId)));
+        mockMvc.perform(post("/api/v1/notifications/mark-read")
+                        .header("Client-Login", "1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(markReadPayload))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.updatedCount")
+                        .value(0));
+
+        mockMvc.perform(get("/api/v1/notifications/unread-count").header("Client-Login", "2"))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.unreadCount")
+                        .value(1));
+    }
+
     private void registerClient(String login, String password) throws Exception {
         String payload = objectMapper.writeValueAsString(Map.of("login", login, "password", password));
         mockMvc.perform(post("/api/v1/clients")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payload))
+                .andExpect(status().isOk());
+    }
+
+    private void postInternalUpdate(String updatePayload) throws Exception {
+        mockMvc.perform(post("/updates")
+                        .header("X-Internal-Secret", "test-internal-secret")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(updatePayload))
                 .andExpect(status().isOk());
     }
 }

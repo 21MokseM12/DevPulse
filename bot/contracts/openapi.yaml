@@ -15,6 +15,8 @@ tags:
     description: Управление подписками на ссылки
   - name: Updates
     description: Входящие уведомления от scrapper
+  - name: Notifications
+    description: Чтение и управление статусом уведомлений
 
 paths:
   /api/v1/clients:
@@ -140,6 +142,87 @@ paths:
       responses:
         '200':
           description: Уведомление принято
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /api/v1/notifications:
+    get:
+      tags: [Notifications]
+      operationId: getNotifications
+      summary: Получить список уведомлений клиента
+      parameters:
+        - $ref: '#/components/parameters/ClientLoginHeader'
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: tags
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+      responses:
+        '200':
+          description: Список уведомлений
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationListResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /api/v1/notifications/unread-count:
+    get:
+      tags: [Notifications]
+      operationId: getUnreadCount
+      summary: Получить количество непрочитанных уведомлений
+      parameters:
+        - $ref: '#/components/parameters/ClientLoginHeader'
+      responses:
+        '200':
+          description: Количество непрочитанных уведомлений
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnreadCountResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /api/v1/notifications/mark-read:
+    post:
+      tags: [Notifications]
+      operationId: markNotificationsRead
+      summary: Пометить уведомления как прочитанные
+      parameters:
+        - $ref: '#/components/parameters/ClientLoginHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarkReadRequest'
+      responses:
+        '200':
+          description: Результат операции mark read
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarkReadResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
 
@@ -306,3 +389,88 @@ components:
           type: array
           items:
             type: string
+
+    NotificationDto:
+      type: object
+      required: [id, linkId, url, title, updateOwner, description, creationDate, receivedAt, unread]
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 10
+        linkId:
+          type: integer
+          format: int64
+          example: 101
+        url:
+          type: string
+          format: uri
+          example: https://github.com/org/repo/issues/1
+        title:
+          type: string
+          example: New issue comment
+        updateOwner:
+          type: string
+          example: octocat
+        description:
+          type: string
+          example: Added a new comment
+        creationDate:
+          type: string
+          format: date-time
+        receivedAt:
+          type: string
+          format: date-time
+        readAt:
+          type: string
+          format: date-time
+          nullable: true
+        unread:
+          type: boolean
+          example: true
+
+    NotificationListResponse:
+      type: object
+      required: [notifications, limit, offset]
+      properties:
+        notifications:
+          type: array
+          items:
+            $ref: '#/components/schemas/NotificationDto'
+        limit:
+          type: integer
+          example: 20
+        offset:
+          type: integer
+          example: 0
+
+    UnreadCountResponse:
+      type: object
+      required: [unreadCount]
+      properties:
+        unreadCount:
+          type: integer
+          format: int64
+          example: 3
+
+    MarkReadRequest:
+      type: object
+      properties:
+        ids:
+          type: array
+          items:
+            type: integer
+            format: int64
+          uniqueItems: true
+        markAll:
+          type: boolean
+          default: false
+
+    MarkReadResponse:
+      type: object
+      required: [updatedCount]
+      properties:
+        updatedCount:
+          type: integer
+          format: int64
+          example: 1

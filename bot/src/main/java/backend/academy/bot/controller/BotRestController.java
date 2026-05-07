@@ -2,10 +2,16 @@ package backend.academy.bot.controller;
 
 import backend.academy.bot.enums.Messages;
 import backend.academy.bot.model.api.BotApiMessageResponse;
+import backend.academy.bot.model.api.MarkReadRequest;
+import backend.academy.bot.model.api.MarkReadResponse;
+import backend.academy.bot.model.api.NotificationListResponse;
+import backend.academy.bot.model.api.UnreadCountResponse;
 import backend.academy.bot.model.entity.LinkDTO;
 import backend.academy.bot.service.ClientOperationService;
 import backend.academy.bot.service.ScrapperConnectionService;
+import backend.academy.bot.service.notifications.NotificationQueryService;
 import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -14,6 +20,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import scrapper.bot.connectivity.exceptions.BadRequestException;
 import scrapper.bot.connectivity.model.request.AddLinkRequest;
@@ -30,6 +37,7 @@ public class BotRestController {
 
     private final ClientOperationService clientOperationService;
     private final ScrapperConnectionService scrapperConnectionService;
+    private final NotificationQueryService notificationQueryService;
 
     @PostMapping("/clients")
     public ResponseEntity<BotApiMessageResponse> registerClient(@RequestBody ClientCredentialsRequest request)
@@ -77,5 +85,27 @@ public class BotRestController {
             throw new BadRequestException(Messages.ERROR.toString());
         }
         return ResponseEntity.ok(new BotApiMessageResponse(Messages.DELETE_SUBSCRIBE_MESSAGE.toString()));
+    }
+
+    @GetMapping("/notifications")
+    public ResponseEntity<NotificationListResponse> getNotifications(
+            @RequestHeader(name = CLIENT_LOGIN_HEADER) String login,
+            @RequestParam(required = false) Integer limit,
+            @RequestParam(required = false) Integer offset,
+            @RequestParam(required = false) Set<String> tags)
+            throws BadRequestException {
+        return ResponseEntity.ok(notificationQueryService.list(login, limit, offset, tags));
+    }
+
+    @GetMapping("/notifications/unread-count")
+    public ResponseEntity<UnreadCountResponse> getUnreadCount(@RequestHeader(name = CLIENT_LOGIN_HEADER) String login) {
+        return ResponseEntity.ok(notificationQueryService.unreadCount(login));
+    }
+
+    @PostMapping("/notifications/mark-read")
+    public ResponseEntity<MarkReadResponse> markNotificationsRead(
+            @RequestHeader(name = CLIENT_LOGIN_HEADER) String login, @RequestBody MarkReadRequest request)
+            throws BadRequestException {
+        return ResponseEntity.ok(notificationQueryService.markRead(login, request));
     }
 }

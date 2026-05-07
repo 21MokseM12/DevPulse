@@ -22,5 +22,10 @@ class ContractConsistencyTest {
         assertTrue(openapi.contains("/updates"));
         assertTrue(openapi.contains("LinkUpdate"));
         assertTrue(openapi.contains("clientsIds"));
+        assertTrue(openapi.contains("/api/v1/notifications"));
+        assertTrue(openapi.contains("/api/v1/notifications/unread-count"));
+        assertTrue(openapi.contains("/api/v1/notifications/mark-read"));
+        assertTrue(openapi.contains("NotificationDto"));
+        assertTrue(openapi.contains("MarkReadRequest"));
     }
 }

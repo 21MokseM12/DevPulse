@@ -13,9 +13,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import backend.academy.bot.enums.Messages;
 import backend.academy.bot.exceptions.ChatNotFoundException;
+import backend.academy.bot.model.api.MarkReadResponse;
+import backend.academy.bot.model.api.NotificationDto;
+import backend.academy.bot.model.api.NotificationListResponse;
+import backend.academy.bot.model.api.UnreadCountResponse;
 import backend.academy.bot.model.entity.LinkDTO;
 import backend.academy.bot.service.ClientOperationService;
 import backend.academy.bot.service.ScrapperConnectionService;
+import backend.academy.bot.service.notifications.NotificationQueryService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
 import java.util.List;
@@ -43,6 +48,9 @@ class BotRestControllerTest {
 
     @MockitoBean
     private ClientOperationService clientOperationService;
+
+    @MockitoBean
+    private NotificationQueryService notificationQueryService;
 
     @Test
     void registerClient_returnsWelcomeMessage() throws Exception {
@@ -177,5 +185,52 @@ class BotRestControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void getNotifications_returnsNotificationList() throws Exception {
+        var notification = new NotificationDto(
+                1L,
+                100L,
+                "https://github.com/u/r/issues/1",
+                "Issue updated",
+                "octocat",
+                "description",
+                java.time.OffsetDateTime.parse("2026-04-26T00:00:00Z"),
+                java.time.OffsetDateTime.parse("2026-04-26T00:01:00Z"),
+                null,
+                true);
+        when(notificationQueryService.list(eq("user"), eq(10), eq(0), eq(Set.of("backend"))))
+                .thenReturn(new NotificationListResponse(List.of(notification), 10, 0));
+
+        mockMvc.perform(get("/api/v1/notifications")
+                        .header("Client-Login", "user")
+                        .param("limit", "10")
+                        .param("offset", "0")
+                        .param("tags", "backend"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.notifications[0].id").value(1L))
+                .andExpect(jsonPath("$.notifications[0].unread").value(true));
+    }
+
+    @Test
+    void getUnreadCount_returnsCount() throws Exception {
+        when(notificationQueryService.unreadCount("user")).thenReturn(new UnreadCountResponse(4));
+
+        mockMvc.perform(get("/api/v1/notifications/unread-count").header("Client-Login", "user"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.unreadCount").value(4));
+    }
+
+    @Test
+    void markRead_returnsUpdatedCount() throws Exception {
+        when(notificationQueryService.markRead(eq("user"), any())).thenReturn(new MarkReadResponse(2));
+
+        mockMvc.perform(post("/api/v1/notifications/mark-read")
+                        .header("Client-Login", "user")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"ids\":[1,2]}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.updatedCount").value(2));
     }
 }
