@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import scrapper.bot.connectivity.model.response.ApiErrorResponse;
@@ -39,8 +40,12 @@ public class ScrapperHttpNotificationManager implements NotificationManager {
                 }
                 if (scrapperConfig.delivery().mode() == DeliveryMode.HTTP) {
                     try {
+                        HttpHeaders headers = new HttpHeaders();
+                        headers.add(
+                                scrapperConfig.auth().header(),
+                                scrapperConfig.auth().sharedSecret());
                         ResponseEntity<?> response =
-                                resilienceExecutor.execute("bot-api", () -> botClient.sendUpdates(linkUpdate));
+                                resilienceExecutor.execute("bot-api", () -> botClient.sendUpdates(linkUpdate, headers));
                         if (!response.getStatusCode().is2xxSuccessful()) {
                             ApiErrorResponse errorResponse =
                                     objectMapper.convertValue(response.getBody(), ApiErrorResponse.class);

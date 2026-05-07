@@ -89,7 +89,10 @@ class BotKafkaNotificationPipelineIntegrationTest {
                 "creationDate", OffsetDateTime.parse("2026-04-26T00:00:00Z"),
                 "clientsIds", List.of(1)));
 
-        mockMvc.perform(post("/updates").contentType(MediaType.APPLICATION_JSON).content(payload))
+        mockMvc.perform(post("/updates")
+                        .header("X-Internal-Secret", "test-internal-secret")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
                 .andExpect(status().isOk());
 
         kafkaTemplate.send("bot-link-updates-test", payload);

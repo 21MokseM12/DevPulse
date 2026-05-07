@@ -9,6 +9,7 @@ springdoc:
 app:
   scrapper-url: ${BOT_SCRAPPER_URL:${SCRAPPER_URL:http://localhost:8081}}
   shared-secret: ${INTERNAL_SHARED_SECRET:devpulse-internal-secret}
+  internal-header: ${INTERNAL_SHARED_HEADER:X-Internal-Secret}
   kafka:
     consumers:
       link-updates:

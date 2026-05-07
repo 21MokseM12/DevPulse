@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import scrapper.bot.connectivity.model.LinkUpdate;
 
@@ -67,15 +68,23 @@ class ScrapperHttpNotificationManagerTest {
                 List.of(1L, 2L));
 
         when(mapper.toLinkUpdate(update, entity)).thenReturn(payload);
-        when(resilienceExecutor.execute(eq("bot-api"), any()))
+        when(resilienceExecutor.execute(eq("bot-api"), any())).thenAnswer(invocation -> {
+            @SuppressWarnings("unchecked")
+            java.util.function.Supplier<ResponseEntity<?>> supplier = invocation.getArgument(1);
+            return supplier.get();
+        });
+        when(botClient.sendUpdates(eq(payload), any(HttpHeaders.class)))
                 .thenReturn(ResponseEntity.ok().build());
         when(scrapperConfig.delivery()).thenReturn(deliveryCredentials);
         when(deliveryCredentials.mode()).thenReturn(DeliveryMode.HTTP);
+        when(scrapperConfig.auth()).thenReturn(new ScrapperConfig.AuthCredentials("X-Internal-Secret", "secret"));
 
         manager.notify(List.of(entity));
 
         verify(kafkaOutboxRepository, times(0)).save(any(), any());
         verify(resilienceExecutor, times(1)).execute(eq("bot-api"), any());
+        verify(botClient, times(1)).sendUpdates(eq(payload), org.mockito.ArgumentMatchers.argThat(headers -> "secret"
+                .equals(headers.getFirst("X-Internal-Secret"))));
     }
 
     @Test

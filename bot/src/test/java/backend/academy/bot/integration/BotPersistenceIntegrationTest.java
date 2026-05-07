@@ -101,7 +101,10 @@ class BotPersistenceIntegrationTest {
                 "creationDate", OffsetDateTime.parse("2026-04-26T00:00:00Z"),
                 "clientsIds", List.of(1)));
 
-        mockMvc.perform(post("/updates").contentType(MediaType.APPLICATION_JSON).content(updatePayload))
+        mockMvc.perform(post("/updates")
+                        .header("X-Internal-Secret", "test-internal-secret")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(updatePayload))
                 .andExpect(status().isOk());
 
         Integer notifications =
@@ -125,7 +128,10 @@ class BotPersistenceIntegrationTest {
                 "creationDate", OffsetDateTime.parse("2026-04-26T00:00:00Z"),
                 "clientsIds", List.of(1)));
 
-        mockMvc.perform(post("/updates").contentType(MediaType.APPLICATION_JSON).content(updatePayload))
+        mockMvc.perform(post("/updates")
+                        .header("X-Internal-Secret", "test-internal-secret")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(updatePayload))
                 .andExpect(status().isOk());
 
         Integer recipientsBeforeDelete = jdbcTemplate.queryForObject(

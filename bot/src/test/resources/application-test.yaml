@@ -1,6 +1,7 @@
 app:
   scrapper-url: "https://api.github.com"
   shared-secret: test-internal-secret
+  internal-header: X-Internal-Secret
 
 spring:
   datasource:

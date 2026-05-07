@@ -16,11 +16,18 @@ public class ApplicationConfig {
     @NotEmpty
     private String sharedSecret;
 
+    @NotEmpty
+    private String internalHeader;
+
     public void setScrapperUrl(String scrapperUrl) {
         this.scrapperUrl = scrapperUrl;
     }
 
     public void setSharedSecret(String sharedSecret) {
         this.sharedSecret = sharedSecret;
+    }
+
+    public void setInternalHeader(String internalHeader) {
+        this.internalHeader = internalHeader;
     }
 }
