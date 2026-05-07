@@ -26,6 +26,10 @@ public interface LinkRepository {
 
     void updateEtag(String url, String etag);
 
+    Optional<OffsetDateTime> findLastEventDateByLink(String url);
+
+    void updateLastEventDate(String url, OffsetDateTime lastEventDate);
+
     void markPollingSuccess(String url, OffsetDateTime checkedAt, OffsetDateTime nextPollAt);
 
     void markPollingFailure(

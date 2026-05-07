@@ -6,5 +6,5 @@ import java.net.URI;
 import java.util.List;
 
 public interface StackOverflowQuestionUpdateProcessor {
-    List<LinkUpdateDTO> processUpdates(URI link, Long questionId, StackOverflowQuestionItem question);
+    List<LinkUpdateDTO> processUpdates(URI link, Long questionId, StackOverflowQuestionItem question, Long fromDate);
 }

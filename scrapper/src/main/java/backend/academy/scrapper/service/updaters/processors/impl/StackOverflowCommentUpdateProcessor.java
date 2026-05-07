@@ -27,13 +27,14 @@ public class StackOverflowCommentUpdateProcessor implements StackOverflowQuestio
     private final StackOverflowClient stackOverflowClient;
 
     @Override
-    public List<LinkUpdateDTO> processUpdates(URI link, Long questionId, StackOverflowQuestionItem question) {
+    public List<LinkUpdateDTO> processUpdates(
+            URI link, Long questionId, StackOverflowQuestionItem question, Long fromDate) {
         List<LinkUpdateDTO> resultUpdatesList = new ArrayList<>();
         List<ProcessedIdDTO> nowProcessedIds = new ArrayList<>();
 
         List<Long> alreadyProcessedCommentsIds = linkService.getProcessedCommentsIds(link);
         ResponseEntity<StackOverflowResponse<StackOverflowCommentItem>> commentsResponse =
-                stackOverflowClient.getCommentsByQuestionId(questionId, "stackoverflow", "withbody");
+                stackOverflowClient.getCommentsByQuestionId(questionId, "stackoverflow", "withbody", fromDate);
         if (commentsResponse.getStatusCode() == HttpStatus.OK) {
             var comments = Objects.requireNonNull(commentsResponse.getBody());
             comments.items().stream()

@@ -141,6 +141,22 @@ public class DbLinkServiceImpl implements DbLinkService {
     }
 
     @Override
+    public Optional<OffsetDateTime> findLastEventDateByLink(URI link) {
+        try {
+            return linkRepository.findLastEventDateByLink(link.toString());
+        } catch (DataAccessException e) {
+            log.warn("Произошла ошибка при получении last_event_date для ссылки {}: {}", link, e.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = DataAccessException.class)
+    public void updateLastEventDate(URI link, OffsetDateTime lastEventDate) {
+        linkRepository.updateLastEventDate(link.toString(), lastEventDate);
+    }
+
+    @Override
     @Transactional(rollbackFor = DataAccessException.class)
     public void markPollingSuccess(URI link, OffsetDateTime checkedAt, OffsetDateTime nextPollAt) {
         linkRepository.markPollingSuccess(link.toString(), checkedAt, nextPollAt);

@@ -29,6 +29,10 @@ public interface DbLinkService {
 
     void updateEtag(URI link, String etag);
 
+    Optional<OffsetDateTime> findLastEventDateByLink(URI link);
+
+    void updateLastEventDate(URI link, OffsetDateTime lastEventDate);
+
     void markPollingSuccess(URI link, OffsetDateTime checkedAt, OffsetDateTime nextPollAt);
 
     void markPollingFailure(

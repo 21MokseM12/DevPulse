@@ -64,10 +64,10 @@ public class StackOverflowAnswerUpdateProcessorTest {
         StackOverflowResponse<StackOverflowAnswerItem> response =
                 new StackOverflowResponse<>(List.of(new StackOverflowAnswerItem(1L, OWNER, fixedTime, "answer")));
 
-        when(client.getAnswersByQuestionId(questionId, site, filter))
+        when(client.getAnswersByQuestionId(questionId, site, filter, null))
                 .thenReturn(ResponseEntity.badRequest().body(response));
 
-        List<LinkUpdateDTO> linkUpdateDTOS = processor.processUpdates(link, questionId, question);
+        List<LinkUpdateDTO> linkUpdateDTOS = processor.processUpdates(link, questionId, question, null);
         assertNotNull(linkUpdateDTOS);
         assertTrue(linkUpdateDTOS.isEmpty());
         verify(linkService, never()).saveProcessedIds(eq(link), anyList());
@@ -78,11 +78,11 @@ public class StackOverflowAnswerUpdateProcessorTest {
         StackOverflowResponse<StackOverflowAnswerItem> response =
                 new StackOverflowResponse<>(List.of(new StackOverflowAnswerItem(1L, OWNER, fixedTime, "answer")));
 
-        when(client.getAnswersByQuestionId(questionId, site, filter))
+        when(client.getAnswersByQuestionId(questionId, site, filter, null))
                 .thenReturn(ResponseEntity.ok().body(response));
         when(linkService.getProcessedAnswersIds(link)).thenReturn(List.of(1L));
 
-        List<LinkUpdateDTO> linkUpdateDTOS = processor.processUpdates(link, questionId, question);
+        List<LinkUpdateDTO> linkUpdateDTOS = processor.processUpdates(link, questionId, question, null);
         assertNotNull(linkUpdateDTOS);
         assertTrue(linkUpdateDTOS.isEmpty());
         verify(linkService).saveProcessedIds(eq(link), anyList());
@@ -115,11 +115,11 @@ public class StackOverflowAnswerUpdateProcessorTest {
                         UpdateType.STACKOVERFLOW_ANSWER,
                         Set.of()));
 
-        when(client.getAnswersByQuestionId(questionId, site, filter))
+        when(client.getAnswersByQuestionId(questionId, site, filter, null))
                 .thenReturn(ResponseEntity.ok().body(response));
         when(linkService.getProcessedAnswersIds(link)).thenReturn(List.of(1L, 3L, 5L));
 
-        List<LinkUpdateDTO> linkUpdateDTOS = processor.processUpdates(link, questionId, question);
+        List<LinkUpdateDTO> linkUpdateDTOS = processor.processUpdates(link, questionId, question, null);
         assertNotNull(linkUpdateDTOS);
         assertFalse(linkUpdateDTOS.isEmpty());
         assertEquals(expected, linkUpdateDTOS);
@@ -177,11 +177,11 @@ public class StackOverflowAnswerUpdateProcessorTest {
                         UpdateType.STACKOVERFLOW_ANSWER,
                         Set.of()));
 
-        when(client.getAnswersByQuestionId(questionId, site, filter))
+        when(client.getAnswersByQuestionId(questionId, site, filter, null))
                 .thenReturn(ResponseEntity.ok().body(response));
         when(linkService.getProcessedAnswersIds(link)).thenReturn(List.of());
 
-        List<LinkUpdateDTO> linkUpdateDTOS = processor.processUpdates(link, questionId, question);
+        List<LinkUpdateDTO> linkUpdateDTOS = processor.processUpdates(link, questionId, question, null);
         assertNotNull(linkUpdateDTOS);
         assertFalse(linkUpdateDTOS.isEmpty());
         assertEquals(expected, linkUpdateDTOS);

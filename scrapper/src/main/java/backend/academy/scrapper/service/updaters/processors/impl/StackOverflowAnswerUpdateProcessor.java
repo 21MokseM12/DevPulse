@@ -27,12 +27,13 @@ public class StackOverflowAnswerUpdateProcessor implements StackOverflowQuestion
     private final StackOverflowClient stackOverflowClient;
 
     @Override
-    public List<LinkUpdateDTO> processUpdates(URI link, Long questionId, StackOverflowQuestionItem question) {
+    public List<LinkUpdateDTO> processUpdates(
+            URI link, Long questionId, StackOverflowQuestionItem question, Long fromDate) {
         List<LinkUpdateDTO> resultUpdatesList = new ArrayList<>();
         List<ProcessedIdDTO> nowProcessedIds = new ArrayList<>();
 
         ResponseEntity<StackOverflowResponse<StackOverflowAnswerItem>> answersResponse =
-                stackOverflowClient.getAnswersByQuestionId(questionId, "stackoverflow", "withbody");
+                stackOverflowClient.getAnswersByQuestionId(questionId, "stackoverflow", "withbody", fromDate);
         if (answersResponse.getStatusCode() == HttpStatus.OK) {
             List<Long> alreadyProcessedAnswersIds = linkService.getProcessedAnswersIds(link);
             var answers = Objects.requireNonNull(answersResponse.getBody());

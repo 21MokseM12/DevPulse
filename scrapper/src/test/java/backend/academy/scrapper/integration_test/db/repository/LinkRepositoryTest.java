@@ -134,12 +134,12 @@ public class LinkRepositoryTest extends TestContainersConfiguration {
         Long delayedId = repository.save(delayedUrl, now.minusMinutes(5));
 
         jdbcTemplate.update(
-                "update poll_state set next_poll_at = ?, backoff_until = ? where link_id = ?",
+                "update poll_state set next_poll_at = ?, next_retry_at = ? where link_id = ?",
                 java.sql.Timestamp.from(now.minusSeconds(1).toInstant()),
                 null,
                 readyId);
         jdbcTemplate.update(
-                "update poll_state set next_poll_at = ?, backoff_until = ? where link_id = ?",
+                "update poll_state set next_poll_at = ?, next_retry_at = ? where link_id = ?",
                 java.sql.Timestamp.from(now.minusSeconds(1).toInstant()),
                 java.sql.Timestamp.from(now.plusMinutes(10).toInstant()),
                 delayedId);
@@ -159,7 +159,7 @@ public class LinkRepositoryTest extends TestContainersConfiguration {
         repository.markPollingFailure(url, now, "timeout", 10, 320);
 
         Integer retryAfterFailure = jdbcTemplate.queryForObject(
-                "select retry_count from poll_state ps join links l on l.id = ps.link_id where l.url = ?",
+                "select fail_count from poll_state ps join links l on l.id = ps.link_id where l.url = ?",
                 Integer.class,
                 url);
         assertEquals(1, retryAfterFailure);
@@ -174,7 +174,7 @@ public class LinkRepositoryTest extends TestContainersConfiguration {
         repository.markPollingSuccess(url, successCheckedAt, successCheckedAt.plusMinutes(5));
 
         Integer retryAfterSuccess = jdbcTemplate.queryForObject(
-                "select retry_count from poll_state ps join links l on l.id = ps.link_id where l.url = ?",
+                "select fail_count from poll_state ps join links l on l.id = ps.link_id where l.url = ?",
                 Integer.class,
                 url);
         assertEquals(0, retryAfterSuccess);
@@ -206,5 +206,19 @@ public class LinkRepositoryTest extends TestContainersConfiguration {
         Optional<String> storedEtag = repository.findEtagByLink(url);
 
         assertTrue(storedEtag.isEmpty());
+    }
+
+    @Test
+    public void updateLastEventDate_thenFindLastEventDate_returnsStoredDate() {
+        OffsetDateTime createdAt = OffsetDateTime.now(clock).minusMinutes(5).truncatedTo(ChronoUnit.SECONDS);
+        String url = "https://poll.example/event-date-" + UUID.randomUUID();
+        repository.save(url, createdAt);
+        OffsetDateTime lastEventDate = createdAt.plusMinutes(3);
+
+        repository.updateLastEventDate(url, lastEventDate);
+        Optional<OffsetDateTime> storedDate = repository.findLastEventDateByLink(url);
+
+        assertTrue(storedDate.isPresent());
+        assertEquals(lastEventDate.toInstant(), storedDate.orElseThrow().toInstant());
     }
 }

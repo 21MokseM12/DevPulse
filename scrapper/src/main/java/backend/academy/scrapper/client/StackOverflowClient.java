@@ -15,13 +15,19 @@ public interface StackOverflowClient {
 
     @GetExchange
     ResponseEntity<StackOverflowResponse<StackOverflowQuestionItem>> getQuestionById(
-            @PathVariable Long questionId, @RequestParam String site);
+            @PathVariable Long questionId, @RequestParam String site, @RequestParam(required = false) Long fromdate);
 
     @GetExchange("/answers")
     ResponseEntity<StackOverflowResponse<StackOverflowAnswerItem>> getAnswersByQuestionId(
-            @PathVariable Long questionId, @RequestParam String site, @RequestParam String filter);
+            @PathVariable Long questionId,
+            @RequestParam String site,
+            @RequestParam String filter,
+            @RequestParam(required = false) Long fromdate);
 
     @GetExchange("/comments")
     ResponseEntity<StackOverflowResponse<StackOverflowCommentItem>> getCommentsByQuestionId(
-            @PathVariable Long questionId, @RequestParam String site, @RequestParam String filter);
+            @PathVariable Long questionId,
+            @RequestParam String site,
+            @RequestParam String filter,
+            @RequestParam(required = false) Long fromdate);
 }

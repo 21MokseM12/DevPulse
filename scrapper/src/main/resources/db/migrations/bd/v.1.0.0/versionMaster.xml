@@ -24,5 +24,6 @@
     <include relativeToChangelogFile="true" file="015_backfill_poll_state.sql"/>
     <include relativeToChangelogFile="true" file="016_hash_existing_chat_passwords.sql"/>
     <include relativeToChangelogFile="true" file="017_rename_chats_table_to_clients.sql"/>
+    <include relativeToChangelogFile="true" file="018_expand_poll_state_runtime.sql"/>
 
 </databaseChangeLog>

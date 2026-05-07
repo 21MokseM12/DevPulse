@@ -11,7 +11,9 @@ public enum LinkQuery implements ScrapperQueryHolder {
     INSERT_POLL_STATE("/db/query/links/insert_poll_state.sql"),
     SELECT_FOR_POLLING("/db/query/links/select_for_polling.sql"),
     MARK_POLL_SUCCESS("/db/query/links/mark_poll_success.sql"),
-    MARK_POLL_FAILURE("/db/query/links/mark_poll_failure.sql");
+    MARK_POLL_FAILURE("/db/query/links/mark_poll_failure.sql"),
+    SELECT_LAST_EVENT_DATE("/db/query/links/select_last_event_date.sql"),
+    UPDATE_LAST_EVENT_DATE("/db/query/links/update_last_event_date.sql");
 
     private final String query;
 

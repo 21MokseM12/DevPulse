@@ -31,6 +31,7 @@ public class LinkRepositoryImpl implements LinkRepository {
     private static final String NOW = "now";
     private static final String NEXT_POLL_AT = "next_poll_at";
     private static final String CHECKED_AT = "checked_at";
+    private static final String LAST_EVENT_DATE = "last_event_date";
     private static final String LAST_ERROR = "last_error";
     private static final String BASE_BACKOFF_SECONDS = "base_backoff_seconds";
     private static final String MAX_BACKOFF_SECONDS = "max_backoff_seconds";
@@ -142,6 +143,27 @@ public class LinkRepositoryImpl implements LinkRepository {
         jdbcTemplate.update(
                 "update links set etag = :etag where url = :url",
                 new MapSqlParameterSource().addValue(URL, url).addValue(ETAG, etag));
+    }
+
+    @Override
+    public Optional<OffsetDateTime> findLastEventDateByLink(String url) {
+        return Optional.ofNullable(jdbcTemplate.queryForObject(
+                LinkQuery.SELECT_LAST_EVENT_DATE.query(),
+                new MapSqlParameterSource().addValue(URL, url),
+                OffsetDateTime.class));
+    }
+
+    @Override
+    public void updateLastEventDate(String url, OffsetDateTime lastEventDate) {
+        jdbcTemplate.update(
+                LinkQuery.UPDATE_LAST_EVENT_DATE.query(),
+                new MapSqlParameterSource()
+                        .addValue(URL, url)
+                        .addValue(
+                                LAST_EVENT_DATE,
+                                lastEventDate
+                                        .withOffsetSameInstant(ZoneOffset.UTC)
+                                        .toLocalDateTime()));
     }
 
     @Override
