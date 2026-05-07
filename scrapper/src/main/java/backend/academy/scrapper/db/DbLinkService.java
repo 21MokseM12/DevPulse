@@ -25,6 +25,10 @@ public interface DbLinkService {
 
     Set<URI> findAllLinksForPolling(OffsetDateTime now, int offsetMultiplier, Integer limit);
 
+    Optional<String> findEtagByLink(URI link);
+
+    void updateEtag(URI link, String etag);
+
     void markPollingSuccess(URI link, OffsetDateTime checkedAt, OffsetDateTime nextPollAt);
 
     void markPollingFailure(

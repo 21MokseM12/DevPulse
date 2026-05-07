@@ -5,9 +5,13 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import backend.academy.scrapper.client.GithubClient;
+import backend.academy.scrapper.db.DbLinkService;
 import backend.academy.scrapper.model.LinkUpdateDTO;
 import backend.academy.scrapper.model.github.GithubActor;
 import backend.academy.scrapper.model.github.GithubPayload;
@@ -17,8 +21,11 @@ import backend.academy.scrapper.service.updaters.processors.GithubRepoUpdateProc
 import java.net.URI;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 public class GithubUpdaterServiceTest {
@@ -26,6 +33,8 @@ public class GithubUpdaterServiceTest {
     private GithubLinkParser githubLinkParser;
 
     private GithubClient githubClient;
+
+    private DbLinkService dbLinkService;
 
     private GithubRepoUpdateProcessor processor;
 
@@ -35,9 +44,10 @@ public class GithubUpdaterServiceTest {
     public void setUp() {
         githubLinkParser = mock(GithubLinkParser.class);
         githubClient = mock(GithubClient.class);
+        dbLinkService = mock(DbLinkService.class);
         processor = mock(GithubRepoUpdateProcessor.class);
         List<GithubRepoUpdateProcessor> processors = List.of(processor);
-        githubUpdaterService = new GithubUpdaterService(githubClient, githubLinkParser, processors);
+        githubUpdaterService = new GithubUpdaterService(githubClient, dbLinkService, githubLinkParser, processors);
     }
 
     @Test
@@ -46,9 +56,10 @@ public class GithubUpdaterServiceTest {
         GithubResponse response = new GithubResponse(
                 1L, "type", new GithubActor("login"), OffsetDateTime.now(), new GithubPayload("action", null, null));
 
+        when(dbLinkService.findEtagByLink(link)).thenReturn(Optional.empty());
         when(githubLinkParser.parseUsername(link.toString())).thenReturn("username");
         when(githubLinkParser.parseRepo(link.toString())).thenReturn("repo");
-        when(githubClient.getEvents("username", "repo"))
+        when(githubClient.getEvents("username", "repo", null))
                 .thenReturn(ResponseEntity.badRequest().body(List.of(response)));
 
         List<LinkUpdateDTO> updates = githubUpdaterService.getUpdates(link);
@@ -64,14 +75,36 @@ public class GithubUpdaterServiceTest {
 
         LinkUpdateDTO updateDTO = new LinkUpdateDTO(1L, "title", "owner", OffsetDateTime.now(), "description");
         when(processor.processUpdates(link, List.of(response))).thenReturn(List.of(updateDTO));
+        when(dbLinkService.findEtagByLink(link)).thenReturn(Optional.of("\"old-etag\""));
         when(githubLinkParser.parseUsername(link.toString())).thenReturn("username");
         when(githubLinkParser.parseRepo(link.toString())).thenReturn("repo");
-        when(githubClient.getEvents("username", "repo"))
-                .thenReturn(ResponseEntity.ok().body(List.of(response)));
+        HttpHeaders headers = new HttpHeaders();
+        headers.setETag("\"new-etag\"");
+        when(githubClient.getEvents("username", "repo", "\"old-etag\""))
+                .thenReturn(new ResponseEntity<>(List.of(response), headers, HttpStatus.OK));
 
         List<LinkUpdateDTO> updates = githubUpdaterService.getUpdates(link);
         assertNotNull(updates);
         assertFalse(updates.isEmpty());
         assertEquals(List.of(updateDTO), updates);
+        verify(dbLinkService).updateEtag(link, "\"new-etag\"");
+    }
+
+    @Test
+    public void getUpdates_whenResponseIsNotModified_shouldNotProcessPayload() {
+        URI link = URI.create("https://api.github.com");
+
+        when(dbLinkService.findEtagByLink(link)).thenReturn(Optional.of("\"same-etag\""));
+        when(githubLinkParser.parseUsername(link.toString())).thenReturn("username");
+        when(githubLinkParser.parseRepo(link.toString())).thenReturn("repo");
+        when(githubClient.getEvents("username", "repo", "\"same-etag\""))
+                .thenReturn(ResponseEntity.status(HttpStatus.NOT_MODIFIED).build());
+
+        List<LinkUpdateDTO> updates = githubUpdaterService.getUpdates(link);
+
+        assertNotNull(updates);
+        assertTrue(updates.isEmpty());
+        verifyNoInteractions(processor);
+        verify(dbLinkService, never()).updateEtag(link, "\"same-etag\"");
     }
 }

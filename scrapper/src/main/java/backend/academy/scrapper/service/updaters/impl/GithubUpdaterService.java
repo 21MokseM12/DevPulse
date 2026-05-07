@@ -1,6 +1,7 @@
 package backend.academy.scrapper.service.updaters.impl;
 
 import backend.academy.scrapper.client.GithubClient;
+import backend.academy.scrapper.db.DbLinkService;
 import backend.academy.scrapper.model.LinkUpdateDTO;
 import backend.academy.scrapper.model.github.GithubResponse;
 import backend.academy.scrapper.service.parsers.GithubLinkParser;
@@ -22,13 +23,19 @@ import scrapper.bot.connectivity.enums.LinkUpdaterType;
 public class GithubUpdaterService implements LinkUpdater {
 
     private final GithubClient githubClient;
+    private final DbLinkService dbLinkService;
     private final GithubLinkParser linkParser;
     private final List<GithubRepoUpdateProcessor> updateProcessors;
 
     @Override
     public List<LinkUpdateDTO> getUpdates(URI link) {
+        String etag = dbLinkService.findEtagByLink(link).orElse(null);
         ResponseEntity<List<GithubResponse>> events = githubClient.getEvents(
-                linkParser.parseUsername(link.toString()), linkParser.parseRepo(link.toString()));
+                linkParser.parseUsername(link.toString()), linkParser.parseRepo(link.toString()), etag);
+
+        if (events.getStatusCode().is2xxSuccessful() && events.getHeaders().getETag() != null) {
+            dbLinkService.updateEtag(link, events.getHeaders().getETag());
+        }
 
         if (events.getStatusCode().is2xxSuccessful()
                 && !Objects.requireNonNull(events.getBody()).isEmpty()) {

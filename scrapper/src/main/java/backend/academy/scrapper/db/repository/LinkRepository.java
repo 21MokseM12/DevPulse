@@ -22,6 +22,10 @@ public interface LinkRepository {
 
     Set<URI> findAllLinksForPolling(OffsetDateTime now, int offset, Integer limit);
 
+    Optional<String> findEtagByLink(String url);
+
+    void updateEtag(String url, String etag);
+
     void markPollingSuccess(String url, OffsetDateTime checkedAt, OffsetDateTime nextPollAt);
 
     void markPollingFailure(

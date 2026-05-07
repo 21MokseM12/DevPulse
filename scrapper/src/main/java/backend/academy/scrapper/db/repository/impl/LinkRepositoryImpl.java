@@ -130,6 +130,21 @@ public class LinkRepositoryImpl implements LinkRepository {
     }
 
     @Override
+    public Optional<String> findEtagByLink(String url) {
+        return Optional.ofNullable(jdbcTemplate.queryForObject(
+                "select etag from links where url = :url",
+                new MapSqlParameterSource().addValue(URL, url),
+                String.class));
+    }
+
+    @Override
+    public void updateEtag(String url, String etag) {
+        jdbcTemplate.update(
+                "update links set etag = :etag where url = :url",
+                new MapSqlParameterSource().addValue(URL, url).addValue(ETAG, etag));
+    }
+
+    @Override
     public void markPollingSuccess(String url, OffsetDateTime checkedAt, OffsetDateTime nextPollAt) {
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue(URL, url)

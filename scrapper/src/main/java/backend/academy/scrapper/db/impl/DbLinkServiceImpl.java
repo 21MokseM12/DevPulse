@@ -125,6 +125,22 @@ public class DbLinkServiceImpl implements DbLinkService {
     }
 
     @Override
+    public Optional<String> findEtagByLink(URI link) {
+        try {
+            return linkRepository.findEtagByLink(link.toString());
+        } catch (DataAccessException e) {
+            log.warn("Произошла ошибка при получении etag для ссылки {}: {}", link, e.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = DataAccessException.class)
+    public void updateEtag(URI link, String etag) {
+        linkRepository.updateEtag(link.toString(), etag);
+    }
+
+    @Override
     @Transactional(rollbackFor = DataAccessException.class)
     public void markPollingSuccess(URI link, OffsetDateTime checkedAt, OffsetDateTime nextPollAt) {
         linkRepository.markPollingSuccess(link.toString(), checkedAt, nextPollAt);

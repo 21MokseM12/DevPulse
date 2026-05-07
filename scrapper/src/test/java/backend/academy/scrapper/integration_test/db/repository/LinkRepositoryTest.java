@@ -183,4 +183,28 @@ public class LinkRepositoryTest extends TestContainersConfiguration {
                 "select last_checked_at from links where url = ?", OffsetDateTime.class, url);
         assertEquals(successCheckedAt.toInstant(), lastCheckedAt.toInstant());
     }
+
+    @Test
+    public void updateEtag_thenFindEtagByLink_returnsStoredEtag() {
+        OffsetDateTime createdAt = OffsetDateTime.now(clock).minusMinutes(1);
+        String url = "https://etag.example/" + UUID.randomUUID();
+        repository.save(url, createdAt);
+
+        repository.updateEtag(url, "\"test-etag\"");
+        Optional<String> storedEtag = repository.findEtagByLink(url);
+
+        assertTrue(storedEtag.isPresent());
+        assertEquals("\"test-etag\"", storedEtag.orElseThrow());
+    }
+
+    @Test
+    public void findEtagByLink_whenEtagNotSet_returnsEmpty() {
+        OffsetDateTime createdAt = OffsetDateTime.now(clock).minusMinutes(1);
+        String url = "https://etag-empty.example/" + UUID.randomUUID();
+        repository.save(url, createdAt);
+
+        Optional<String> storedEtag = repository.findEtagByLink(url);
+
+        assertTrue(storedEtag.isEmpty());
+    }
 }
