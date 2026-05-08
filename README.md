@@ -55,6 +55,7 @@ SCRAPPER_POSTGRES_USER, SCRAPPER_POSTGRES_PASSWORD, SCRAPPER_POSTGRES_DB_NAME (�
 INTERNAL_SHARED_SECRET (общий межсервисный секрет bot <-> scrapper).
 4. Запустить Docker
 5. Запустить `docker compose up --build` в корне проекта: поднимутся `bot`, `scrapper`, `bot-db`, `scrapper-db`, `zookeeper`, `kafka`, `kafka-init`.
+6. Kubernetes манифесты для окружений находятся в `k8s/staging` и `k8s/production` (отдельные deployment/service/hpa/stateful наборы).
 
 Тестирование
 - [x] Тесты должны запускать БД в Testcontainers

@@ -1,0 +1,98 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: scrapper
+  namespace: devpulse-staging
+spec:
+  type: ClusterIP
+  selector:
+    app: scrapper
+  ports:
+    - name: http
+      port: 8081
+      targetPort: 8081
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scrapper
+  namespace: devpulse-staging
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: scrapper
+  template:
+    metadata:
+      labels:
+        app: scrapper
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: scrapper
+          image: ghcr.io/moksem/devpulse-scrapper:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8081
+          envFrom:
+            - configMapRef:
+                name: devpulse-config
+            - secretRef:
+                name: devpulse-secrets
+          env:
+            - name: SCRAPPER_POSTGRES_URL
+              value: "jdbc:postgresql://scrapper-postgres:5432/$(SCRAPPER_POSTGRES_DB_NAME)"
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8081
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8081
+            initialDelaySeconds: 40
+            periodSeconds: 20
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 10"]
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "1"
+              memory: "1Gi"
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: scrapper
+  namespace: devpulse-staging
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: scrapper
+  minReplicas: 2
+  maxReplicas: 6
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80

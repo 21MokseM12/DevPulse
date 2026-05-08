@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: devpulse-config
+  namespace: devpulse-production
+data:
+  BOT_SCRAPPER_URL: "http://scrapper:8081"
+  BOT_KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
+  BOT_LINK_UPDATES_TOPIC: "link-updates"
+  BOT_LINK_UPDATES_GROUP_ID: "bot-link-updates-production"
+  BOT_REDIS_HOST: "redis"
+  BOT_REDIS_PORT: "6379"
+  BOT_REDIS_DATABASE: "1"
+  SCRAPPER_BOT_URL: "http://bot:8080"
+  SCRAPPER_DELIVERY_MODE: "kafka"
+  SCRAPPER_KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
+  SCRAPPER_OUTBOX_TOPIC: "link-updates"
+  SCRAPPER_REDIS_HOST: "redis"
+  SCRAPPER_REDIS_PORT: "6379"
+  SCRAPPER_REDIS_DATABASE: "0"
