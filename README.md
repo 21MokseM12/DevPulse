@@ -1,74 +1,92 @@
 # Link Tracker
 
-Проект сделан в рамках курса Академия Бэкенда.
+Backend-платформа для отслеживания обновлений по ссылкам (GitHub и StackOverflow) с доставкой уведомлений в сервис `bot`.
 
-Приложение для отслеживания обновлений контента по ссылкам.
-При появлении новых событий отправляется уведомление в сервис `bot`.
+## Runtime и архитектура
 
-Проект написан на `Java 23` с использованием `Spring Boot 3`.
+- Язык и платформа: `Java 23`, `Spring Boot 3`.
+- Сервисы:
+  - `scrapper` — планировщик и обработчик изменений по подпискам.
+  - `bot` — API/приёмник уведомлений и пользовательский контур.
+- Инфраструктура: `PostgreSQL` (2 БД), `Kafka + Zookeeper`, `Redis`.
+- Миграции: `Liquibase`.
+- Поддерживаемые режимы доставки `scrapper -> bot`: `http` и `kafka` (переключение через `SCRAPPER_DELIVERY_MODE`).
 
-Проект состоит из 2-х приложений:
-* Bot
-* Scrapper
+## Быстрый старт (clone -> configure -> run -> verify)
 
-Для работы требуются две БД `PostgreSQL` (`bot` и `scrapper`) и стек `Apache Kafka + Zookeeper`.
+1. Склонировать репозиторий.
+2. Создать локальный конфиг из шаблона:
 
-Для дополнительной справки: [HELP.md](./HELP.md)
+   ```bash
+   cp .env.example .env
+   ```
+3. Заполнить обязательные внешние токены в `.env`:
+   - `GITHUB_TOKEN`
+   - `SO_TOKEN_KEY`
+   - `SO_ACCESS_TOKEN`
+4. Поднять локальный контур:
 
-Функциональные требования
-* Scrapper (планировщик) при отправке сообщения с изменениями включает детализацию данных:
-* Для StackOverflow новый ответ или комментарий, сообщение включает:
-* текст темы вопроса
-* имя пользователя
-* время создания
-* превью ответа или комментария (первые 200 символов)
-* Для GitHub новый PR или Issue, сообщение включает:
-* название PR или Issue
-* имя пользователя
-* время создания
-* превью описания (первые 200 символов)
+   ```bash
+   docker compose up --build
+   ```
+5. Проверить проект quality-gates и тестами:
 
-Нефункциональные требования
-* При проверке обновлений запрещено загружать все ссылки в память сразу
-* Логика планировщика (проверка ссылок) и отправки (уведомления) разнесены по разным сервисам
-* Объявлен интерфейс для сервиса отправки уведомлений scrapper -> bot
-* Пока что будет одна реализация -- HTTP (в следующем ДЗ появится Kafka)
-* Для хранения данных используйте Postgres
-* Запуск Postgres осуществляется:
-* через compose-файл для локальной разработки
-* через testcontainers для автоматического тестирования
-* Миграции должны быть написаны на языке SQL
-* Для миграций используется Liquibase
-* Схема БД должна находиться в каталоге migrations/ в корне проекта
-* Запуск миграций должен выполняться собственноручно написанной функцией
-* Реализуйте 2 способа работы с БД: "голый" SQL и ORM. Например, у вас есть LinkService, тогда у него будет 2 имплементации: OrmLinkService и SqlLinkService.
-* Выбор способа работы с БД осуществляется через конфигурацию: access-type=SQL или access-type=ORM
+   ```bash
+   mvn clean verify
+   ```
 
-Инструкция по запуску приложения:
-1. Склонировать данный репозиторий на локальное хранилище
-2. Ввести в терминале команду: [Локальный путь до проекта] mvn clean compile -am spotless:check modernizer:modernizer spotbugs:check pmd:check pmd:cpd-check
-3. В переменные окружения записать следующие данные:
-GITHUB_TOKEN (токен для доступа к github API);
-SO_TOKEN_KEY, SO_ACCESS_TOKEN (токены для доступа к StackOverflow API);
-BOT_POSTGRES_USER, BOT_POSTGRES_PASSWORD, BOT_POSTGRES_DB_NAME (параметры БД bot);
-SCRAPPER_POSTGRES_USER, SCRAPPER_POSTGRES_PASSWORD, SCRAPPER_POSTGRES_DB_NAME (параметры БД scrapper);
-INTERNAL_SHARED_SECRET (общий межсервисный секрет bot <-> scrapper).
-4. Запустить Docker
-5. Запустить `docker compose up --build` в корне проекта: поднимутся `bot`, `scrapper`, `bot-db`, `scrapper-db`, `zookeeper`, `kafka`, `kafka-init`.
-6. Kubernetes манифесты для окружений находятся в `k8s/staging` и `k8s/production` (отдельные deployment/service/hpa/stateful наборы).
+Шаблон переменных хранится в `./.env.example` и является источником истины для локального запуска backend.
 
-CI/CD pipeline:
-- CI workflow: `.github/workflows/build.yaml` (`verify`, quality gates, integration/e2e, сборка и push Docker-образов в GHCR на `main`).
-- CD Staging: `.github/workflows/cd-staging.yaml` (автодеплой после успешного CI на `main`, health-check, rollback).
-- CD Production: `.github/workflows/cd-production.yaml` (ручной promote через environment `production`, health-check, rollback).
-- Для CD необходимы kubeconfig secrets (`KUBE_CONFIG_STAGING`, `KUBE_CONFIG_PRODUCTION`) и секреты приложений/БД для соответствующих окружений.
+## Проверка здоровья и smoke
 
-Тестирование
-- [x] Тесты должны запускать БД в Testcontainers
-- [x] Запросы к БД работают ожидаемым образом: вставка, удаление, обновление
-- [x] В зависимости от конфигурации работа идёт через разные имплементации (SQL, ORM)
-- [x] Тесты на превью пользовательских сообщений в зависимости от типа обновления
+Проверка readiness/liveness после старта:
 
-Было выполнено бонусное задание:
-- [ ] +30 бонусов за возможность тэгирования ссылок: создание тэгов по темам или проектам позволит группировать подписки. Например, можно создать тэг "Работа", в который войдут ссылки на профессиональные ресурсы, и тэг "Хобби" для развлечений. Соответственно должны появиться операции управления тэгами.
-- [x] +10 бонусов за реализацию многопоточного шедулера: процессинг ссылок в батче идёт параллельно, например, в 4 потока: шедулер находит следующие 1000 ссылок (батч), делит их ещё на 4 кусочка (250 ссылок), и каждый поток обрабатывает свои 250 ссылок, затем процесс повторяется.
+```bash
+curl --fail --silent http://localhost:8080/actuator/health
+curl --fail --silent http://localhost:8081/actuator/health
+```
+
+Базовый smoke-сценарий:
+
+1. Убедиться, что оба health endpoint возвращают `UP`.
+2. Открыть Swagger:
+   - `http://localhost:8080/swagger-ui`
+   - `http://localhost:8081/swagger-ui`
+3. Проверить, что контейнеры `bot`, `scrapper`, `bot-db`, `scrapper-db`, `kafka`, `redis` в состоянии `healthy`.
+
+## Конфигурация окружений
+
+### Локально через docker compose
+
+- Используются значения из `.env` (или дефолты в `docker-compose.yaml`).
+- Поднимаются сервисы приложения, БД и брокер сообщений.
+- Для Kafka создаются топики через `kafka-init`.
+
+### Kubernetes (`staging` / `production`)
+
+- Манифесты: `k8s/staging` и `k8s/production`.
+- Деплой выполняется workflow-ами:
+  - CI: `.github/workflows/build.yaml`
+  - CD staging: `.github/workflows/cd-staging.yaml`
+  - CD production: `.github/workflows/cd-production.yaml`
+- Для CD требуются kubeconfig secrets (`KUBE_CONFIG_STAGING`, `KUBE_CONFIG_PRODUCTION`) и секреты приложений/БД соответствующего окружения.
+
+## Миграция конфигурации: compose -> k8s
+
+- `compose`: переменные загружаются из `.env`.
+- `k8s`: те же ключи раскладываются по:
+  - `Secret` — чувствительные значения (`GITHUB_TOKEN`, `SO_ACCESS_TOKEN`, `INTERNAL_SHARED_SECRET`, пароли БД).
+  - `ConfigMap` — не секретные параметры (`SCRAPPER_DELIVERY_MODE`, адреса сервисов, Kafka topic/group значения и т.д.).
+- Имена env-переменных сохраняются одинаковыми, чтобы не менять `application.yaml`.
+
+## Эксплуатационная документация
+
+- Базовый пакет runbook-ов: `docs/runbooks/README.md` (развивается в рамках `BK-302`).
+- Kubernetes-специфика:
+  - `k8s/staging/README.md`
+  - `k8s/production/README.md`
+
+## Дополнительно
+
+- Дополнительные материалы: [HELP.md](./HELP.md)
+
