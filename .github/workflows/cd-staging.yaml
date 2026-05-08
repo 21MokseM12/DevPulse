@@ -1,0 +1,103 @@
+name: CD Staging
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Image tag to deploy (default: commit sha)"
+        required: false
+        default: ""
+
+jobs:
+  deploy:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')
+    environment: staging
+    permissions:
+      contents: read
+      actions: read
+      packages: read
+    env:
+      DEPLOY_NAMESPACE: devpulse-staging
+    steps:
+      - uses: actions/checkout@v4
+      - name: Resolve deploy metadata
+        id: meta
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ inputs.image_tag }}" ]; then
+            echo "tag=${{ inputs.image_tag }}" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event_name }}" = "workflow_run" ]; then
+            echo "tag=${{ github.event.workflow_run.head_sha }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${{ github.sha }}" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Configure kubectl
+        run: |
+          mkdir -p "$HOME/.kube"
+          echo "${{ secrets.KUBE_CONFIG_STAGING }}" | base64 --decode > "$HOME/.kube/config"
+          chmod 600 "$HOME/.kube/config"
+      - name: Set image references
+        run: |
+          echo "BOT_IMAGE=ghcr.io/${{ github.repository_owner }}/devpulse-bot:${{ steps.meta.outputs.tag }}" >> "$GITHUB_ENV"
+          echo "SCRAPPER_IMAGE=ghcr.io/${{ github.repository_owner }}/devpulse-scrapper:${{ steps.meta.outputs.tag }}" >> "$GITHUB_ENV"
+      - name: Apply manifests
+        run: |
+          kubectl apply -f k8s/staging/namespace.yaml
+          kubectl apply -f k8s/staging/configmap.yaml
+          kubectl -n "$DEPLOY_NAMESPACE" create secret generic devpulse-secrets \
+            --from-literal=INTERNAL_SHARED_SECRET='${{ secrets.INTERNAL_SHARED_SECRET_STAGING }}' \
+            --from-literal=GITHUB_TOKEN='${{ secrets.GITHUB_TOKEN_APP_STAGING }}' \
+            --from-literal=SO_TOKEN_KEY='${{ secrets.SO_TOKEN_KEY_STAGING }}' \
+            --from-literal=SO_ACCESS_TOKEN='${{ secrets.SO_ACCESS_TOKEN_STAGING }}' \
+            --from-literal=BOT_POSTGRES_USER='${{ secrets.BOT_POSTGRES_USER_STAGING }}' \
+            --from-literal=BOT_POSTGRES_PASSWORD='${{ secrets.BOT_POSTGRES_PASSWORD_STAGING }}' \
+            --from-literal=BOT_POSTGRES_DB_NAME='${{ secrets.BOT_POSTGRES_DB_NAME_STAGING }}' \
+            --from-literal=SCRAPPER_POSTGRES_USER='${{ secrets.SCRAPPER_POSTGRES_USER_STAGING }}' \
+            --from-literal=SCRAPPER_POSTGRES_PASSWORD='${{ secrets.SCRAPPER_POSTGRES_PASSWORD_STAGING }}' \
+            --from-literal=SCRAPPER_POSTGRES_DB_NAME='${{ secrets.SCRAPPER_POSTGRES_DB_NAME_STAGING }}' \
+            --dry-run=client -o yaml | kubectl apply -f -
+          kubectl apply -f k8s/staging/stateful-services.yaml
+          kubectl apply -f k8s/staging/kafka-topics-job.yaml
+          kubectl apply -f k8s/staging/bot.yaml
+          kubectl apply -f k8s/staging/scrapper.yaml
+      - name: Pin deployment images
+        run: |
+          kubectl -n "$DEPLOY_NAMESPACE" set image deployment/bot bot="$BOT_IMAGE"
+          kubectl -n "$DEPLOY_NAMESPACE" set image deployment/scrapper scrapper="$SCRAPPER_IMAGE"
+      - name: Wait rollout
+        run: |
+          kubectl -n "$DEPLOY_NAMESPACE" rollout status deployment/bot --timeout=180s
+          kubectl -n "$DEPLOY_NAMESPACE" rollout status deployment/scrapper --timeout=180s
+      - name: Post-deploy health check
+        run: |
+          kubectl -n "$DEPLOY_NAMESPACE" port-forward service/bot 18080:8080 >/tmp/staging-bot-port-forward.log 2>&1 &
+          PF_PID=$!
+          sleep 8
+          curl --fail --silent http://127.0.0.1:18080/actuator/health
+          kill "$PF_PID"
+      - name: Save release manifest
+        run: |
+          mkdir -p artifacts
+          cat > artifacts/staging-release.txt <<EOF
+          commit=${{ github.sha }}
+          bot_image=$BOT_IMAGE
+          scrapper_image=$SCRAPPER_IMAGE
+          namespace=$DEPLOY_NAMESPACE
+          EOF
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: staging-release-${{ steps.meta.outputs.tag }}
+          path: artifacts/staging-release.txt
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          kubectl -n "$DEPLOY_NAMESPACE" rollout undo deployment/bot || true
+          kubectl -n "$DEPLOY_NAMESPACE" rollout undo deployment/scrapper || true
+          kubectl -n "$DEPLOY_NAMESPACE" get pods -o wide || true

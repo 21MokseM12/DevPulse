@@ -57,6 +57,12 @@ INTERNAL_SHARED_SECRET (общий межсервисный секрет bot <->
 5. Запустить `docker compose up --build` в корне проекта: поднимутся `bot`, `scrapper`, `bot-db`, `scrapper-db`, `zookeeper`, `kafka`, `kafka-init`.
 6. Kubernetes манифесты для окружений находятся в `k8s/staging` и `k8s/production` (отдельные deployment/service/hpa/stateful наборы).
 
+CI/CD pipeline:
+- CI workflow: `.github/workflows/build.yaml` (`verify`, quality gates, integration/e2e, сборка и push Docker-образов в GHCR на `main`).
+- CD Staging: `.github/workflows/cd-staging.yaml` (автодеплой после успешного CI на `main`, health-check, rollback).
+- CD Production: `.github/workflows/cd-production.yaml` (ручной promote через environment `production`, health-check, rollback).
+- Для CD необходимы kubeconfig secrets (`KUBE_CONFIG_STAGING`, `KUBE_CONFIG_PRODUCTION`) и секреты приложений/БД для соответствующих окружений.
+
 Тестирование
 - [x] Тесты должны запускать БД в Testcontainers
 - [x] Запросы к БД работают ожидаемым образом: вставка, удаление, обновление

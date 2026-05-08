@@ -1,0 +1,87 @@
+name: CD Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Image tag to deploy (required for production)"
+        required: true
+
+jobs:
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      packages: read
+    env:
+      DEPLOY_NAMESPACE: devpulse-production
+      DEPLOY_TAG: ${{ inputs.image_tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure kubectl
+        run: |
+          mkdir -p "$HOME/.kube"
+          echo "${{ secrets.KUBE_CONFIG_PRODUCTION }}" | base64 --decode > "$HOME/.kube/config"
+          chmod 600 "$HOME/.kube/config"
+      - name: Set image references
+        run: |
+          echo "BOT_IMAGE=ghcr.io/${{ github.repository_owner }}/devpulse-bot:$DEPLOY_TAG" >> "$GITHUB_ENV"
+          echo "SCRAPPER_IMAGE=ghcr.io/${{ github.repository_owner }}/devpulse-scrapper:$DEPLOY_TAG" >> "$GITHUB_ENV"
+      - name: Apply manifests
+        run: |
+          kubectl apply -f k8s/production/namespace.yaml
+          kubectl apply -f k8s/production/configmap.yaml
+          kubectl -n "$DEPLOY_NAMESPACE" create secret generic devpulse-secrets \
+            --from-literal=INTERNAL_SHARED_SECRET='${{ secrets.INTERNAL_SHARED_SECRET_PRODUCTION }}' \
+            --from-literal=GITHUB_TOKEN='${{ secrets.GITHUB_TOKEN_APP_PRODUCTION }}' \
+            --from-literal=SO_TOKEN_KEY='${{ secrets.SO_TOKEN_KEY_PRODUCTION }}' \
+            --from-literal=SO_ACCESS_TOKEN='${{ secrets.SO_ACCESS_TOKEN_PRODUCTION }}' \
+            --from-literal=BOT_POSTGRES_USER='${{ secrets.BOT_POSTGRES_USER_PRODUCTION }}' \
+            --from-literal=BOT_POSTGRES_PASSWORD='${{ secrets.BOT_POSTGRES_PASSWORD_PRODUCTION }}' \
+            --from-literal=BOT_POSTGRES_DB_NAME='${{ secrets.BOT_POSTGRES_DB_NAME_PRODUCTION }}' \
+            --from-literal=SCRAPPER_POSTGRES_USER='${{ secrets.SCRAPPER_POSTGRES_USER_PRODUCTION }}' \
+            --from-literal=SCRAPPER_POSTGRES_PASSWORD='${{ secrets.SCRAPPER_POSTGRES_PASSWORD_PRODUCTION }}' \
+            --from-literal=SCRAPPER_POSTGRES_DB_NAME='${{ secrets.SCRAPPER_POSTGRES_DB_NAME_PRODUCTION }}' \
+            --dry-run=client -o yaml | kubectl apply -f -
+          kubectl apply -f k8s/production/stateful-services.yaml
+          kubectl apply -f k8s/production/kafka-topics-job.yaml
+          kubectl apply -f k8s/production/bot.yaml
+          kubectl apply -f k8s/production/scrapper.yaml
+      - name: Pin deployment images
+        run: |
+          kubectl -n "$DEPLOY_NAMESPACE" set image deployment/bot bot="$BOT_IMAGE"
+          kubectl -n "$DEPLOY_NAMESPACE" set image deployment/scrapper scrapper="$SCRAPPER_IMAGE"
+      - name: Wait rollout
+        run: |
+          kubectl -n "$DEPLOY_NAMESPACE" rollout status deployment/bot --timeout=300s
+          kubectl -n "$DEPLOY_NAMESPACE" rollout status deployment/scrapper --timeout=300s
+      - name: Post-deploy health check
+        run: |
+          kubectl -n "$DEPLOY_NAMESPACE" port-forward service/bot 28080:8080 >/tmp/production-bot-port-forward.log 2>&1 &
+          PF_PID=$!
+          sleep 10
+          curl --fail --silent http://127.0.0.1:28080/actuator/health
+          kill "$PF_PID"
+      - name: Save release manifest
+        run: |
+          mkdir -p artifacts
+          cat > artifacts/production-release.txt <<EOF
+          commit=${{ github.sha }}
+          requested_tag=$DEPLOY_TAG
+          bot_image=$BOT_IMAGE
+          scrapper_image=$SCRAPPER_IMAGE
+          namespace=$DEPLOY_NAMESPACE
+          EOF
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-release-${{ inputs.image_tag }}
+          path: artifacts/production-release.txt
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          kubectl -n "$DEPLOY_NAMESPACE" rollout undo deployment/bot || true
+          kubectl -n "$DEPLOY_NAMESPACE" rollout undo deployment/scrapper || true
+          kubectl -n "$DEPLOY_NAMESPACE" get pods -o wide || true
