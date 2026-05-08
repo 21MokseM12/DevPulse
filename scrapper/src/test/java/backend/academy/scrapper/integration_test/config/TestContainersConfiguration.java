@@ -5,7 +5,6 @@ import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import liquibase.Contexts;
@@ -33,8 +32,6 @@ public class TestContainersConfiguration {
     private static final String MIGRATIONS_PATH = "scrapper/src/main/resources/db/migrations/";
     private static final String MIGRATIONS_FILE_NAME = "master.xml";
 
-    private static final List<String> KAFKA_TOPICS =
-            List.of("client-listener-topic-request", "link-listener-topic-request", "link-topic-response");
     private static final int PARTITIONS = 2;
     private static final short REPLICATION_FACTOR = 1;
 
@@ -70,7 +67,7 @@ public class TestContainersConfiguration {
 
     private static void configureKafka() {
         try (AdminClient adminClient = createAdminClient()) {
-            for (String topicName : KAFKA_TOPICS) {
+            for (String topicName : KafkaTopics.REQUIRED_TOPICS) {
                 NewTopic topic = new NewTopic(topicName, PARTITIONS, REPLICATION_FACTOR);
                 adminClient
                         .createTopics(java.util.Collections.singletonList(topic))

@@ -11,7 +11,7 @@
 * Bot
 * Scrapper
 
-Для работы требуются две БД `PostgreSQL` (`bot` и `scrapper`) и Kafka-совместимый брокер.
+Для работы требуются две БД `PostgreSQL` (`bot` и `scrapper`) и стек `Apache Kafka + Zookeeper`.
 
 Для дополнительной справки: [HELP.md](./HELP.md)
 
@@ -54,7 +54,7 @@ BOT_POSTGRES_USER, BOT_POSTGRES_PASSWORD, BOT_POSTGRES_DB_NAME (параметр
 SCRAPPER_POSTGRES_USER, SCRAPPER_POSTGRES_PASSWORD, SCRAPPER_POSTGRES_DB_NAME (параметры БД scrapper);
 INTERNAL_SHARED_SECRET (общий межсервисный секрет bot <-> scrapper).
 4. Запустить Docker
-5. Запустить `docker compose up --build` в корне проекта: поднимутся `bot`, `scrapper`, `bot-db`, `scrapper-db` и Kafka (Redpanda).
+5. Запустить `docker compose up --build` в корне проекта: поднимутся `bot`, `scrapper`, `bot-db`, `scrapper-db`, `zookeeper`, `kafka`, `kafka-init`.
 
 Тестирование
 - [x] Тесты должны запускать БД в Testcontainers

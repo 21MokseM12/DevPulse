@@ -22,7 +22,9 @@ services:
       bot-db:
         condition: service_healthy
       kafka:
-        condition: service_started
+        condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
       redis:
         condition: service_healthy
     healthcheck:
@@ -52,7 +54,9 @@ services:
       scrapper-db:
         condition: service_healthy
       kafka:
-        condition: service_started
+        condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
       redis:
         condition: service_healthy
     ports:
@@ -98,34 +102,52 @@ services:
     volumes:
       - scrapper-db-data:/var/lib/postgresql/data
 
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.8.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    healthcheck:
+      test: ["CMD-SHELL", "cub zk-ready localhost:2181 1 5 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
   kafka:
-    image: redpandadata/redpanda:v24.1.9
-    command:
-      - redpanda
-      - start
-      - --overprovisioned
-      - --smp
-      - "1"
-      - --memory
-      - 1G
-      - --reserve-memory
-      - 0M
-      - --node-id
-      - "0"
-      - --check=false
-      - --kafka-addr
-      - PLAINTEXT://0.0.0.0:9092,OUTSIDE://0.0.0.0:19092
-      - --advertise-kafka-addr
-      - PLAINTEXT://kafka:9092,OUTSIDE://localhost:19092
-      - --set
-      - redpanda.auto_create_topics_enabled=true
+    image: confluentinc/cp-kafka:7.8.0
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:19092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:19092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
     ports:
       - "19092:19092"
     healthcheck:
-      test: ["CMD-SHELL", "rpk cluster health | grep -q Healthy || exit 1"]
+      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list > /dev/null 2>&1"]
       interval: 10s
       timeout: 5s
       retries: 20
+
+  kafka-init:
+    image: confluentinc/cp-kafka:7.8.0
+    depends_on:
+      kafka:
+        condition: service_healthy
+    command:
+      - /bin/bash
+      - -c
+      - |
+        kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic link-updates --partitions 2 --replication-factor 1
+        kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic client-listener-topic-request --partitions 2 --replication-factor 1
+        kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic link-listener-topic-request --partitions 2 --replication-factor 1
+        kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic link-topic-response --partitions 2 --replication-factor 1
 
   redis:
     image: redis:7-alpine
