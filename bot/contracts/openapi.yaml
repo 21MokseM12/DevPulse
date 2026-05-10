@@ -144,6 +144,10 @@ paths:
           description: Уведомление принято
         '400':
           $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
 
   /api/v1/notifications:
     get:
@@ -240,6 +244,18 @@ components:
   responses:
     BadRequest:
       description: Некорректный запрос
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+    Unauthorized:
+      description: Отсутствует внутренний auth-заголовок
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+    Forbidden:
+      description: Неверный внутренний auth-секрет
       content:
         application/json:
           schema:

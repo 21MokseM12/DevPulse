@@ -92,6 +92,26 @@ class LinkControllerTest {
     }
 
     @Test
+    void post_links_returns400WhenDuplicateTagsProvided() throws Exception {
+        mockMvc.perform(post("/links")
+                        .header("Client-Login", "alice")
+                        .header(INTERNAL_SECRET_HEADER, INTERNAL_SECRET)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"link\":\"https://example.com/x\",\"tags\":[\"a\",\"a\"]}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void post_links_returns400WhenLinkIsRelative() throws Exception {
+        mockMvc.perform(post("/links")
+                        .header("Client-Login", "alice")
+                        .header(INTERNAL_SECRET_HEADER, INTERNAL_SECRET)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"link\":\"/relative/path\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void get_links_returns401WithoutInternalSecret() throws Exception {
         mockMvc.perform(get("/links").header("Client-Login", "alice")).andExpect(status().isUnauthorized());
     }

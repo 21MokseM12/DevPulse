@@ -55,6 +55,15 @@ class ClientControllerTest {
     }
 
     @Test
+    void post_clients_returns400WhenLoginBlank() throws Exception {
+        mockMvc.perform(post("/clients")
+                        .header(INTERNAL_SECRET_HEADER, INTERNAL_SECRET)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"login\":\" \",\"password\":\"secret\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void delete_clients_unregistersClient() throws Exception {
         when(chatOperationProcessor.unregister(eq("alice"), eq("secret"))).thenReturn(true);
 
