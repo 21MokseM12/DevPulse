@@ -31,7 +31,7 @@
 ## Gaps and backlog
 
 - `F12`: требуется отдельная связка с Android-проектом и e2e-проверки клиентского UX.
-- План закрытия gap: `BK-402` (финальная трассировка `VKR -> code -> test`) + Android acceptance в отдельном контуре.
+- План закрытия gap: `BK-503` (финальная трассировка `VKR -> code -> test`) + Android acceptance в отдельном контуре.
 
 ## CI consistency check
 
