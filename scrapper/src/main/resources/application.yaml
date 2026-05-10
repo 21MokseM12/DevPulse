@@ -131,3 +131,6 @@ resilience4j:
         base-config: default
       bot-api:
         base-config: default
+
+logging:
+  config: classpath:logback-dev.xml

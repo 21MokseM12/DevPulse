@@ -23,7 +23,7 @@
     </modules>
 
     <properties>
-        <revision>1.19.0</revision>
+        <revision>1.20.0</revision>
 
         <!-- java, kotlin and maven versions -->
         <maven.version>3.8.8</maven.version>
@@ -34,6 +34,7 @@
         <commons-text.version>1.12.0</commons-text.version>
         <commons-compress.version>1.27.1</commons-compress.version>
         <commons-io.version>2.18.0</commons-io.version>
+        <logstash-logback-encoder.version>9.0</logstash-logback-encoder.version>
 
         <springdoc.version>2.8.4</springdoc.version>
         <bucket4j-spring-boot-starter.version>0.12.8</bucket4j-spring-boot-starter.version>

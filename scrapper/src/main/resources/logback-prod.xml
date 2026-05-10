@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <conversionRule
+        conversionWord="maskedMessage"
+        converterClass="backend.academy.scrapper.logging.SecretMaskingConverter"/>
+
+    <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp
+                    fieldName="timestamp"
+                    pattern="yyyy-MM-dd'T'HH:mm:ss.SSSXXX"
+                    timeZone="UTC"/>
+                <logLevel fieldName="level"/>
+                <threadName fieldName="thread"/>
+                <loggerName fieldName="logger"/>
+                <pattern>
+                    <pattern>{"service":"backend-processor","traceId":"%X{traceId:-}","spanId":"%X{spanId:-}","requestId":"%X{requestId:-}","message":"%maskedMessage"}</pattern>
+                </pattern>
+                <stackTrace fieldName="stackTrace"/>
+            </providers>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="JSON_CONSOLE"/>
+    </root>
+</configuration>

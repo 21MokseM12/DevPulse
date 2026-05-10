@@ -50,3 +50,6 @@ spring:
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
     listener:
       concurrency: 1
+
+logging:
+  config: classpath:logback-dev.xml
