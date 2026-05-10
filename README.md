@@ -6,11 +6,17 @@ Backend-платформа для отслеживания обновлений 
 
 - Язык и платформа: `Java 23`, `Spring Boot 3`.
 - Сервисы:
-  - `scrapper` — планировщик и обработчик изменений по подпискам.
-  - `bot` — API/приёмник уведомлений и пользовательский контур.
+  - `scrapper` — планировщик polling, нормализация событий и доставка обновлений.
+  - `bot` — API пользовательского контура и приёмник внутренних обновлений.
 - Инфраструктура: `PostgreSQL` (2 БД), `Kafka + Zookeeper`, `Redis`.
 - Миграции: `Liquibase`.
 - Поддерживаемые режимы доставки `scrapper -> bot`: `http` и `kafka` (переключение через `SCRAPPER_DELIVERY_MODE`).
+
+Поток обработки в runtime:
+1. Пользователь регистрирует клиента и ссылки через `bot`.
+2. `scrapper` выбирает ссылки для polling, читает внешние API и вычисляет дельту изменений.
+3. События доставки отправляются в `bot` по `http` или через `kafka`.
+4. `bot` сохраняет/обогащает контекст и доставляет уведомления в пользовательский канал.
 
 ## Быстрый старт (clone -> configure -> run -> verify)
 
@@ -32,7 +38,7 @@ Backend-платформа для отслеживания обновлений 
 5. Проверить проект quality-gates и тестами:
 
    ```bash
-   mvn clean verify
+   ./mvnw clean verify
    ```
 
 Шаблон переменных хранится в `./.env.example` и является источником истины для локального запуска backend.
@@ -70,6 +76,72 @@ curl --fail --silent http://localhost:8081/actuator/health
   - CD staging: `.github/workflows/cd-staging.yaml`
   - CD production: `.github/workflows/cd-production.yaml`
 - Для CD требуются kubeconfig secrets (`KUBE_CONFIG_STAGING`, `KUBE_CONFIG_PRODUCTION`) и секреты приложений/БД соответствующего окружения.
+
+## Режимы логирования
+
+- По умолчанию сервисы пишут человекочитаемые логи через `logback-dev.xml`.
+- Для production-профиля включается JSON-логирование через `logback-prod.xml`.
+- Переключение:
+
+  ```bash
+  SPRING_PROFILES_ACTIVE=prod java -jar bot/target/bot-*.jar
+  SPRING_PROFILES_ACTIVE=prod java -jar scrapper/target/scrapper-*.jar
+  ```
+- В JSON-логах присутствуют поля: `timestamp`, `level`, `service`, `traceId`, `spanId`, `requestId`, `message`.
+- Значения с ключами `password`, `secret`, `token`, `apiKey` автоматически маскируются в логе как `***`.
+
+## Режимы доставки `http|kafka`
+
+### Переключение режима
+
+- Ключ: `SCRAPPER_DELIVERY_MODE`.
+- Допустимые значения:
+  - `http` — прямая доставка `scrapper -> bot` по внутреннему API.
+  - `kafka` — асинхронная доставка через topic `link-updates`.
+- Значение по умолчанию: `http`.
+
+### Что нужно задать в окружении
+
+- Для `http`:
+  - `SCRAPPER_BOT_URL` (или `BOT_URL`) — адрес `bot`.
+  - `INTERNAL_SHARED_SECRET` + заголовок (`SCRAPPER_AUTH_HEADER` / `INTERNAL_SHARED_HEADER`) для внутренней авторизации.
+- Для `kafka`:
+  - `SCRAPPER_KAFKA_BOOTSTRAP_SERVERS` / `KAFKA_BOOTSTRAP_SERVERS`.
+  - `SCRAPPER_OUTBOX_TOPIC`, `BOT_LINK_UPDATES_TOPIC` (должны ссылаться на один и тот же topic).
+  - `BOT_LINK_UPDATES_GROUP_ID` для изоляции consumer-группы `bot`.
+
+### Поведение и ограничения
+
+- `http`: минимальная задержка доставки, но выше чувствительность к временной недоступности `bot`.
+- `kafka`: буферизация и устойчивость к краткосрочным сбоям `bot`, но доставка становится eventual-consistent.
+- При `kafka` важно контролировать lag consumer-группы и состояние outbox-процессора.
+
+## Resilience: timeout/retry/backoff/circuit breaker
+
+### Runtime-политики в backend
+
+- Retry + Circuit Breaker + Rate Limiter применяются в `scrapper` для `github-api`, `stackoverflow-api`, `bot-api`.
+- Базовые значения по умолчанию (`scrapper/src/main/resources/application.yaml`):
+  - `retry.max-attempts=3`, `retry.wait-duration=500ms`;
+  - `circuitbreaker.failure-rate-threshold=50`, `wait-duration-in-open-state=30s`;
+  - `ratelimiter.limit-for-period=10`, `limit-refresh-period=1s`, `timeout-duration=0`;
+  - polling-backoff после ошибок: экспоненциальный (base -> max) через `poll_state.next_retry_at`.
+
+### Рекомендуемые значения для production
+
+- Timeout внешних вызовов: 3-5s на запрос (через HTTP client/ingress policy).
+- Retry: 3-4 попытки, стартовая пауза 300-700ms, экспоненциальный backoff без бесконечных ретраев.
+- Circuit breaker: окно 20-50 запросов, порог срабатывания 40-60%, `open-state` 20-60s.
+- Polling backoff: старт от `force-check-delay`, верхняя граница не менее x16-x32 от base.
+
+### Как проверить, что политика активна
+
+1. Выполнить `./mvnw clean verify` (проверяет unit/integration/contract и quality-gates).
+2. Для локального smoke после запуска:
+   - `curl --fail --silent http://localhost:8080/actuator/health`
+   - `curl --fail --silent http://localhost:8081/actuator/health`
+3. Для post-deploy сценария использовать `docs/runbooks/post-deploy-smoke.md`.
+4. При диагностике деградации сверять `retry/circuitbreaker` метрики и lag Kafka consumer-групп.
 
 ## Миграция конфигурации: compose -> k8s
 

@@ -38,14 +38,15 @@ class DocumentationConsistencyIntegrationTest {
     void readme_shouldDescribeQuickStartDeliveryModesAndHealthChecks() throws IOException {
         String readme = read(README_PATH);
 
-        assertTrue(readme.contains("## Быстрый старт (clone -> configure -> run -> verify)"));
-        assertTrue(readme.contains("SCRAPPER_DELIVERY_MODE"));
-        assertTrue(readme.contains("http` и `kafka"));
+        assertTrue(ReadmeChecklistValidator.hasRequiredRuntimeSections(readme));
+        assertTrue(ReadmeChecklistValidator.hasDeliveryModeDetails(readme));
+        assertTrue(ReadmeChecklistValidator.hasResilienceGuide(readme));
         assertTrue(readme.contains("docker compose up --build"));
-        assertTrue(readme.contains("mvn clean verify"));
+        assertTrue(readme.contains("./mvnw clean verify"));
         assertTrue(readme.contains("http://localhost:8080/actuator/health"));
         assertTrue(readme.contains("http://localhost:8081/actuator/health"));
         assertTrue(readme.contains("docs/runbooks/README.md"));
+        assertTrue(readme.contains("docs/runbooks/post-deploy-smoke.md"));
     }
 
     private static Set<String> extractPlaceholders(String content) {
