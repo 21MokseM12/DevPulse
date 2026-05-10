@@ -16,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,9 +47,14 @@ class BotHttpLinkFlowIntegrationTest {
     private static final AtomicInteger getStatus = new AtomicInteger(200);
     private static final AtomicInteger postStatus = new AtomicInteger(200);
     private static final AtomicInteger deleteStatus = new AtomicInteger(200);
+    private static final AtomicInteger postCalls = new AtomicInteger(0);
+    private static final AtomicInteger clientPostStatus = new AtomicInteger(200);
+    private static final AtomicInteger clientDeleteStatus = new AtomicInteger(200);
     private static final AtomicReference<String> getBody = new AtomicReference<>("[]");
     private static final AtomicReference<String> postBody = new AtomicReference<>("null");
     private static final AtomicReference<String> deleteBody = new AtomicReference<>("null");
+    private static final AtomicReference<String> clientPostBody = new AtomicReference<>("null");
+    private static final AtomicReference<String> clientDeleteBody = new AtomicReference<>("null");
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
@@ -68,9 +74,14 @@ class BotHttpLinkFlowIntegrationTest {
         getStatus.set(200);
         postStatus.set(200);
         deleteStatus.set(200);
+        postCalls.set(0);
+        clientPostStatus.set(200);
+        clientDeleteStatus.set(200);
         getBody.set("[]");
         postBody.set(linkResponseJson(1001L, "https://github.com/org/repo/issues/1"));
         deleteBody.set(linkResponseJson(1001L, "https://github.com/org/repo/issues/1"));
+        clientPostBody.set("null");
+        clientDeleteBody.set("null");
     }
 
     @AfterAll
@@ -132,10 +143,92 @@ class BotHttpLinkFlowIntegrationTest {
                 .andExpect(jsonPath("$.notifications[0].url").value("https://github.com/org/repo/issues/1"));
     }
 
+    @Test
+    void clientsRegister_whenScrapperFails_returnsBadGatewayAndCompensates() throws Exception {
+        clientPostStatus.set(400);
+        clientPostBody.set(apiErrorJson("Bad request", "400", "BadRequestException", "invalid"));
+
+        mockMvc.perform(post("/api/v1/clients")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(clientPayload("comp-user", "secret")))
+                .andExpect(status().isBadGateway())
+                .andExpect(jsonPath("$.code").value("502"));
+
+        clientPostStatus.set(200);
+        mockMvc.perform(post("/api/v1/clients")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(clientPayload("comp-user", "secret")))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void clientsUnregister_whenScrapperFails_restoresClientAndReturnsBadGateway() throws Exception {
+        registerClient("rollback-user", "secret");
+        clientDeleteStatus.set(400);
+        clientDeleteBody.set(apiErrorJson("Bad request", "400", "BadRequestException", "invalid"));
+
+        mockMvc.perform(delete("/api/v1/clients")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(clientPayload("rollback-user", "secret")))
+                .andExpect(status().isBadGateway())
+                .andExpect(jsonPath("$.code").value("502"));
+
+        clientDeleteStatus.set(200);
+        mockMvc.perform(delete("/api/v1/clients")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(clientPayload("rollback-user", "secret")))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void clientsOperations_repeatCallsAreIdempotent() throws Exception {
+        registerClient("idempotent-user", "secret");
+
+        mockMvc.perform(post("/api/v1/clients")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(clientPayload("idempotent-user", "secret")))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(delete("/api/v1/clients")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(clientPayload("idempotent-user", "secret")))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(delete("/api/v1/clients")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(clientPayload("idempotent-user", "secret")))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void httpMode_trackLinkWithRelativeUri_returns400WithoutScrapperCall() throws Exception {
+        mockMvc.perform(post("/api/v1/links")
+                        .header("Client-Login", "alice")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"link\":\"/relative/path\"}"))
+                .andExpect(status().isBadRequest());
+
+        Assertions.assertEquals(0, postCalls.get());
+    }
+
+    @Test
+    void httpMode_trackLinkWithDuplicateTags_returns400WithoutScrapperCall() throws Exception {
+        mockMvc.perform(
+                        post("/api/v1/links")
+                                .header("Client-Login", "alice")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        "{\"link\":\"https://github.com/org/repo/issues/1\",\"tags\":[\"backend\",\"backend\"]}"))
+                .andExpect(status().isBadRequest());
+
+        Assertions.assertEquals(0, postCalls.get());
+    }
+
     private static HttpServer createStubServer() {
         try {
             HttpServer server = HttpServer.create(new InetSocketAddress(0), 0);
             server.createContext("/links", new StubLinksHandler());
+            server.createContext("/clients", new StubClientsHandler());
             server.start();
             return server;
         } catch (IOException e) {
@@ -194,8 +287,12 @@ class BotHttpLinkFlowIntegrationTest {
     private void registerClient(String login, String password) throws Exception {
         mockMvc.perform(post("/api/v1/clients")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"login\":\"" + login + "\",\"password\":\"" + password + "\"}"))
+                        .content(clientPayload(login, password)))
                 .andExpect(status().isOk());
+    }
+
+    private String clientPayload(String login, String password) {
+        return "{\"login\":\"" + login + "\",\"password\":\"" + password + "\"}";
     }
 
     private void postInternalUpdate(String payload) throws Exception {
@@ -217,11 +314,39 @@ class BotHttpLinkFlowIntegrationTest {
                 status = getStatus.get();
                 body = getBody.get();
             } else if ("POST".equals(method)) {
+                postCalls.incrementAndGet();
                 status = postStatus.get();
                 body = postBody.get();
             } else if ("DELETE".equals(method)) {
                 status = deleteStatus.get();
                 body = deleteBody.get();
+            } else {
+                status = 405;
+                body = "";
+            }
+
+            byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().add("Content-Type", "application/json");
+            exchange.sendResponseHeaders(status, bytes.length);
+            try (OutputStream os = exchange.getResponseBody()) {
+                os.write(bytes);
+            }
+        }
+    }
+
+    private static class StubClientsHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            String method = exchange.getRequestMethod();
+            int status;
+            String body;
+
+            if ("POST".equals(method)) {
+                status = clientPostStatus.get();
+                body = clientPostBody.get();
+            } else if ("DELETE".equals(method)) {
+                status = clientDeleteStatus.get();
+                body = clientDeleteBody.get();
             } else {
                 status = 405;
                 body = "";

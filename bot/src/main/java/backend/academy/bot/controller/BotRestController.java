@@ -10,6 +10,7 @@ import backend.academy.bot.model.entity.LinkDTO;
 import backend.academy.bot.service.ClientOperationService;
 import backend.academy.bot.service.ScrapperConnectionService;
 import backend.academy.bot.service.notifications.NotificationQueryService;
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -40,14 +41,14 @@ public class BotRestController {
     private final NotificationQueryService notificationQueryService;
 
     @PostMapping("/clients")
-    public ResponseEntity<BotApiMessageResponse> registerClient(@RequestBody ClientCredentialsRequest request)
+    public ResponseEntity<BotApiMessageResponse> registerClient(@Valid @RequestBody ClientCredentialsRequest request)
             throws BadRequestException {
         clientOperationService.registerClient(request.login(), request.password());
         return ResponseEntity.ok(new BotApiMessageResponse(Messages.WELCOME_MESSAGE.toString()));
     }
 
     @DeleteMapping("/clients")
-    public ResponseEntity<BotApiMessageResponse> unregisterClient(@RequestBody ClientCredentialsRequest request)
+    public ResponseEntity<BotApiMessageResponse> unregisterClient(@Valid @RequestBody ClientCredentialsRequest request)
             throws BadRequestException {
         clientOperationService.unregisterClient(request.login(), request.password());
         return ResponseEntity.ok(new BotApiMessageResponse(Messages.DELETE_SUBSCRIBE_MESSAGE.toString()));
@@ -61,7 +62,7 @@ public class BotRestController {
 
     @PostMapping("/links")
     public ResponseEntity<LinkResponse> trackLink(
-            @RequestHeader(name = CLIENT_LOGIN_HEADER) String login, @RequestBody AddLinkRequest request)
+            @RequestHeader(name = CLIENT_LOGIN_HEADER) String login, @Valid @RequestBody AddLinkRequest request)
             throws BadRequestException {
         var link = new LinkDTO();
         link.uri(request.link().toString());
@@ -72,7 +73,7 @@ public class BotRestController {
 
     @DeleteMapping("/links")
     public ResponseEntity<BotApiMessageResponse> untrackLink(
-            @RequestHeader(name = CLIENT_LOGIN_HEADER) String login, @RequestBody RemoveLinkRequest request)
+            @RequestHeader(name = CLIENT_LOGIN_HEADER) String login, @Valid @RequestBody RemoveLinkRequest request)
             throws BadRequestException {
         var links = scrapperConnectionService.getAllLinks(login);
         var deleted = links.stream()

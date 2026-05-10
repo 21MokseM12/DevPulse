@@ -153,6 +153,41 @@ class BotRestControllerTest {
     }
 
     @Test
+    void trackLink_returns400WhenLinkUriIsRelative() throws Exception {
+        var addRequest =
+                """
+                {
+                  "link": "/relative/path"
+                }
+                """;
+
+        mockMvc.perform(post("/api/v1/links")
+                        .header("Client-Login", "user")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(addRequest))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("400"));
+    }
+
+    @Test
+    void trackLink_returns400WhenTagsContainDuplicates() throws Exception {
+        var addRequest =
+                """
+                {
+                  "link": "https://github.com/u/r",
+                  "tags": ["java", "java"]
+                }
+                """;
+
+        mockMvc.perform(post("/api/v1/links")
+                        .header("Client-Login", "user")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(addRequest))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("400"));
+    }
+
+    @Test
     void untrackLink_returnsDeleteMessageWhenUnsubscribed() throws Exception {
         URI url = URI.create("https://github.com/u/r");
         var links = List.of(new LinkResponse(10L, url, Set.of(), Set.of()));

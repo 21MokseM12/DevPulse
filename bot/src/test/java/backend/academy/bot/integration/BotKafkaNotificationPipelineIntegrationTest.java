@@ -118,10 +118,6 @@ class BotKafkaNotificationPipelineIntegrationTest {
     }
 
     private void registerClient(String login, String password) throws Exception {
-        String payload = objectMapper.writeValueAsString(Map.of("login", login, "password", password));
-        mockMvc.perform(post("/api/v1/clients")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(payload))
-                .andExpect(status().isOk());
+        jdbcTemplate.update("INSERT INTO clients(login, password_hash) VALUES (?, ?)", login, password);
     }
 }

@@ -1,11 +1,14 @@
 package backend.academy.bot.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import backend.academy.bot.client.ChatClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -16,10 +19,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -54,11 +59,16 @@ class BotPersistenceIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @MockitoBean
+    private ChatClient chatClient;
+
     @BeforeEach
     void cleanDatabase() {
         jdbcTemplate.update("DELETE FROM notification_recipients");
         jdbcTemplate.update("DELETE FROM notifications");
         jdbcTemplate.update("DELETE FROM clients");
+        when(chatClient.registerChat(any())).thenReturn(ResponseEntity.ok().build());
+        when(chatClient.unregisterChat(any())).thenReturn(ResponseEntity.ok().build());
     }
 
     @Test
@@ -143,13 +153,13 @@ class BotPersistenceIntegrationTest {
     }
 
     @Test
-    void deleteUnknownClient_returns404() throws Exception {
+    void deleteUnknownClient_isIdempotent() throws Exception {
         String payload = objectMapper.writeValueAsString(Map.of("login", "ghost", "password", "ghost"));
 
         mockMvc.perform(delete("/api/v1/clients")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payload))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isOk());
     }
 
     @Test
