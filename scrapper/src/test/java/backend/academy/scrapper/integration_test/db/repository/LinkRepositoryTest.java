@@ -209,6 +209,20 @@ public class LinkRepositoryTest extends TestContainersConfiguration {
     }
 
     @Test
+    public void updateLastModified_thenFindLastModified_returnsStoredDate() {
+        OffsetDateTime createdAt = OffsetDateTime.now(clock).minusMinutes(5).truncatedTo(ChronoUnit.SECONDS);
+        String url = "https://poll.example/last-modified-" + UUID.randomUUID();
+        repository.save(url, createdAt);
+        OffsetDateTime lastModified = createdAt.plusMinutes(2);
+
+        repository.updateLastModified(url, lastModified);
+        Optional<OffsetDateTime> storedDate = repository.findLastModifiedByLink(url);
+
+        assertTrue(storedDate.isPresent());
+        assertEquals(lastModified.toInstant(), storedDate.orElseThrow().toInstant());
+    }
+
+    @Test
     public void updateLastEventDate_thenFindLastEventDate_returnsStoredDate() {
         OffsetDateTime createdAt = OffsetDateTime.now(clock).minusMinutes(5).truncatedTo(ChronoUnit.SECONDS);
         String url = "https://poll.example/event-date-" + UUID.randomUUID();

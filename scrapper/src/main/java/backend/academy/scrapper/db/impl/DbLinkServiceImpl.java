@@ -150,6 +150,29 @@ public class DbLinkServiceImpl implements DbLinkService {
     }
 
     @Override
+    public Optional<OffsetDateTime> findLastModifiedByLink(URI link) {
+        Optional<OffsetDateTime> cachedDate = redisPollingCacheService.getLastModified(link);
+        if (cachedDate.isPresent()) {
+            return cachedDate;
+        }
+        try {
+            Optional<OffsetDateTime> date = linkRepository.findLastModifiedByLink(link.toString());
+            date.ifPresent(value -> redisPollingCacheService.saveLastModified(link, value));
+            return date;
+        } catch (DataAccessException e) {
+            log.warn("Произошла ошибка при получении last_modified_at для ссылки {}: {}", link, e.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = DataAccessException.class)
+    public void updateLastModified(URI link, OffsetDateTime lastModified) {
+        linkRepository.updateLastModified(link.toString(), lastModified);
+        redisPollingCacheService.saveLastModified(link, lastModified);
+    }
+
+    @Override
     public Optional<OffsetDateTime> findLastEventDateByLink(URI link) {
         Optional<OffsetDateTime> cachedDate = redisPollingCacheService.getLastEventDate(link);
         if (cachedDate.isPresent()) {

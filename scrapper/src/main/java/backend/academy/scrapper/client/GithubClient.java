@@ -15,5 +15,6 @@ public interface GithubClient {
     ResponseEntity<List<GithubResponse>> getEvents(
             @PathVariable String name,
             @PathVariable String repo,
-            @RequestHeader(name = "If-None-Match", required = false) String ifNoneMatch);
+            @RequestHeader(name = "If-None-Match", required = false) String ifNoneMatch,
+            @RequestHeader(name = "If-Modified-Since", required = false) String ifModifiedSince);
 }

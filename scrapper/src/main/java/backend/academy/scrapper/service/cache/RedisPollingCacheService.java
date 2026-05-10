@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 public class RedisPollingCacheService {
 
     private static final String ETAG_PREFIX = "etag:";
+    private static final String LAST_MODIFIED_PREFIX = "poll:lastModified:";
     private static final String LAST_EVENT_DATE_PREFIX = "poll:lastEventDate:";
     private static final String LAST_CHECKED_AT_PREFIX = "poll:lastCheck:";
 
@@ -46,6 +47,14 @@ public class RedisPollingCacheService {
 
     public void saveEtag(URI link, String etag) {
         saveValue(buildKey(ETAG_PREFIX, link), etag, cacheProperty.etagTtl());
+    }
+
+    public Optional<OffsetDateTime> getLastModified(URI link) {
+        return getValue(buildKey(LAST_MODIFIED_PREFIX, link)).map(OffsetDateTime::parse);
+    }
+
+    public void saveLastModified(URI link, OffsetDateTime value) {
+        saveValue(buildKey(LAST_MODIFIED_PREFIX, link), value.toString(), cacheProperty.pollHintTtl());
     }
 
     public Optional<OffsetDateTime> getLastEventDate(URI link) {

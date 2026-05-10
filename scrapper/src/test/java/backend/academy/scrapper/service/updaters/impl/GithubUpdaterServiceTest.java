@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -34,7 +33,6 @@ import org.springframework.http.ResponseEntity;
 public class GithubUpdaterServiceTest {
 
     private GithubLinkParser githubLinkParser;
-
     private GithubClient githubClient;
 
     private DbLinkService dbLinkService;
@@ -63,6 +61,7 @@ public class GithubUpdaterServiceTest {
                 1L, "type", new GithubActor("login"), OffsetDateTime.now(), new GithubPayload("action", null, null));
 
         when(dbLinkService.findEtagByLink(link)).thenReturn(Optional.empty());
+        when(dbLinkService.findLastModifiedByLink(link)).thenReturn(Optional.empty());
         when(githubLinkParser.parseUsername(link.toString())).thenReturn("username");
         when(githubLinkParser.parseRepo(link.toString())).thenReturn("repo");
         when(resilienceExecutor.execute(eq("github-api"), any()))
@@ -82,10 +81,13 @@ public class GithubUpdaterServiceTest {
         LinkUpdateDTO updateDTO = new LinkUpdateDTO(1L, "title", "owner", OffsetDateTime.now(), "description");
         when(processor.processUpdates(link, List.of(response))).thenReturn(List.of(updateDTO));
         when(dbLinkService.findEtagByLink(link)).thenReturn(Optional.of("\"old-etag\""));
+        when(dbLinkService.findLastModifiedByLink(link))
+                .thenReturn(Optional.of(OffsetDateTime.parse("2026-01-01T00:00:00Z")));
         when(githubLinkParser.parseUsername(link.toString())).thenReturn("username");
         when(githubLinkParser.parseRepo(link.toString())).thenReturn("repo");
         HttpHeaders headers = new HttpHeaders();
         headers.setETag("\"new-etag\"");
+        headers.set("Last-Modified", "Fri, 02 Jan 2026 03:04:05 GMT");
         when(resilienceExecutor.execute(eq("github-api"), any()))
                 .thenReturn(new ResponseEntity<>(List.of(response), headers, HttpStatus.OK));
 
@@ -93,7 +95,9 @@ public class GithubUpdaterServiceTest {
         assertNotNull(updates);
         assertFalse(updates.isEmpty());
         assertEquals(List.of(updateDTO), updates);
+        verify(resilienceExecutor).execute(eq("github-api"), any());
         verify(dbLinkService).updateEtag(link, "\"new-etag\"");
+        verify(dbLinkService).updateLastModified(link, OffsetDateTime.parse("2026-01-02T03:04:05Z"));
     }
 
     @Test
@@ -101,16 +105,23 @@ public class GithubUpdaterServiceTest {
         URI link = URI.create("https://api.github.com");
 
         when(dbLinkService.findEtagByLink(link)).thenReturn(Optional.of("\"same-etag\""));
+        when(dbLinkService.findLastModifiedByLink(link))
+                .thenReturn(Optional.of(OffsetDateTime.parse("2026-01-02T03:04:05Z")));
         when(githubLinkParser.parseUsername(link.toString())).thenReturn("username");
         when(githubLinkParser.parseRepo(link.toString())).thenReturn("repo");
+        HttpHeaders headers = new HttpHeaders();
+        headers.setETag("\"same-etag\"");
+        headers.set("Last-Modified", "Fri, 02 Jan 2026 03:04:05 GMT");
         when(resilienceExecutor.execute(eq("github-api"), any()))
-                .thenReturn(ResponseEntity.status(HttpStatus.NOT_MODIFIED).build());
+                .thenReturn(new ResponseEntity<>(null, headers, HttpStatus.NOT_MODIFIED));
 
         List<LinkUpdateDTO> updates = githubUpdaterService.getUpdates(link);
 
         assertNotNull(updates);
         assertTrue(updates.isEmpty());
         verifyNoInteractions(processor);
-        verify(dbLinkService, never()).updateEtag(link, "\"same-etag\"");
+        verify(dbLinkService).updateEtag(link, "\"same-etag\"");
+        verify(dbLinkService).updateLastModified(link, OffsetDateTime.parse("2026-01-02T03:04:05Z"));
     }
+
 }

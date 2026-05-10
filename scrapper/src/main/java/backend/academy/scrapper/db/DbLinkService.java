@@ -29,6 +29,10 @@ public interface DbLinkService {
 
     void updateEtag(URI link, String etag);
 
+    Optional<OffsetDateTime> findLastModifiedByLink(URI link);
+
+    void updateLastModified(URI link, OffsetDateTime lastModified);
+
     Optional<OffsetDateTime> findLastEventDateByLink(URI link);
 
     void updateLastEventDate(URI link, OffsetDateTime lastEventDate);
