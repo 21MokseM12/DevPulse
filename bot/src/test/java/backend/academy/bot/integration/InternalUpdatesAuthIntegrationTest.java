@@ -1,9 +1,12 @@
 package backend.academy.bot.integration;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.OffsetDateTime;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -44,7 +47,12 @@ class InternalUpdatesAuthIntegrationTest {
     @Test
     void updatesWithoutHeader_returnsUnauthorized() throws Exception {
         mockMvc.perform(post("/updates").contentType(MediaType.APPLICATION_JSON).content(validLinkUpdateJson()))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.description").value("Unauthorized"))
+                .andExpect(jsonPath("$.code").value("401"))
+                .andExpect(jsonPath("$.exceptionName").value("MissingInternalAuthHeaderException"))
+                .andExpect(jsonPath("$.exceptionMessage").value("Missing internal auth header"))
+                .andExpect(jsonPath("$.stacktrace").isArray());
     }
 
     @Test
@@ -53,7 +61,13 @@ class InternalUpdatesAuthIntegrationTest {
                         .header("X-Internal-Secret", "wrong")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(validLinkUpdateJson()))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.description").value("Forbidden"))
+                .andExpect(jsonPath("$.code").value("403"))
+                .andExpect(jsonPath("$.exceptionName").value("InvalidInternalAuthSecretException"))
+                .andExpect(jsonPath("$.exceptionMessage").value("Invalid internal auth secret"))
+                .andExpect(jsonPath("$.stacktrace").isArray())
+                .andExpect(content().string(Matchers.not(Matchers.containsString("wrong"))));
     }
 
     @Test

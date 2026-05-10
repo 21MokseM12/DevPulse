@@ -1,10 +1,12 @@
 package backend.academy.bot.controller;
 
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import backend.academy.bot.config.ApplicationConfig;
@@ -52,7 +54,7 @@ public class ScrapperControllerTest {
     public void testGetUpdatedLinkSuccess() throws Exception {
         LinkUpdate linkUpdate = new LinkUpdate(
                 1L,
-                URI.create("uri"),
+                URI.create("https://example.com/resource"),
                 "title",
                 "owner",
                 "description",
@@ -72,7 +74,7 @@ public class ScrapperControllerTest {
     public void testGetUpdatedLinkBadRequestExceptionViaEmptyIdsList() throws Exception {
         LinkUpdate linkUpdate = new LinkUpdate(
                 1L,
-                URI.create("uri"),
+                URI.create("https://example.com/resource"),
                 "title",
                 "owner",
                 "description",
@@ -101,24 +103,19 @@ public class ScrapperControllerTest {
                 "description",
                 OffsetDateTime.of(LocalDate.of(2025, 3, 27), LocalTime.of(6, 50, 0), ZoneOffset.UTC),
                 List.of(1L, 2L));
-        doThrow(new BadRequestException("Некорректные параметры запроса"))
-                .when(linkUpdateProcessingService)
-                .process(linkUpdate);
-
         mockMvc.perform(post("/updates")
                         .header("X-Internal-Secret", "test-secret")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(linkUpdate)))
                 .andExpect(status().isBadRequest());
-
-        verify(linkUpdateProcessingService, times(1)).process(linkUpdate);
+        verify(linkUpdateProcessingService, times(0)).process(linkUpdate);
     }
 
     @Test
     public void notifyLinkUpdate_whenHeaderMissing_shouldReturnUnauthorized() throws Exception {
         LinkUpdate linkUpdate = new LinkUpdate(
                 1L,
-                URI.create("uri"),
+                URI.create("https://example.com/resource"),
                 "title",
                 "owner",
                 "description",
@@ -128,14 +125,21 @@ public class ScrapperControllerTest {
         mockMvc.perform(post("/updates")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(linkUpdate)))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.description").value("Unauthorized"))
+                .andExpect(jsonPath("$.code").value("401"))
+                .andExpect(jsonPath("$.exceptionName").value("MissingInternalAuthHeaderException"))
+                .andExpect(jsonPath("$.exceptionMessage").value("Missing internal auth header"))
+                .andExpect(jsonPath("$.stacktrace").isArray());
+
+        verify(linkUpdateProcessingService, never()).process(linkUpdate);
     }
 
     @Test
     public void notifyLinkUpdate_whenHeaderInvalid_shouldReturnForbidden() throws Exception {
         LinkUpdate linkUpdate = new LinkUpdate(
                 1L,
-                URI.create("uri"),
+                URI.create("https://example.com/resource"),
                 "title",
                 "owner",
                 "description",
@@ -146,6 +150,13 @@ public class ScrapperControllerTest {
                         .header("X-Internal-Secret", "wrong-secret")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(linkUpdate)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.description").value("Forbidden"))
+                .andExpect(jsonPath("$.code").value("403"))
+                .andExpect(jsonPath("$.exceptionName").value("InvalidInternalAuthSecretException"))
+                .andExpect(jsonPath("$.exceptionMessage").value("Invalid internal auth secret"))
+                .andExpect(jsonPath("$.stacktrace").isArray());
+
+        verify(linkUpdateProcessingService, never()).process(linkUpdate);
     }
 }
