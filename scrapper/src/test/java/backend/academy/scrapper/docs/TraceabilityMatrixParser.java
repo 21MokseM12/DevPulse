@@ -6,7 +6,7 @@ import java.util.regex.Pattern;
 
 final class TraceabilityMatrixParser {
 
-    private static final Pattern REQUIREMENT_PATTERN = Pattern.compile("F\\d+");
+    private static final Pattern REQUIREMENT_PATTERN = Pattern.compile("F\\d+|NFR\\d+");
     private static final Pattern STATUS_PATTERN = Pattern.compile("(implemented,tested|implemented,residual-risk)");
 
     private TraceabilityMatrixParser() {}
@@ -15,7 +15,7 @@ final class TraceabilityMatrixParser {
         List<TraceabilityRow> rows = new ArrayList<>();
         for (String line : markdown.split("\\R")) {
             String trimmed = line.trim();
-            if (!trimmed.startsWith("| F")) {
+            if (!trimmed.startsWith("| F") && !trimmed.startsWith("| NFR")) {
                 continue;
             }
             String[] columns = trimmed.split("\\|", -1);

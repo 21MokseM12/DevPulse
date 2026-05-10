@@ -27,6 +27,10 @@
 | F13 | `scrapper/src/main/java/backend/academy/scrapper/service/resilience/ExternalApiResilienceExecutor.java`<br>`scrapper/src/main/resources/application.yaml` | `scrapper/src/test/java/backend/academy/scrapper/service/resilience/ExternalApiResilienceExecutorTest.java` | implemented,tested | none |
 | F14 | `.github/workflows/build.yaml`<br>`.github/workflows/cd-staging.yaml`<br>`.github/workflows/cd-production.yaml`<br>`k8s/staging/*`, `k8s/production/*` | `scrapper/src/test/java/backend/academy/scrapper/ci/GithubCdWorkflowIntegrationTest.java`<br>`scrapper/src/test/java/backend/academy/scrapper/k8s/KubernetesManifestWiringIntegrationTest.java` | implemented,tested | none |
 | F15 | `README.md`<br>`.env.example`<br>`docs/runbooks/*` | `scrapper/src/test/java/backend/academy/scrapper/docs/DocumentationConsistencyIntegrationTest.java`<br>`scrapper/src/test/java/backend/academy/scrapper/docs/RunbooksPackageIntegrationTest.java` | implemented,tested | none |
+| NFR1 | `scrapper/src/main/java/backend/academy/scrapper/service/resilience/ExternalApiResilienceExecutor.java`<br>`scrapper/src/main/resources/application.yaml` | `scrapper/src/test/java/backend/academy/scrapper/service/resilience/ExternalApiResilienceExecutorTest.java` | implemented,tested | none |
+| NFR2 | `bot/src/main/resources/application-prod.yaml`<br>`scrapper/src/main/resources/application-prod.yaml`<br>`bot/src/main/resources/logback-prod.xml`<br>`scrapper/src/main/resources/logback-prod.xml` | `scrapper/src/test/java/backend/academy/scrapper/docs/ProductionLoggingProfileIntegrationTest.java` | implemented,tested | none |
+| NFR3 | `.github/workflows/cd-staging.yaml`<br>`.github/workflows/cd-production.yaml`<br>`k8s/staging/*`<br>`k8s/production/*` | `scrapper/src/test/java/backend/academy/scrapper/ci/GithubCdWorkflowIntegrationTest.java`<br>`scrapper/src/test/java/backend/academy/scrapper/k8s/KubernetesManifestWiringIntegrationTest.java` | implemented,tested | none |
+| NFR4 | `bot/src/main/java/backend/academy/bot/config/SecurityConfig.java`<br>`bot/src/main/java/backend/academy/bot/controller/ScrapperController.java`<br>`scrapper/src/main/resources/application.yaml` | `bot/src/test/java/backend/academy/bot/integration/InternalUpdatesAuthIntegrationTest.java`<br>`bot/src/test/java/backend/academy/bot/config/SecurityConfigTest.java` | implemented,tested | none |
 
 ## Cross-links
 
@@ -35,5 +39,5 @@
 
 ## Review status
 
-- Версия матрицы: `2026-05-08`.
+- Версия матрицы: `2026-05-10`.
 - Статус: готово к использованию в защите backend-части VKR.

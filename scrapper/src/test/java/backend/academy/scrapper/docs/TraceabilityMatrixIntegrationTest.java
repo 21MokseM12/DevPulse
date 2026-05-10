@@ -22,16 +22,21 @@ class TraceabilityMatrixIntegrationTest {
     private static final Path CHECKLIST_PATH = ROOT.resolve("docs/quality/defense-acceptance-checklist.md");
 
     @Test
-    void traceabilityMatrix_shouldCoverF1ToF15WithValidLinksAndStatuses() throws IOException {
+    void traceabilityMatrix_shouldCoverFunctionalAndNfrRequirementsWithValidLinksAndStatuses() throws IOException {
         String traceabilityMarkdown = Files.readString(TRACEABILITY_PATH, StandardCharsets.UTF_8);
         List<TraceabilityMatrixParser.TraceabilityRow> rows = TraceabilityMatrixParser.parseRows(traceabilityMarkdown);
 
-        assertEquals(15, rows.size(), "Traceability matrix must include F1..F15");
+        assertEquals(19, rows.size(), "Traceability matrix must include F1..F15 and NFR1..NFR4");
 
-        Set<String> requirements = new LinkedHashSet<>();
+        Set<String> functionalRequirements = new LinkedHashSet<>();
+        Set<String> nfrRequirements = new LinkedHashSet<>();
         Map<String, TraceabilityMatrixParser.TraceabilityRow> byRequirement = new LinkedHashMap<>();
         for (TraceabilityMatrixParser.TraceabilityRow row : rows) {
-            requirements.add(row.requirement());
+            if (row.requirement().startsWith("F")) {
+                functionalRequirements.add(row.requirement());
+            } else if (row.requirement().startsWith("NFR")) {
+                nfrRequirements.add(row.requirement());
+            }
             byRequirement.put(row.requirement(), row);
 
             List<String> implementationPaths = TraceabilityMatrixParser.extractBacktickPaths(row.implementation());
@@ -59,8 +64,12 @@ class TraceabilityMatrixIntegrationTest {
 
         Set<String> expected =
                 Set.of("F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "F13", "F14", "F15");
-        assertEquals(expected, requirements);
+        assertEquals(expected, functionalRequirements);
+        assertEquals(Set.of("NFR1", "NFR2", "NFR3", "NFR4"), nfrRequirements);
         assertEquals("implemented,residual-risk", byRequirement.get("F12").status());
+        for (String nfr : nfrRequirements) {
+            assertEquals("implemented,tested", byRequirement.get(nfr).status(), "NFR must be implemented and tested");
+        }
     }
 
     @Test

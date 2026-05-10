@@ -10,7 +10,7 @@
 
 ## 2) Сборка и качество
 
-- [ ] Выполнить `./mvnw clean verify`.
+- [x] Выполнить `./mvnw clean verify`.
 - [ ] Подтвердить green-статус unit/integration/contract и quality-gates.
 
 ## 3) Контракты и интеграции
@@ -28,6 +28,10 @@
 - [ ] Показать k8s/CI wiring:
   - `GithubCdWorkflowIntegrationTest`
   - `KubernetesManifestWiringIntegrationTest`
+- [ ] Показать НФТ-трассировку:
+  - устойчивость внешних API (`ExternalApiResilienceExecutorTest`);
+  - JSON-логирование production-профиля (`ProductionLoggingProfileIntegrationTest`);
+  - безопасность межсервисного канала (`InternalUpdatesAuthIntegrationTest`).
 - [ ] Показать эксплуатационный пакет:
   - `docs/runbooks/backup-restore-postgres.md`
   - `docs/runbooks/rollback-cd-k8s.md`
@@ -51,3 +55,9 @@ curl --fail --silent http://localhost:8081/actuator/health
 
 - [ ] Для каждого backend-требования есть доказуемая запись в traceability matrix.
 - [ ] Все обязательные проверки воспроизводимы без устных шагов.
+
+## 7) BK-504 verification evidence
+
+- Verification command: `./mvnw clean verify`
+- Verification result: PASS
+- Evidence source: локальный прогон в рабочем дереве перед фиксацией BK-504

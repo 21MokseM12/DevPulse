@@ -16,16 +16,19 @@ class TraceabilityMatrixParserTest {
             | --- | --- | --- | --- | --- |
             | F1 | `a/A.java` | `a/ATest.java` | implemented,tested | none |
             | F2 | `b/B.java` | none | implemented,residual-risk | external |
+            | NFR1 | `infra/Nfr.java` | `infra/NfrTest.java` | implemented,tested | none |
             | X3 | `x/X.java` | `x/XTest.java` | implemented,tested | none |
             """;
 
         List<TraceabilityMatrixParser.TraceabilityRow> rows = TraceabilityMatrixParser.parseRows(markdown);
 
-        assertEquals(2, rows.size());
+        assertEquals(3, rows.size());
         assertEquals("F1", rows.getFirst().requirement());
         assertEquals("implemented,tested", rows.getFirst().status());
         assertEquals("F2", rows.get(1).requirement());
         assertEquals("implemented,residual-risk", rows.get(1).status());
+        assertEquals("NFR1", rows.get(2).requirement());
+        assertEquals("implemented,tested", rows.get(2).status());
     }
 
     @Test
