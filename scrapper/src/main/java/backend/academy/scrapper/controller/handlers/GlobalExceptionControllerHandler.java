@@ -8,6 +8,8 @@ import java.util.Arrays;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import scrapper.bot.connectivity.exceptions.BadRequestException;
@@ -20,7 +22,9 @@ public class GlobalExceptionControllerHandler {
             exception = {
                 BadRequestException.class,
                 ConstraintViolationException.class,
-                InvalidCredentialsException.class
+                InvalidCredentialsException.class,
+                MethodArgumentNotValidException.class,
+                HttpMessageNotReadableException.class
             })
     public ResponseEntity<ApiErrorResponse> badRequestException(Exception e) {
         List<String> stacktrace = Arrays.stream(e.getStackTrace())

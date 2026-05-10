@@ -28,12 +28,6 @@ public class ClientController {
     @PostMapping
     public ResponseEntity<Void> register(@Valid @RequestBody ClientCredentialsRequest request)
             throws BadRequestException {
-        if (request.login() == null
-                || request.password() == null
-                || request.login().isBlank()
-                || request.password().isBlank()) {
-            throw new BadRequestException("Некорректные параметры запроса");
-        }
         log.info("Получен запрос на регистрацию пользователя с login {}", request.login());
         if (!chatOperationProcessor.register(request.login(), request.password())) {
             throw new BadRequestException("Пользователь с таким логином уже существует");
@@ -44,12 +38,6 @@ public class ClientController {
     @DeleteMapping
     public ResponseEntity<Void> unregister(@Valid @RequestBody ClientCredentialsRequest request)
             throws BadRequestException, ResourceNotFoundException {
-        if (request.login() == null
-                || request.password() == null
-                || request.login().isBlank()
-                || request.password().isBlank()) {
-            throw new BadRequestException("Некорректные параметры запроса");
-        }
         log.info("Получен запрос на удаление пользователя с login {}", request.login());
         if (!chatOperationProcessor.unregister(request.login(), request.password())) {
             throw new ResourceNotFoundException("Чат не существует");

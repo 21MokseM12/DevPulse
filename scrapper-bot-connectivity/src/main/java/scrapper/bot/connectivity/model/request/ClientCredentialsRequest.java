@@ -1,3 +1,5 @@
 package scrapper.bot.connectivity.model.request;
 
-public record ClientCredentialsRequest(String login, String password) {}
+import jakarta.validation.constraints.NotBlank;
+
+public record ClientCredentialsRequest(@NotBlank String login, @NotBlank String password) {}

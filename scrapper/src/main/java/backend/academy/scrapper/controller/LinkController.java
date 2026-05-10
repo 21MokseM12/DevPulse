@@ -3,9 +3,11 @@ package backend.academy.scrapper.controller;
 import backend.academy.scrapper.exceptions.ResourceNotFoundException;
 import backend.academy.scrapper.service.ChatOperationProcessor;
 import backend.academy.scrapper.service.LinkProcessor;
+import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,6 +20,7 @@ import scrapper.bot.connectivity.model.request.RemoveLinkRequest;
 import scrapper.bot.connectivity.model.response.LinkResponse;
 
 @RestController
+@Validated
 @RequestMapping("/links")
 @RequiredArgsConstructor
 public class LinkController {
@@ -35,14 +38,16 @@ public class LinkController {
 
     @PostMapping
     public ResponseEntity<LinkResponse> subscribeLink(
-            @RequestHeader(name = CLIENT_LOGIN_REQUEST_HEADER) String login, @RequestBody AddLinkRequest request) {
+            @RequestHeader(name = CLIENT_LOGIN_REQUEST_HEADER) String login,
+            @Valid @RequestBody AddLinkRequest request) {
         Long chatId = resolveChatId(login);
         return ResponseEntity.ok(processor.subscribeLink(chatId, request));
     }
 
     @DeleteMapping
     public ResponseEntity<LinkResponse> unsubscribeLink(
-            @RequestHeader(name = CLIENT_LOGIN_REQUEST_HEADER) String login, @RequestBody RemoveLinkRequest request) {
+            @RequestHeader(name = CLIENT_LOGIN_REQUEST_HEADER) String login,
+            @Valid @RequestBody RemoveLinkRequest request) {
         Long chatId = resolveChatId(login);
         return ResponseEntity.ok(processor.unsubscribeLink(chatId, request));
     }
