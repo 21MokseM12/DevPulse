@@ -1,0 +1,9 @@
+.git
+.gitignore
+.idea
+.cursor
+**/target
+**/out
+**/.DS_Store
+**/*.iml
+node_modules

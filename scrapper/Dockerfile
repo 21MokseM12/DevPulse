@@ -4,7 +4,7 @@ WORKDIR /build
 
 COPY . .
 
-RUN chmod +x mvnw && ./mvnw -pl scrapper -am package -DskipTests -Dmaven.wagon.http.retryHandler.count=5
+RUN chmod +x mvnw && ./mvnw -pl scrapper -am clean package -DskipTests -Dmaven.wagon.http.retryHandler.count=5
 
 FROM eclipse-temurin:23-jre
 
@@ -15,7 +15,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends curl \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=build /build/scrapper/target/*.jar app.jar
+COPY --from=build /build/scrapper/target/scrapper-*.jar app.jar
 
 USER nobody
 
