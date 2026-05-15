@@ -21,10 +21,8 @@ public class ClientOperationService {
 
     public void registerClient(String login, String password) throws BadRequestException {
         validateCredentials(login, password);
-        var storedClient = clientRepository.findByLogin(login);
-        if (storedClient.isPresent()) {
-            validatePassword(storedClient.orElseThrow(), password);
-            return;
+        if (clientRepository.findByLogin(login).isPresent()) {
+            throw new BadRequestException("Пользователь с таким логином уже существует");
         }
         String passwordHash = passwordEncoder.encode(password);
         clientRepository.save(login, passwordHash);

@@ -143,6 +143,21 @@ class BotPersistenceIntegrationTest {
     }
 
     @Test
+    void registerClient_whenLoginAlreadyExists_returnsBadRequest() throws Exception {
+        String payload = objectMapper.writeValueAsString(Map.of("login", "duplicate-user", "password", "pass"));
+
+        mockMvc.perform(post("/api/v1/clients")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/api/v1/clients")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void postUpdates_savesNotification() throws Exception {
         registerClient("1", "1");
 

@@ -2,6 +2,7 @@ package backend.academy.bot.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -47,13 +48,14 @@ class ClientOperationServiceTest {
     }
 
     @Test
-    void registerClient_existingClientWithSamePassword_isIdempotent() throws BadRequestException {
+    void registerClient_whenClientAlreadyExists_throwsBadRequest() {
         when(clientRepository.findByLogin("alice")).thenReturn(Optional.of(new Client(1L, "alice", "hashed")));
-        when(passwordEncoder.matches("secret", "hashed")).thenReturn(true);
 
-        clientOperationService.registerClient("alice", "secret");
+        BadRequestException exception =
+                assertThrows(BadRequestException.class, () -> clientOperationService.registerClient("alice", "secret"));
 
-        verify(clientRepository, never()).save("alice", "hashed");
+        assertEquals("Пользователь с таким логином уже существует", exception.getMessage());
+        verify(clientRepository, never()).save(anyString(), anyString());
         verify(scrapperConnectionService, never()).registerChat("alice", "secret");
     }
 

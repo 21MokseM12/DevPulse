@@ -181,13 +181,13 @@ class BotHttpLinkFlowIntegrationTest {
     }
 
     @Test
-    void clientsOperations_repeatCallsAreIdempotent() throws Exception {
+    void clientsOperations_repeatRegisterRejectedAndUnregisterRemainsIdempotent() throws Exception {
         registerClient("idempotent-user", "secret");
 
         mockMvc.perform(post("/api/v1/clients")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(clientPayload("idempotent-user", "secret")))
-                .andExpect(status().isOk());
+                .andExpect(status().isBadRequest());
 
         mockMvc.perform(delete("/api/v1/clients")
                         .contentType(MediaType.APPLICATION_JSON)
