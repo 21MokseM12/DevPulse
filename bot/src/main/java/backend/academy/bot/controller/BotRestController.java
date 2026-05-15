@@ -54,6 +54,13 @@ public class BotRestController {
         return ResponseEntity.ok(new BotApiMessageResponse(Messages.DELETE_SUBSCRIBE_MESSAGE.toString()));
     }
 
+    @PostMapping("/clients/login")
+    public ResponseEntity<BotApiMessageResponse> loginClient(@Valid @RequestBody ClientCredentialsRequest request)
+            throws BadRequestException {
+        clientOperationService.loginClient(request.login(), request.password());
+        return ResponseEntity.ok(new BotApiMessageResponse(Messages.WELCOME_MESSAGE.toString()));
+    }
+
     @GetMapping("/links")
     public ResponseEntity<List<LinkResponse>> getLinks(@RequestHeader(name = CLIENT_LOGIN_HEADER) String login)
             throws BadRequestException {

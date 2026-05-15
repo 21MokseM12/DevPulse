@@ -100,6 +100,49 @@ class BotPersistenceIntegrationTest {
     }
 
     @Test
+    void loginClient_whenCredentialsValid_returnsOk() throws Exception {
+        String payload = objectMapper.writeValueAsString(Map.of("login", "user-login", "password", "pass-login"));
+
+        mockMvc.perform(post("/api/v1/clients")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/api/v1/clients/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void loginClient_whenClientMissing_returnsNotFound() throws Exception {
+        String payload = objectMapper.writeValueAsString(Map.of("login", "ghost-login", "password", "ghost-pass"));
+
+        mockMvc.perform(post("/api/v1/clients/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void loginClient_whenPasswordInvalid_returnsBadRequest() throws Exception {
+        String registerPayload =
+                objectMapper.writeValueAsString(Map.of("login", "user-login-2", "password", "correct-pass"));
+        String loginPayload =
+                objectMapper.writeValueAsString(Map.of("login", "user-login-2", "password", "wrong-pass"));
+
+        mockMvc.perform(post("/api/v1/clients")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(registerPayload))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/api/v1/clients/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(loginPayload))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void postUpdates_savesNotification() throws Exception {
         registerClient("1", "1");
 

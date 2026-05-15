@@ -58,6 +58,15 @@ public class ClientOperationService {
         }
     }
 
+    public void loginClient(String login, String password) throws BadRequestException {
+        validateCredentials(login, password);
+        var storedClient = clientRepository.findByLogin(login);
+        if (storedClient.isEmpty()) {
+            throw new ChatNotFoundException("Клиент не найден");
+        }
+        validatePassword(storedClient.orElseThrow(), password);
+    }
+
     private void validateCredentials(String login, String password) throws BadRequestException {
         if (isBlank(login) || isBlank(password)) {
             throw new BadRequestException("Логин и пароль обязательны");

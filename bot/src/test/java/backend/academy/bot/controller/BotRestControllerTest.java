@@ -91,6 +91,25 @@ class BotRestControllerTest {
     }
 
     @Test
+    void loginClient_returnsWelcomeMessage() throws Exception {
+        var payload =
+                """
+                {
+                  "login": "user",
+                  "password": "pass"
+                }
+                """;
+
+        mockMvc.perform(post("/api/v1/clients/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value(Messages.WELCOME_MESSAGE.toString()));
+
+        verify(clientOperationService).loginClient("user", "pass");
+    }
+
+    @Test
     void unregisterClient_returns404WhenChatNotFound() throws Exception {
         var payload =
                 """
@@ -104,6 +123,26 @@ class BotRestControllerTest {
                 .unregisterClient("user", "pass");
 
         mockMvc.perform(delete("/api/v1/clients")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("404"));
+    }
+
+    @Test
+    void loginClient_returns404WhenChatNotFound() throws Exception {
+        var payload =
+                """
+                {
+                  "login": "user",
+                  "password": "pass"
+                }
+                """;
+        doThrow(new ChatNotFoundException(Messages.ERROR.toString()))
+                .when(clientOperationService)
+                .loginClient("user", "pass");
+
+        mockMvc.perform(post("/api/v1/clients/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payload))
                 .andExpect(status().isNotFound())

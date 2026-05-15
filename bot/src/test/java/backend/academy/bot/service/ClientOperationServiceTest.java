@@ -126,4 +126,37 @@ class ClientOperationServiceTest {
 
         assertEquals("Не удалось синхронизировать удаление клиента", exception.getMessage());
     }
+
+    @Test
+    void loginClient_whenClientExistsAndPasswordMatches_succeeds() throws BadRequestException {
+        when(clientRepository.findByLogin("alice")).thenReturn(Optional.of(new Client(1L, "alice", "hashed")));
+        when(passwordEncoder.matches("secret", "hashed")).thenReturn(true);
+
+        clientOperationService.loginClient("alice", "secret");
+
+        verify(clientRepository).findByLogin("alice");
+        verify(scrapperConnectionService, never()).registerChat("alice", "secret");
+        verify(scrapperConnectionService, never()).unregisterChat("alice", "secret");
+    }
+
+    @Test
+    void loginClient_whenClientMissing_throwsNotFound() {
+        when(clientRepository.findByLogin("alice")).thenReturn(Optional.empty());
+
+        ChatNotFoundException exception =
+                assertThrows(ChatNotFoundException.class, () -> clientOperationService.loginClient("alice", "secret"));
+
+        assertEquals("Клиент не найден", exception.getMessage());
+    }
+
+    @Test
+    void loginClient_whenPasswordInvalid_throwsBadRequest() {
+        when(clientRepository.findByLogin("alice")).thenReturn(Optional.of(new Client(1L, "alice", "hashed")));
+        when(passwordEncoder.matches("wrong", "hashed")).thenReturn(false);
+
+        BadRequestException exception =
+                assertThrows(BadRequestException.class, () -> clientOperationService.loginClient("alice", "wrong"));
+
+        assertEquals("Некорректные учетные данные", exception.getMessage());
+    }
 }

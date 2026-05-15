@@ -10,7 +10,7 @@ servers:
 
 tags:
   - name: Clients
-    description: Регистрация и удаление клиента
+    description: Регистрация, вход и удаление клиента
   - name: Links
     description: Управление подписками на ссылки
   - name: Updates
@@ -52,6 +52,29 @@ paths:
       responses:
         '200':
           description: Клиент успешно удален
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BotApiMessageResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v1/clients/login:
+    post:
+      tags: [Clients]
+      operationId: loginClient
+      summary: Выполнить вход клиента
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientCredentialsRequest'
+      responses:
+        '200':
+          description: Вход выполнен успешно
           content:
             application/json:
               schema:
