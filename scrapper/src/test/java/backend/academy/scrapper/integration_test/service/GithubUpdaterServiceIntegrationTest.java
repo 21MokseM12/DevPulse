@@ -13,6 +13,7 @@ import backend.academy.scrapper.model.LinkUpdateDTO;
 import backend.academy.scrapper.model.UpdateType;
 import backend.academy.scrapper.model.github.GithubActor;
 import backend.academy.scrapper.model.github.GithubCommit;
+import backend.academy.scrapper.model.github.GithubIssue;
 import backend.academy.scrapper.model.github.GithubPayload;
 import backend.academy.scrapper.model.github.GithubResponse;
 import backend.academy.scrapper.service.resilience.ExternalApiResilienceExecutor;
@@ -147,5 +148,29 @@ class GithubUpdaterServiceIntegrationTest extends TestContainersConfiguration {
                 "github_commit",
                 12345L);
         assertEquals(1, processedRows);
+    }
+
+    @Test
+    void getUpdates_whenGithubReturnsOpenedIssueWithLongBody_shouldUseFirst200SymbolsInDescription() {
+        URI link = URI.create("https://github.com/acme/repo-" + UUID.randomUUID());
+        dbLinkService.saveLink(new AddLinkRequest(link, Set.of("tag"), Set.of("filter")));
+        when(resilienceExecutor.execute(any(), any()))
+                .thenAnswer(invocation -> ((Supplier<?>) invocation.getArgument(1)).get());
+
+        String issueBody = "x".repeat(210);
+        GithubResponse issueEvent = new GithubResponse(
+                54321L,
+                "IssuesEvent",
+                new GithubActor("octocat"),
+                OffsetDateTime.parse("2026-03-05T08:00:00Z"),
+                new GithubPayload("opened", null, new GithubIssue("Issue title", issueBody, List.of())));
+        when(githubClient.getEvents(any(), any(), any(), any())).thenReturn(ResponseEntity.ok(List.of(issueEvent)));
+
+        List<LinkUpdateDTO> updates = githubUpdaterService.getUpdates(link);
+
+        assertEquals(1, updates.size());
+        LinkUpdateDTO update = updates.getFirst();
+        assertEquals(UpdateType.GITHUB_ISSUE, update.type());
+        assertEquals("x".repeat(200) + "...", update.descriptionPreview());
     }
 }
