@@ -42,9 +42,11 @@ public class GithubResponseMapper {
                 ? List.of()
                 : response.payload().commits();
         String branchName = extractBranchName(response.payload().ref());
-        String title = commits.size() == 1
-                ? "Новый коммит в ветке " + branchName
-                : "Новые коммиты (" + commits.size() + ") в ветке " + branchName;
+        String title = switch (commits.size()) {
+            case 0 -> "Push в ветке " + branchName;
+            case 1 -> "Новый коммит в ветке " + branchName;
+            default -> "Новые коммиты (" + commits.size() + ") в ветке " + branchName;
+        };
         String description = commits.stream()
                 .filter(commit -> commit != null
                         && commit.message() != null
@@ -53,7 +55,11 @@ public class GithubResponseMapper {
                 .map(GithubResponseMapper::toCommitPreview)
                 .collect(Collectors.joining("\n"));
         if (description.isBlank()) {
-            description = "Появились новые коммиты в репозитории.";
+            String shortHead = shortenSha(response.payload().head());
+            description = shortHead == null
+                    ? "Зафиксирован push в репозитории (без списка commits в payload GitHub Events API)."
+                    : "Зафиксирован push в репозитории. HEAD: " + shortHead
+                            + " (GitHub Events API не вернул список commits).";
         }
         return new LinkUpdateDTO(
                 response.id(),

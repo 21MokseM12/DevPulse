@@ -11,8 +11,10 @@ import backend.academy.scrapper.service.updaters.processors.GithubRepoUpdateProc
 import java.net.URI;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class GithubCommitUpdateProcessor implements GithubRepoUpdateProcessor {
@@ -24,9 +26,16 @@ public class GithubCommitUpdateProcessor implements GithubRepoUpdateProcessor {
         List<Long> processedIds = githubLinkService.getProcessedCommitIds(link);
         List<LinkUpdateDTO> processedUpdates = updates.stream()
                 .filter(event -> event.type().equals(GithubActionType.PUSH_EVENT.type()))
-                .filter(event -> event.payload().commits() != null
-                        && !event.payload().commits().isEmpty())
                 .filter(event -> !processedIds.contains(event.id()))
+                .peek(event -> {
+                    if (event.payload().commits() == null || event.payload().commits().isEmpty()) {
+                        log.info(
+                                "PushEvent {} для ссылки {} не содержит commits в payload. "
+                                        + "Используется fallback-описание по ref/head.",
+                                event.id(),
+                                link);
+                    }
+                })
                 .map(GithubResponseMapper::mapToCommit)
                 .toList();
         githubLinkService.saveProcessedIds(

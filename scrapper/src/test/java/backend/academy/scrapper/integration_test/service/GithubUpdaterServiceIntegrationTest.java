@@ -106,6 +106,48 @@ class GithubUpdaterServiceIntegrationTest extends TestContainersConfiguration {
     }
 
     @Test
+    void getUpdates_whenGithubReturnsPushEventWithoutCommits_returnsFallbackCommitUpdateAndPersistsProcessedId() {
+        URI link = URI.create("https://github.com/acme/repo-" + UUID.randomUUID());
+        dbLinkService.saveLink(new AddLinkRequest(link, Set.of("tag"), Set.of("filter")));
+
+        GithubResponse pushEvent = new GithubResponse(
+                22334L,
+                "PushEvent",
+                new GithubActor("octocat"),
+                OffsetDateTime.parse("2026-03-06T08:00:00Z"),
+                new GithubPayload(
+                        "ignored",
+                        null,
+                        null,
+                        "refs/heads/main",
+                        "3f5c1e8e2370a49d",
+                        "7f9ab17cc840f2b1",
+                        List.of()));
+        when(githubClient.getEvents(any(), any(), any(), any())).thenReturn(ResponseEntity.ok(List.of(pushEvent)));
+
+        List<LinkUpdateDTO> updates = githubUpdaterService.getUpdates(link);
+
+        assertEquals(1, updates.size());
+        LinkUpdateDTO update = updates.getFirst();
+        assertEquals(22334L, update.id());
+        assertEquals(UpdateType.GITHUB_COMMIT, update.type());
+        assertEquals("Push в ветке main", update.title());
+        assertEquals(
+                "Зафиксирован push в репозитории. HEAD: 3f5c1e8 (GitHub Events API не вернул список commits).",
+                update.descriptionPreview());
+
+        Integer processedRows = jdbcTemplate.queryForObject(
+                "select count(*) from processed_ids pi "
+                        + "join links l on l.id = pi.link_id "
+                        + "where l.url = ? and pi.type = ? and pi.processed_id = ?",
+                Integer.class,
+                link.toString(),
+                "github_commit",
+                22334L);
+        assertEquals(1, processedRows);
+    }
+
+    @Test
     @Disabled("Flaky in full-suite runs; commit mapping and processed-id persistence are covered by unit tests")
     void getUpdates_whenGithubReturnsPushEvent_returnsCommitUpdateAndPersistsProcessedId() {
         URI link = URI.create("https://github.com/acme/repo-" + UUID.randomUUID());

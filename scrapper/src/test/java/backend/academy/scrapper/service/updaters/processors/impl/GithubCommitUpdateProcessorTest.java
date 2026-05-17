@@ -131,19 +131,26 @@ public class GithubCommitUpdateProcessorTest {
     }
 
     @Test
-    public void processUpdates_whenPushEventContainsNoCommits_shouldReturnEmptyList() {
+    public void processUpdates_whenPushEventContainsNoCommits_shouldReturnFallbackUpdate() {
         GithubResponse response = new GithubResponse(
                 1L,
                 GithubActionType.PUSH_EVENT.type(),
                 ACTOR,
                 fixedTime,
-                new GithubPayload("ignored", null, null, "refs/heads/main", List.of()));
+                new GithubPayload("ignored", null, null, "refs/heads/main", "3f5c1e8e2370a49d", null, List.of()));
 
         when(linkService.getProcessedCommitIds(link)).thenReturn(List.of());
 
         List<LinkUpdateDTO> linkUpdateDTOS = processor.processUpdates(link, List.of(response));
         assertNotNull(linkUpdateDTOS);
-        assertTrue(linkUpdateDTOS.isEmpty());
+        assertEquals(1, linkUpdateDTOS.size());
+        LinkUpdateDTO update = linkUpdateDTOS.getFirst();
+        assertEquals(1L, update.id());
+        assertEquals("Push в ветке main", update.title());
+        assertEquals(
+                "Зафиксирован push в репозитории. HEAD: 3f5c1e8 (GitHub Events API не вернул список commits).",
+                update.descriptionPreview());
+        assertEquals(UpdateType.GITHUB_COMMIT, update.type());
     }
 
     @AfterEach
