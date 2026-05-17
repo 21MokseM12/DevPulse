@@ -3,6 +3,7 @@ package backend.academy.scrapper.service.updaters.impl;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -55,7 +56,7 @@ public class GithubUpdaterServiceTest {
     }
 
     @Test
-    public void getUpdates_whenStatusCodeNotSuccessful_shouldReturnEmptyList() {
+    public void getUpdates_whenStatusCodeNotSuccessful_shouldThrowException() {
         URI link = URI.create("https://api.github.com");
         GithubResponse response = new GithubResponse(
                 1L, "type", new GithubActor("login"), OffsetDateTime.now(), new GithubPayload("action", null, null));
@@ -67,9 +68,7 @@ public class GithubUpdaterServiceTest {
         when(resilienceExecutor.execute(eq("github-api"), any()))
                 .thenReturn(ResponseEntity.badRequest().body(List.of(response)));
 
-        List<LinkUpdateDTO> updates = githubUpdaterService.getUpdates(link);
-        assertNotNull(updates);
-        assertTrue(updates.isEmpty());
+        assertThrows(IllegalStateException.class, () -> githubUpdaterService.getUpdates(link));
     }
 
     @Test

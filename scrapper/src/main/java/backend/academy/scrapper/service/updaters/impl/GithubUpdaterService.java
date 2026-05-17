@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import scrapper.bot.connectivity.enums.LinkUpdaterType;
@@ -51,8 +52,19 @@ public class GithubUpdaterService implements LinkUpdater {
 
         updatePollState(link, events);
 
-        if (!events.getStatusCode().is2xxSuccessful()) {
+        if (events.getStatusCode() == HttpStatus.NOT_MODIFIED) {
             return new ArrayList<>();
+        }
+
+        if (!events.getStatusCode().is2xxSuccessful()) {
+            log.warn(
+                    "Github API вернул статус {} для ссылки {}. X-RateLimit-Remaining={}, X-RateLimit-Reset={}",
+                    events.getStatusCode().value(),
+                    link,
+                    events.getHeaders().getFirst("X-RateLimit-Remaining"),
+                    events.getHeaders().getFirst("X-RateLimit-Reset"));
+            throw new IllegalStateException("Github API вернул неуспешный статус: "
+                    + events.getStatusCode().value());
         }
 
         List<GithubResponse> responseBody = events.getBody();
@@ -62,6 +74,12 @@ public class GithubUpdaterService implements LinkUpdater {
             updateProcessors.stream()
                     .map(processor -> processor.processUpdates(link, updates))
                     .forEach(resultList::addAll);
+            if (resultList.isEmpty()) {
+                log.info(
+                        "Github API вернул {} событий для ссылки {}, но ни одно не подходит под текущие фильтры действий.",
+                        updates.size(),
+                        link);
+            }
             return resultList;
         }
         return new ArrayList<>();
