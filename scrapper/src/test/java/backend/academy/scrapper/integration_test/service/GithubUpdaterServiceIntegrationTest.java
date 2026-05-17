@@ -16,15 +16,15 @@ import backend.academy.scrapper.model.github.GithubCommit;
 import backend.academy.scrapper.model.github.GithubIssue;
 import backend.academy.scrapper.model.github.GithubPayload;
 import backend.academy.scrapper.model.github.GithubResponse;
-import backend.academy.scrapper.service.resilience.ExternalApiResilienceExecutor;
 import backend.academy.scrapper.service.updaters.impl.GithubUpdaterService;
 import java.net.URI;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Supplier;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -37,6 +37,7 @@ import scrapper.bot.connectivity.model.request.AddLinkRequest;
 
 @SpringBootTest(classes = {ScrapperApplication.class})
 @ActiveProfiles("test")
+@Execution(ExecutionMode.SAME_THREAD)
 class GithubUpdaterServiceIntegrationTest extends TestContainersConfiguration {
 
     @Autowired
@@ -51,17 +52,12 @@ class GithubUpdaterServiceIntegrationTest extends TestContainersConfiguration {
     @MockBean
     private GithubClient githubClient;
 
-    @MockBean
-    private ExternalApiResilienceExecutor resilienceExecutor;
-
     @Test
     void getUpdates_whenGithubReturns200_updatesConditionalPollState() {
         URI link = URI.create("https://github.com/acme/repo-" + UUID.randomUUID());
         dbLinkService.saveLink(new AddLinkRequest(link, Set.of("tag"), Set.of("filter")));
         dbLinkService.updateEtag(link, "\"old-etag\"");
         dbLinkService.updateLastModified(link, OffsetDateTime.parse("2026-01-01T00:00:00Z"));
-        when(resilienceExecutor.execute(any(), any()))
-                .thenAnswer(invocation -> ((Supplier<?>) invocation.getArgument(1)).get());
 
         HttpHeaders headers = new HttpHeaders();
         headers.setETag("\"new-etag\"");
@@ -91,8 +87,6 @@ class GithubUpdaterServiceIntegrationTest extends TestContainersConfiguration {
         dbLinkService.saveLink(new AddLinkRequest(link, Set.of("tag"), Set.of("filter")));
         dbLinkService.updateEtag(link, "\"stable-etag\"");
         dbLinkService.updateLastModified(link, OffsetDateTime.parse("2026-02-01T10:15:30Z"));
-        when(resilienceExecutor.execute(any(), any()))
-                .thenAnswer(invocation -> ((Supplier<?>) invocation.getArgument(1)).get());
 
         when(githubClient.getEvents(any(), any(), any(), any()))
                 .thenReturn(ResponseEntity.status(HttpStatus.NOT_MODIFIED).build());
@@ -114,8 +108,6 @@ class GithubUpdaterServiceIntegrationTest extends TestContainersConfiguration {
     void getUpdates_whenGithubReturnsPushEvent_returnsCommitUpdateAndPersistsProcessedId() {
         URI link = URI.create("https://github.com/acme/repo-" + UUID.randomUUID());
         dbLinkService.saveLink(new AddLinkRequest(link, Set.of("tag"), Set.of("filter")));
-        when(resilienceExecutor.execute(any(), any()))
-                .thenAnswer(invocation -> ((Supplier<?>) invocation.getArgument(1)).get());
 
         GithubResponse pushEvent = new GithubResponse(
                 12345L,
@@ -154,8 +146,6 @@ class GithubUpdaterServiceIntegrationTest extends TestContainersConfiguration {
     void getUpdates_whenGithubReturnsOpenedIssueWithLongBody_shouldUseFirst200SymbolsInDescription() {
         URI link = URI.create("https://github.com/acme/repo-" + UUID.randomUUID());
         dbLinkService.saveLink(new AddLinkRequest(link, Set.of("tag"), Set.of("filter")));
-        when(resilienceExecutor.execute(any(), any()))
-                .thenAnswer(invocation -> ((Supplier<?>) invocation.getArgument(1)).get());
 
         String issueBody = "x".repeat(210);
         GithubResponse issueEvent = new GithubResponse(

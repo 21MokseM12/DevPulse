@@ -99,6 +99,14 @@ resilience4j:
     instances:
       github-api:
         base-config: default
+        max-attempts: 4
+        wait-duration: 300ms
+        retry-exceptions:
+          - org.springframework.web.client.ResourceAccessException
+          - org.springframework.web.client.RestClientException
+          - java.io.IOException
+        ignore-exceptions:
+          - org.springframework.web.client.HttpClientErrorException
       stackoverflow-api:
         base-config: default
       bot-api:

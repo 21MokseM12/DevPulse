@@ -14,6 +14,7 @@ import io.github.resilience4j.retry.RetryRegistry;
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
+import org.springframework.web.client.ResourceAccessException;
 
 class ExternalApiResilienceExecutorTest {
 
@@ -42,6 +43,33 @@ class ExternalApiResilienceExecutorTest {
 
         assertEquals("ok", result);
         assertEquals(3, attempts.get());
+    }
+
+    @Test
+    void execute_whenFailureIsNetworkRelated_retriesAndReturnsResult() {
+        ExternalApiResilienceExecutor executor = newExecutorWith(
+                RetryConfig.custom()
+                        .maxAttempts(3)
+                        .retryExceptions(ResourceAccessException.class)
+                        .build(),
+                CircuitBreakerConfig.ofDefaults(),
+                RateLimiterConfig.custom()
+                        .limitForPeriod(10)
+                        .limitRefreshPeriod(Duration.ofSeconds(1))
+                        .timeoutDuration(Duration.ZERO)
+                        .build());
+        AtomicInteger attempts = new AtomicInteger();
+
+        String result = executor.execute("test-api", () -> {
+            int currentAttempt = attempts.incrementAndGet();
+            if (currentAttempt == 1) {
+                throw new ResourceAccessException("connection closed before response");
+            }
+            return "ok";
+        });
+
+        assertEquals("ok", result);
+        assertEquals(2, attempts.get());
     }
 
     @Test
