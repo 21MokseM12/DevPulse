@@ -29,6 +29,13 @@ public class GithubLinkService implements ApiLinkService {
                 .toList();
     }
 
+    public List<Long> getProcessedCommitIds(URI link) {
+        return linkOperationProcessor.findAllProcessedIds(link).stream()
+                .filter(id -> id.type() == ProcessedIdType.GITHUB_COMMIT)
+                .map(ProcessedIdDTO::id)
+                .toList();
+    }
+
     @Override
     public void saveProcessedIds(URI link, List<ProcessedIdDTO> nowProcessedIds) {
         linkOperationProcessor.saveProcessedIds(link, nowProcessedIds);

@@ -121,4 +121,35 @@ public class GithubLinkOperationProcessorTest {
         assertNotNull(processedPullRequestIds);
         assertTrue(processedPullRequestIds.isEmpty());
     }
+
+    @Test
+    public void getProcessedCommitIds_whenPartOfIdsIsCommitType_shouldReturnCommitIdsPart() {
+        List<ProcessedIdDTO> processedIds = List.of(
+                new ProcessedIdDTO(1L, ProcessedIdType.GITHUB_PULL_REQUEST),
+                new ProcessedIdDTO(2L, ProcessedIdType.GITHUB_COMMIT),
+                new ProcessedIdDTO(3L, ProcessedIdType.STACKOVERFLOW_COMMENT),
+                new ProcessedIdDTO(4L, ProcessedIdType.GITHUB_COMMIT));
+
+        when(linkOperationProcessor.findAllProcessedIds(link)).thenReturn(processedIds);
+
+        List<Long> processedCommitIds = githubLinkService.getProcessedCommitIds(link);
+        assertNotNull(processedCommitIds);
+        assertFalse(processedCommitIds.isEmpty());
+        assertEquals(List.of(2L, 4L), processedCommitIds);
+    }
+
+    @Test
+    public void getProcessedCommitIds_whenNotContainsCommitIds_shouldReturnEmptyList() {
+        List<ProcessedIdDTO> processedIds = List.of(
+                new ProcessedIdDTO(1L, ProcessedIdType.STACKOVERFLOW_COMMENT),
+                new ProcessedIdDTO(2L, ProcessedIdType.STACKOVERFLOW_ANSWER),
+                new ProcessedIdDTO(3L, ProcessedIdType.GITHUB_PULL_REQUEST),
+                new ProcessedIdDTO(4L, ProcessedIdType.GITHUB_ISSUE));
+
+        when(linkOperationProcessor.findAllProcessedIds(link)).thenReturn(processedIds);
+
+        List<Long> processedCommitIds = githubLinkService.getProcessedCommitIds(link);
+        assertNotNull(processedCommitIds);
+        assertTrue(processedCommitIds.isEmpty());
+    }
 }

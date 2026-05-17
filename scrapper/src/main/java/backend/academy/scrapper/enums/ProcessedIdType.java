@@ -7,7 +7,8 @@ public enum ProcessedIdType {
     STACKOVERFLOW_ANSWER("stackoverflow_answer"),
     STACKOVERFLOW_COMMENT("stackoverflow_comment"),
     GITHUB_ISSUE("github_issue"),
-    GITHUB_PULL_REQUEST("github_pull_request");
+    GITHUB_PULL_REQUEST("github_pull_request"),
+    GITHUB_COMMIT("github_commit");
 
     private final String type;
 

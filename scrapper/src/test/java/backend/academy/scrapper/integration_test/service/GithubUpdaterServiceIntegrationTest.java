@@ -10,6 +10,10 @@ import backend.academy.scrapper.client.GithubClient;
 import backend.academy.scrapper.db.DbLinkService;
 import backend.academy.scrapper.integration_test.config.TestContainersConfiguration;
 import backend.academy.scrapper.model.LinkUpdateDTO;
+import backend.academy.scrapper.model.UpdateType;
+import backend.academy.scrapper.model.github.GithubActor;
+import backend.academy.scrapper.model.github.GithubCommit;
+import backend.academy.scrapper.model.github.GithubPayload;
 import backend.academy.scrapper.model.github.GithubResponse;
 import backend.academy.scrapper.service.resilience.ExternalApiResilienceExecutor;
 import backend.academy.scrapper.service.updaters.impl.GithubUpdaterService;
@@ -103,5 +107,45 @@ class GithubUpdaterServiceIntegrationTest extends TestContainersConfiguration {
                 link.toString());
         assertEquals("\"stable-etag\"", storedEtag);
         assertEquals(OffsetDateTime.parse("2026-02-01T10:15:30Z").toInstant(), storedLastModified.toInstant());
+    }
+
+    @Test
+    void getUpdates_whenGithubReturnsPushEvent_returnsCommitUpdateAndPersistsProcessedId() {
+        URI link = URI.create("https://github.com/acme/repo-" + UUID.randomUUID());
+        dbLinkService.saveLink(new AddLinkRequest(link, Set.of("tag"), Set.of("filter")));
+        when(resilienceExecutor.execute(any(), any()))
+                .thenAnswer(invocation -> ((Supplier<?>) invocation.getArgument(1)).get());
+
+        GithubResponse pushEvent = new GithubResponse(
+                12345L,
+                "PushEvent",
+                new GithubActor("octocat"),
+                OffsetDateTime.parse("2026-03-05T08:00:00Z"),
+                new GithubPayload(
+                        "ignored",
+                        null,
+                        null,
+                        "refs/heads/main",
+                        List.of(new GithubCommit("9fceb02", "Fix scheduler retries"))));
+        when(githubClient.getEvents(any(), any(), any(), any())).thenReturn(ResponseEntity.ok(List.of(pushEvent)));
+
+        List<LinkUpdateDTO> updates = githubUpdaterService.getUpdates(link);
+
+        assertEquals(1, updates.size());
+        LinkUpdateDTO update = updates.getFirst();
+        assertEquals(12345L, update.id());
+        assertEquals(UpdateType.GITHUB_COMMIT, update.type());
+        assertEquals("Новый коммит в ветке main", update.title());
+        assertEquals("9fceb02: Fix scheduler retries", update.descriptionPreview());
+
+        Integer processedRows = jdbcTemplate.queryForObject(
+                "select count(*) from processed_ids pi "
+                        + "join links l on l.id = pi.link_id "
+                        + "where l.url = ? and pi.type = ? and pi.processed_id = ?",
+                Integer.class,
+                link.toString(),
+                "github_commit",
+                12345L);
+        assertEquals(1, processedRows);
     }
 }

@@ -2,6 +2,7 @@ package backend.academy.scrapper.model.github.mappers;
 
 import backend.academy.scrapper.model.LinkUpdateDTO;
 import backend.academy.scrapper.model.UpdateType;
+import backend.academy.scrapper.model.github.GithubCommit;
 import backend.academy.scrapper.model.github.GithubLabel;
 import backend.academy.scrapper.model.github.GithubResponse;
 import java.util.List;
@@ -44,6 +45,34 @@ public class GithubResponseMapper {
                 extractLabels(response.payload().issue().labels()));
     }
 
+    public static LinkUpdateDTO mapToCommit(GithubResponse response) {
+        List<GithubCommit> commits = response.payload().commits() == null
+                ? List.of()
+                : response.payload().commits();
+        String branchName = extractBranchName(response.payload().ref());
+        String title = commits.size() == 1
+                ? "Новый коммит в ветке " + branchName
+                : "Новые коммиты (" + commits.size() + ") в ветке " + branchName;
+        String description = commits.stream()
+                .filter(commit -> commit != null
+                        && commit.message() != null
+                        && !commit.message().isBlank())
+                .limit(3)
+                .map(GithubResponseMapper::toCommitPreview)
+                .collect(Collectors.joining("\n"));
+        if (description.isBlank()) {
+            description = "Появились новые коммиты в репозитории.";
+        }
+        return new LinkUpdateDTO(
+                response.id(),
+                title,
+                response.actor().login(),
+                response.creationDate(),
+                description,
+                UpdateType.GITHUB_COMMIT,
+                Set.of());
+    }
+
     private static Set<String> extractLabels(List<GithubLabel> labels) {
         if (labels == null || labels.isEmpty()) {
             return Set.of();
@@ -53,5 +82,33 @@ public class GithubResponseMapper {
                 .filter(name -> name != null && !name.isBlank())
                 .map(String::trim)
                 .collect(Collectors.toSet());
+    }
+
+    private static String extractBranchName(String ref) {
+        if (ref == null || ref.isBlank()) {
+            return "unknown";
+        }
+        String normalizedRef = ref.trim();
+        int slashIndex = normalizedRef.lastIndexOf('/');
+        if (slashIndex == -1 || slashIndex == normalizedRef.length() - 1) {
+            return normalizedRef;
+        }
+        return normalizedRef.substring(slashIndex + 1);
+    }
+
+    private static String toCommitPreview(GithubCommit commit) {
+        String shortSha = shortenSha(commit.sha());
+        if (shortSha == null) {
+            return commit.message().trim();
+        }
+        return shortSha + ": " + commit.message().trim();
+    }
+
+    private static String shortenSha(String sha) {
+        if (sha == null || sha.isBlank()) {
+            return null;
+        }
+        String trimmedSha = sha.trim();
+        return trimmedSha.substring(0, Math.min(7, trimmedSha.length()));
     }
 }
