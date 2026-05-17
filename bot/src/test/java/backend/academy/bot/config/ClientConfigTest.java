@@ -1,6 +1,7 @@
 package backend.academy.bot.config;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import backend.academy.bot.client.ChatClient;
 import backend.academy.bot.client.LinkClient;
@@ -33,5 +34,14 @@ class ClientConfigTest {
         HttpServiceProxyFactory factory = clientConfig.httpServiceProxyFactory(RestClient.builder());
 
         assertNotNull(factory);
+    }
+
+    @Test
+    void httpServiceProxyFactory_throwsWhenUrlContainsUnresolvedPlaceholder() {
+        ApplicationConfig applicationConfig = new ApplicationConfig();
+        applicationConfig.setScrapperUrl("${SCRAPPER_URL}");
+        ClientConfig clientConfig = new ClientConfig(applicationConfig);
+
+        assertThrows(IllegalStateException.class, () -> clientConfig.httpServiceProxyFactory(RestClient.builder()));
     }
 }

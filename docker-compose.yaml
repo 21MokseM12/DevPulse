@@ -9,6 +9,7 @@ services:
       - BOT_POSTGRES_USER=${BOT_POSTGRES_USER:-postgres}
       - BOT_POSTGRES_PASSWORD=${BOT_POSTGRES_PASSWORD:-postgres}
       - BOT_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - BOT_REDIS_HOST=redis
       - BOT_REDIS_PORT=6379
       - BOT_REDIS_DATABASE=${BOT_REDIS_DATABASE:-1}
@@ -42,7 +43,11 @@ services:
       - SCRAPPER_POSTGRES_URL=jdbc:postgresql://scrapper-db:5432/${SCRAPPER_POSTGRES_DB_NAME:-devpulse_scrapper}
       - SCRAPPER_POSTGRES_USER=${SCRAPPER_POSTGRES_USER:-postgres}
       - SCRAPPER_POSTGRES_PASSWORD=${SCRAPPER_POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_URL=jdbc:postgresql://scrapper-db:5432/${SCRAPPER_POSTGRES_DB_NAME:-devpulse_scrapper}
+      - POSTGRES_USER=${SCRAPPER_POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${SCRAPPER_POSTGRES_PASSWORD:-postgres}
       - SCRAPPER_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - SCRAPPER_REDIS_HOST=redis
       - SCRAPPER_REDIS_PORT=6379
       - SCRAPPER_REDIS_DATABASE=${SCRAPPER_REDIS_DATABASE:-0}
@@ -108,7 +113,7 @@ services:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
     healthcheck:
-      test: ["CMD-SHELL", "cub zk-ready localhost:2181 1 5 || exit 1"]
+      test: ["CMD-SHELL", "cub zk-ready localhost:2181 5 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
