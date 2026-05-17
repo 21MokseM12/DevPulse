@@ -22,6 +22,8 @@
         </encoder>
     </appender>
 
+    <logger name="reactor.netty.http.client.HttpClientConnect" level="ERROR"/>
+
     <root level="INFO">
         <appender-ref ref="JSON_CONSOLE"/>
     </root>

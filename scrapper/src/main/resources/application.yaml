@@ -104,7 +104,9 @@ resilience4j:
         retry-exceptions:
           - org.springframework.web.client.ResourceAccessException
           - org.springframework.web.client.RestClientException
+          - reactor.netty.http.client.PrematureCloseException
           - java.io.IOException
+          - java.util.concurrent.TimeoutException
         ignore-exceptions:
           - org.springframework.web.client.HttpClientErrorException
       stackoverflow-api:
