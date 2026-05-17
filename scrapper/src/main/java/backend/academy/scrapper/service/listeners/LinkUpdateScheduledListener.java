@@ -93,9 +93,10 @@ public class LinkUpdateScheduledListener {
                     }
                 });
             } catch (Exception ex) {
-                log.warn("Ошибка опроса ссылки {}: {}", link, ex.getMessage());
+                String failureMessage = ex.getClass().getSimpleName() + ": " + ex.getMessage();
+                log.warn("Ошибка опроса ссылки {}: {}", link, failureMessage, ex);
                 linkOperationProcessor.markPollingFailure(
-                        link, checkedAt, scrapperConfig.scheduler().forceCheckDelay(), ex.getMessage());
+                        link, checkedAt, scrapperConfig.scheduler().forceCheckDelay(), failureMessage);
             }
         });
         return notifyList;

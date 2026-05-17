@@ -86,7 +86,11 @@ class LinkUpdateScheduledListenerTest {
         listener.listenUpdates();
 
         verify(linkOperationProcessor, times(1))
-                .markPollingFailure(eq(link), any(), eq(config.scheduler().forceCheckDelay()), eq("upstream 503"));
+                .markPollingFailure(
+                        eq(link),
+                        any(),
+                        eq(config.scheduler().forceCheckDelay()),
+                        eq("RuntimeException: upstream 503"));
     }
 
     private ScrapperConfig buildConfig() {

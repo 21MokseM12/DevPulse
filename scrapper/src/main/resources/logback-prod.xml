@@ -22,7 +22,12 @@
         </encoder>
     </appender>
 
-    <logger name="reactor.netty.http.client.HttpClientConnect" level="ERROR"/>
+    <logger name="reactor.netty.http.client" level="DEBUG"/>
+    <logger name="reactor.netty.http.client.HttpClientConnect" level="TRACE"/>
+    <logger name="reactor.netty.transport.TransportConnector" level="DEBUG"/>
+    <logger name="reactor.netty.resources.PooledConnectionProvider" level="DEBUG"/>
+    <logger name="org.springframework.web.client.RestClient" level="DEBUG"/>
+    <logger name="backend.academy.scrapper.service.resilience.ExternalApiResilienceExecutor" level="DEBUG"/>
 
     <root level="INFO">
         <appender-ref ref="JSON_CONSOLE"/>
