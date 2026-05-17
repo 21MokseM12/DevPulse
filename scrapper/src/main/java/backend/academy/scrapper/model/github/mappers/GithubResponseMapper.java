@@ -42,11 +42,12 @@ public class GithubResponseMapper {
                 ? List.of()
                 : response.payload().commits();
         String branchName = extractBranchName(response.payload().ref());
-        String title = switch (commits.size()) {
-            case 0 -> "Push в ветке " + branchName;
-            case 1 -> "Новый коммит в ветке " + branchName;
-            default -> "Новые коммиты (" + commits.size() + ") в ветке " + branchName;
-        };
+        String title =
+                switch (commits.size()) {
+                    case 0 -> "Push в ветке " + branchName;
+                    case 1 -> "Новый коммит в ветке " + branchName;
+                    default -> "Новые коммиты (" + commits.size() + ") в ветке " + branchName;
+                };
         String description = commits.stream()
                 .filter(commit -> commit != null
                         && commit.message() != null

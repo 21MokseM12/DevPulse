@@ -116,13 +116,7 @@ class GithubUpdaterServiceIntegrationTest extends TestContainersConfiguration {
                 new GithubActor("octocat"),
                 OffsetDateTime.parse("2026-03-06T08:00:00Z"),
                 new GithubPayload(
-                        "ignored",
-                        null,
-                        null,
-                        "refs/heads/main",
-                        "3f5c1e8e2370a49d",
-                        "7f9ab17cc840f2b1",
-                        List.of()));
+                        "ignored", null, null, "refs/heads/main", "3f5c1e8e2370a49d", "7f9ab17cc840f2b1", List.of()));
         when(githubClient.getEvents(any(), any(), any(), any())).thenReturn(ResponseEntity.ok(List.of(pushEvent)));
 
         List<LinkUpdateDTO> updates = githubUpdaterService.getUpdates(link);

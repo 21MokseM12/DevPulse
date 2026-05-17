@@ -15,7 +15,8 @@ public record GithubPayload(
         this(action, pullRequest, issue, null, null, null, List.of());
     }
 
-    public GithubPayload(String action, GithubPullRequest pullRequest, GithubIssue issue, String ref, List<GithubCommit> commits) {
+    public GithubPayload(
+            String action, GithubPullRequest pullRequest, GithubIssue issue, String ref, List<GithubCommit> commits) {
         this(action, pullRequest, issue, ref, null, null, commits);
     }
 }

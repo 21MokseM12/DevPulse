@@ -28,7 +28,8 @@ public class GithubCommitUpdateProcessor implements GithubRepoUpdateProcessor {
                 .filter(event -> event.type().equals(GithubActionType.PUSH_EVENT.type()))
                 .filter(event -> !processedIds.contains(event.id()))
                 .peek(event -> {
-                    if (event.payload().commits() == null || event.payload().commits().isEmpty()) {
+                    if (event.payload().commits() == null
+                            || event.payload().commits().isEmpty()) {
                         log.info(
                                 "PushEvent {} для ссылки {} не содержит commits в payload. "
                                         + "Используется fallback-описание по ref/head.",

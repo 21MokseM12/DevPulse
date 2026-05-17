@@ -79,7 +79,8 @@ class BotKafkaNotificationPipelineIntegrationTest {
 
     @Test
     void kafkaAndHttp_useSamePipelineAndStoreSingleNotification() throws Exception {
-        registerClient("1", "1");
+        String login = "kafka-user";
+        long clientId = registerClient(login, "1");
         String payload = objectMapper.writeValueAsString(Map.of(
                 "id", 555,
                 "url", "https://github.com/org/repo/pull/555",
@@ -87,7 +88,7 @@ class BotKafkaNotificationPipelineIntegrationTest {
                 "updateOwner", "octocat",
                 "description", "description",
                 "creationDate", OffsetDateTime.parse("2026-04-26T00:00:00Z"),
-                "clientsIds", List.of(1)));
+                "clientsIds", List.of(clientId)));
 
         mockMvc.perform(post("/updates")
                         .header("X-Internal-Secret", "test-internal-secret")
@@ -101,7 +102,7 @@ class BotKafkaNotificationPipelineIntegrationTest {
             Integer notifications = jdbcTemplate.queryForObject(
                     "SELECT COUNT(*) FROM notifications WHERE link_id = 555", Integer.class);
             Integer recipients = jdbcTemplate.queryForObject(
-                    "SELECT COUNT(*) FROM notification_recipients WHERE client_login = '1'", Integer.class);
+                    "SELECT COUNT(*) FROM notification_recipients WHERE client_login = ?", Integer.class, login);
             assertThat(notifications).isEqualTo(1);
             assertThat(recipients).isEqualTo(1);
         });
@@ -117,7 +118,38 @@ class BotKafkaNotificationPipelineIntegrationTest {
         });
     }
 
-    private void registerClient(String login, String password) throws Exception {
-        jdbcTemplate.update("INSERT INTO clients(login, password_hash) VALUES (?, ?)", login, password);
+    @Test
+    void kafkaAndHttp_whenClientIdDoesNotExist_storesNotificationWithoutRecipients() throws Exception {
+        String payload = objectMapper.writeValueAsString(Map.of(
+                "id", 777,
+                "url", "https://github.com/org/repo/pull/777",
+                "title", "PR updated",
+                "updateOwner", "octocat",
+                "description", "description",
+                "creationDate", OffsetDateTime.parse("2026-04-26T00:00:00Z"),
+                "clientsIds", List.of(999999L)));
+
+        mockMvc.perform(post("/updates")
+                        .header("X-Internal-Secret", "test-internal-secret")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isOk());
+
+        Awaitility.await().untilAsserted(() -> {
+            Integer notifications = jdbcTemplate.queryForObject(
+                    "SELECT COUNT(*) FROM notifications WHERE link_id = 777", Integer.class);
+            Integer recipients = jdbcTemplate.queryForObject(
+                    "SELECT COUNT(*) FROM notification_recipients WHERE notification_id IN "
+                            + "(SELECT id FROM notifications WHERE link_id = 777)",
+                    Integer.class);
+            assertThat(notifications).isEqualTo(1);
+            assertThat(recipients).isEqualTo(0);
+        });
+    }
+
+    private long registerClient(String login, String password) {
+        Long id = jdbcTemplate.queryForObject(
+                "INSERT INTO clients(login, password_hash) VALUES (?, ?) RETURNING id", Long.class, login, password);
+        return id == null ? -1L : id;
     }
 }

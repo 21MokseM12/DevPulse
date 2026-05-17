@@ -10,11 +10,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+@Slf4j
 @Repository
 @RequiredArgsConstructor
 public class NotificationRepositoryImpl implements NotificationRepository {
@@ -29,6 +32,7 @@ public class NotificationRepositoryImpl implements NotificationRepository {
     private static final String READ_AT = "read_at";
     private static final String NOTIFICATION_ID = "notification_id";
     private static final String CLIENT_LOGIN = "client_login";
+    private static final String CLIENT_ID = "client_id";
     private static final String LIMIT = "limit";
     private static final String OFFSET = "offset";
     private static final String URLS = "urls";
@@ -53,9 +57,16 @@ public class NotificationRepositoryImpl implements NotificationRepository {
     private static final String INSERT_RECIPIENT =
             """
             INSERT INTO notification_recipients(notification_id, client_login)
-            SELECT :notification_id, :client_login
-            WHERE EXISTS (SELECT 1 FROM clients WHERE login = :client_login)
+            SELECT :notification_id, c.login
+            FROM clients c
+            WHERE c.id = :client_id
             ON CONFLICT DO NOTHING
+            """;
+    private static final String SELECT_CLIENT_LOGIN_BY_ID =
+            """
+            SELECT login
+            FROM clients
+            WHERE id = :client_id
             """;
     private static final String SELECT_BY_CLIENT =
             """
@@ -130,13 +141,26 @@ public class NotificationRepositoryImpl implements NotificationRepository {
     }
 
     private void saveRecipients(long notificationId, List<Long> clientsIds) {
-        clientsIds.stream()
-                .map(String::valueOf)
-                .forEach(clientLogin -> jdbcTemplate.update(
-                        INSERT_RECIPIENT,
-                        new MapSqlParameterSource()
-                                .addValue(NOTIFICATION_ID, notificationId)
-                                .addValue(CLIENT_LOGIN, clientLogin)));
+        clientsIds.forEach(clientId -> {
+            String clientLogin;
+            try {
+                clientLogin = jdbcTemplate.queryForObject(
+                        SELECT_CLIENT_LOGIN_BY_ID,
+                        new MapSqlParameterSource().addValue(CLIENT_ID, clientId),
+                        String.class);
+            } catch (EmptyResultDataAccessException ex) {
+                clientLogin = null;
+            }
+            if (clientLogin == null || clientLogin.isBlank()) {
+                log.warn("Skip notification recipient: client id {} was not found in clients table", clientId);
+                return;
+            }
+            jdbcTemplate.update(
+                    INSERT_RECIPIENT,
+                    new MapSqlParameterSource()
+                            .addValue(NOTIFICATION_ID, notificationId)
+                            .addValue(CLIENT_ID, clientId));
+        });
     }
 
     @Override

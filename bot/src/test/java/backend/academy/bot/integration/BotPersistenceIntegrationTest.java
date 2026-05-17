@@ -159,7 +159,9 @@ class BotPersistenceIntegrationTest {
 
     @Test
     void postUpdates_savesNotification() throws Exception {
-        registerClient("1", "1");
+        String login = "client-one";
+        registerClient(login, "1");
+        long clientId = findClientIdByLogin(login);
 
         String updatePayload = objectMapper.writeValueAsString(Map.of(
                 "id", 101,
@@ -168,21 +170,23 @@ class BotPersistenceIntegrationTest {
                 "updateOwner", "octocat",
                 "description", "Details",
                 "creationDate", OffsetDateTime.parse("2026-04-26T00:00:00Z"),
-                "clientsIds", List.of(1)));
+                "clientsIds", List.of(clientId)));
 
         postInternalUpdate(updatePayload);
 
         Integer notifications =
                 jdbcTemplate.queryForObject("SELECT COUNT(*) FROM notifications WHERE link_id = 101", Integer.class);
         Integer recipients = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM notification_recipients WHERE client_login = '1'", Integer.class);
+                "SELECT COUNT(*) FROM notification_recipients WHERE client_login = ?", Integer.class, login);
         assertThat(notifications).isEqualTo(1);
         assertThat(recipients).isEqualTo(1);
     }
 
     @Test
     void deleteClient_cascadesRecipientRows() throws Exception {
-        registerClient("1", "1");
+        String login = "client-delete";
+        registerClient(login, "1");
+        long clientId = findClientIdByLogin(login);
 
         String updatePayload = objectMapper.writeValueAsString(Map.of(
                 "id", 202,
@@ -191,22 +195,22 @@ class BotPersistenceIntegrationTest {
                 "updateOwner", "octocat",
                 "description", "Details",
                 "creationDate", OffsetDateTime.parse("2026-04-26T00:00:00Z"),
-                "clientsIds", List.of(1)));
+                "clientsIds", List.of(clientId)));
 
         postInternalUpdate(updatePayload);
 
         Integer recipientsBeforeDelete = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM notification_recipients WHERE client_login = '1'", Integer.class);
+                "SELECT COUNT(*) FROM notification_recipients WHERE client_login = ?", Integer.class, login);
         assertThat(recipientsBeforeDelete).isEqualTo(1);
 
-        String clientPayload = objectMapper.writeValueAsString(Map.of("login", "1", "password", "1"));
+        String clientPayload = objectMapper.writeValueAsString(Map.of("login", login, "password", "1"));
         mockMvc.perform(delete("/api/v1/clients")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(clientPayload))
                 .andExpect(status().isOk());
 
         Integer recipientsAfterDelete = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM notification_recipients WHERE client_login = '1'", Integer.class);
+                "SELECT COUNT(*) FROM notification_recipients WHERE client_login = ?", Integer.class, login);
         assertThat(recipientsAfterDelete).isZero();
     }
 
@@ -222,7 +226,9 @@ class BotPersistenceIntegrationTest {
 
     @Test
     void notificationLifecycle_newUnread_thenMarkRead_thenIdempotentRepeat() throws Exception {
-        registerClient("1", "1");
+        String login = "client-lifecycle";
+        registerClient(login, "1");
+        long clientId = findClientIdByLogin(login);
         String first = objectMapper.writeValueAsString(Map.of(
                 "id", 901,
                 "url", "https://github.com/org/repo/issues/901",
@@ -230,7 +236,7 @@ class BotPersistenceIntegrationTest {
                 "updateOwner", "octocat",
                 "description", "Details 901",
                 "creationDate", OffsetDateTime.parse("2026-04-26T00:00:00Z"),
-                "clientsIds", List.of(1)));
+                "clientsIds", List.of(clientId)));
         String second = objectMapper.writeValueAsString(Map.of(
                 "id", 902,
                 "url", "https://github.com/org/repo/issues/902",
@@ -238,11 +244,11 @@ class BotPersistenceIntegrationTest {
                 "updateOwner", "octocat",
                 "description", "Details 902",
                 "creationDate", OffsetDateTime.parse("2026-04-26T00:01:00Z"),
-                "clientsIds", List.of(1)));
+                "clientsIds", List.of(clientId)));
         postInternalUpdate(first);
         postInternalUpdate(second);
 
-        mockMvc.perform(get("/api/v1/notifications/unread-count").header("Client-Login", "1"))
+        mockMvc.perform(get("/api/v1/notifications/unread-count").header("Client-Login", login))
                 .andExpect(status().isOk())
                 .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.unreadCount")
                         .value(2));
@@ -252,7 +258,7 @@ class BotPersistenceIntegrationTest {
         String markReadPayload = objectMapper.writeValueAsString(Map.of("ids", List.of(latestNotificationId)));
 
         mockMvc.perform(post("/api/v1/notifications/mark-read")
-                        .header("Client-Login", "1")
+                        .header("Client-Login", login)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(markReadPayload))
                 .andExpect(status().isOk())
@@ -260,14 +266,14 @@ class BotPersistenceIntegrationTest {
                         .value(1));
 
         mockMvc.perform(post("/api/v1/notifications/mark-read")
-                        .header("Client-Login", "1")
+                        .header("Client-Login", login)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(markReadPayload))
                 .andExpect(status().isOk())
                 .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.updatedCount")
                         .value(0));
 
-        mockMvc.perform(get("/api/v1/notifications/unread-count").header("Client-Login", "1"))
+        mockMvc.perform(get("/api/v1/notifications/unread-count").header("Client-Login", login))
                 .andExpect(status().isOk())
                 .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.unreadCount")
                         .value(1));
@@ -275,8 +281,9 @@ class BotPersistenceIntegrationTest {
 
     @Test
     void markRead_shouldNotAffectOtherClientNotifications() throws Exception {
-        registerClient("1", "1");
-        registerClient("2", "2");
+        registerClient("client-first", "1");
+        registerClient("client-second", "2");
+        long secondClientId = findClientIdByLogin("client-second");
 
         String updateForSecond = objectMapper.writeValueAsString(Map.of(
                 "id", 999,
@@ -285,21 +292,21 @@ class BotPersistenceIntegrationTest {
                 "updateOwner", "octocat",
                 "description", "Details 999",
                 "creationDate", OffsetDateTime.parse("2026-04-26T00:00:00Z"),
-                "clientsIds", List.of(2)));
+                "clientsIds", List.of(secondClientId)));
         postInternalUpdate(updateForSecond);
         Long notificationId =
                 jdbcTemplate.queryForObject("SELECT id FROM notifications WHERE link_id = 999", Long.class);
 
         String markReadPayload = objectMapper.writeValueAsString(Map.of("ids", List.of(notificationId)));
         mockMvc.perform(post("/api/v1/notifications/mark-read")
-                        .header("Client-Login", "1")
+                        .header("Client-Login", "client-first")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(markReadPayload))
                 .andExpect(status().isOk())
                 .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.updatedCount")
                         .value(0));
 
-        mockMvc.perform(get("/api/v1/notifications/unread-count").header("Client-Login", "2"))
+        mockMvc.perform(get("/api/v1/notifications/unread-count").header("Client-Login", "client-second"))
                 .andExpect(status().isOk())
                 .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.unreadCount")
                         .value(1));
@@ -319,5 +326,10 @@ class BotPersistenceIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(updatePayload))
                 .andExpect(status().isOk());
+    }
+
+    private long findClientIdByLogin(String login) {
+        Long id = jdbcTemplate.queryForObject("SELECT id FROM clients WHERE login = ?", Long.class, login);
+        return id == null ? -1L : id;
     }
 }
