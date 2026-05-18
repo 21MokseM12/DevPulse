@@ -64,7 +64,7 @@ public class GithubCommitUpdateProcessorTest {
                         "Новый коммит в ветке main",
                         ACTOR.login(),
                         fixedTime,
-                        "9fceb02: Fix NPE in scheduler",
+                        "Push в main: 1 коммит, Fix NPE in scheduler",
                         UpdateType.GITHUB_COMMIT,
                         Set.of()),
                 new LinkUpdateDTO(
@@ -72,7 +72,7 @@ public class GithubCommitUpdateProcessorTest {
                         "Новый коммит в ветке main",
                         ACTOR.login(),
                         fixedTime,
-                        "4477af1: Add retries for github-api",
+                        "Push в main: 1 коммит, Add retries for github-api",
                         UpdateType.GITHUB_COMMIT,
                         Set.of()));
 
@@ -105,7 +105,7 @@ public class GithubCommitUpdateProcessorTest {
                 "Новый коммит в ветке main",
                 ACTOR.login(),
                 fixedTime,
-                "9fceb02: Fix NPE in scheduler",
+                "Push в main: 1 коммит, Fix NPE in scheduler",
                 UpdateType.GITHUB_COMMIT,
                 Set.of()));
 
@@ -147,9 +147,7 @@ public class GithubCommitUpdateProcessorTest {
         LinkUpdateDTO update = linkUpdateDTOS.getFirst();
         assertEquals(1L, update.id());
         assertEquals("Push в ветке main", update.title());
-        assertEquals(
-                "Зафиксирован push в репозитории. HEAD: 3f5c1e8 (GitHub Events API не вернул список commits).",
-                update.descriptionPreview());
+        assertEquals("Push в main: HEAD 3f5c1e8 (детали коммитов недоступны)", update.descriptionPreview());
         assertEquals(UpdateType.GITHUB_COMMIT, update.type());
     }
 

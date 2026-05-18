@@ -48,20 +48,8 @@ public class GithubResponseMapper {
                     case 1 -> "Новый коммит в ветке " + branchName;
                     default -> "Новые коммиты (" + commits.size() + ") в ветке " + branchName;
                 };
-        String description = commits.stream()
-                .filter(commit -> commit != null
-                        && commit.message() != null
-                        && !commit.message().isBlank())
-                .limit(3)
-                .map(GithubResponseMapper::toCommitPreview)
-                .collect(Collectors.joining("\n"));
-        if (description.isBlank()) {
-            String shortHead = shortenSha(response.payload().head());
-            description = shortHead == null
-                    ? "Зафиксирован push в репозитории (без списка commits в payload GitHub Events API)."
-                    : "Зафиксирован push в репозитории. HEAD: " + shortHead
-                            + " (GitHub Events API не вернул список commits).";
-        }
+        String description =
+                buildCommitDescription(branchName, response.payload().head(), commits);
         return new LinkUpdateDTO(
                 response.id(),
                 title,
@@ -70,6 +58,49 @@ public class GithubResponseMapper {
                 description,
                 UpdateType.GITHUB_COMMIT,
                 Set.of());
+    }
+
+    private static String buildCommitDescription(String branchName, String head, List<GithubCommit> commits) {
+        String shortHead = shortenSha(head);
+        if (commits.isEmpty()) {
+            return shortHead == null
+                    ? "Push в " + branchName + ": детали коммитов недоступны"
+                    : "Push в " + branchName + ": HEAD " + shortHead + " (детали коммитов недоступны)";
+        }
+
+        String commitLabel = formatCommitLabel(commits.size());
+        String base = shortHead == null
+                ? "Push в " + branchName + ": " + commits.size() + " " + commitLabel
+                : "Push в " + branchName + ": " + commits.size() + " " + commitLabel + " (" + shortHead + ")";
+        String messages = commits.stream()
+                .filter(commit -> commit != null
+                        && commit.message() != null
+                        && !commit.message().isBlank())
+                .limit(3)
+                .map(GithubResponseMapper::normalizeMessage)
+                .collect(Collectors.joining("; "));
+        return messages.isBlank() ? base : base + ", " + messages;
+    }
+
+    private static String formatCommitLabel(int commitsCount) {
+        int mod10 = commitsCount % 10;
+        int mod100 = commitsCount % 100;
+        if (mod10 == 1 && mod100 != 11) {
+            return "коммит";
+        }
+        if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
+            return "коммита";
+        }
+        return "коммитов";
+    }
+
+    private static String normalizeMessage(GithubCommit commit) {
+        String message = commit.message().trim();
+        int newLineIndex = message.indexOf('\n');
+        if (newLineIndex >= 0) {
+            message = message.substring(0, newLineIndex);
+        }
+        return message.trim();
     }
 
     private static Set<String> extractLabels(List<GithubLabel> labels) {
@@ -93,14 +124,6 @@ public class GithubResponseMapper {
             return normalizedRef;
         }
         return normalizedRef.substring(slashIndex + 1);
-    }
-
-    private static String toCommitPreview(GithubCommit commit) {
-        String shortSha = shortenSha(commit.sha());
-        if (shortSha == null) {
-            return commit.message().trim();
-        }
-        return shortSha + ": " + commit.message().trim();
     }
 
     private static String shortenSha(String sha) {

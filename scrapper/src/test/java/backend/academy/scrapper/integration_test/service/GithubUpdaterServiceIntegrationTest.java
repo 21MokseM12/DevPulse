@@ -13,6 +13,9 @@ import backend.academy.scrapper.model.LinkUpdateDTO;
 import backend.academy.scrapper.model.UpdateType;
 import backend.academy.scrapper.model.github.GithubActor;
 import backend.academy.scrapper.model.github.GithubCommit;
+import backend.academy.scrapper.model.github.GithubCompareCommit;
+import backend.academy.scrapper.model.github.GithubCompareCommitDetails;
+import backend.academy.scrapper.model.github.GithubCompareResponse;
 import backend.academy.scrapper.model.github.GithubIssue;
 import backend.academy.scrapper.model.github.GithubPayload;
 import backend.academy.scrapper.model.github.GithubResponse;
@@ -118,6 +121,15 @@ class GithubUpdaterServiceIntegrationTest extends TestContainersConfiguration {
                 new GithubPayload(
                         "ignored", null, null, "refs/heads/main", "3f5c1e8e2370a49d", "7f9ab17cc840f2b1", List.of()));
         when(githubClient.getEvents(any(), any(), any(), any())).thenReturn(ResponseEntity.ok(List.of(pushEvent)));
+        when(githubClient.compareCommits(any(), any(), any()))
+                .thenReturn(ResponseEntity.ok(new GithubCompareResponse(
+                        2,
+                        List.of(
+                                new GithubCompareCommit(
+                                        "3f5c1e8e2370a49d", new GithubCompareCommitDetails("Fix retry logic")),
+                                new GithubCompareCommit(
+                                        "ab79f99a02c0f901",
+                                        new GithubCompareCommitDetails("Add cache invalidation"))))));
 
         List<LinkUpdateDTO> updates = githubUpdaterService.getUpdates(link);
 
@@ -125,9 +137,9 @@ class GithubUpdaterServiceIntegrationTest extends TestContainersConfiguration {
         LinkUpdateDTO update = updates.getFirst();
         assertEquals(22334L, update.id());
         assertEquals(UpdateType.GITHUB_COMMIT, update.type());
-        assertEquals("Push в ветке main", update.title());
+        assertEquals("Новые коммиты (2) в ветке main", update.title());
         assertEquals(
-                "Зафиксирован push в репозитории. HEAD: 3f5c1e8 (GitHub Events API не вернул список commits).",
+                "Push в main: 2 коммита (3f5c1e8), Fix retry logic; Add cache invalidation",
                 update.descriptionPreview());
 
         Integer processedRows = jdbcTemplate.queryForObject(
@@ -167,7 +179,7 @@ class GithubUpdaterServiceIntegrationTest extends TestContainersConfiguration {
         assertEquals(12345L, update.id());
         assertEquals(UpdateType.GITHUB_COMMIT, update.type());
         assertEquals("Новый коммит в ветке main", update.title());
-        assertEquals("9fceb02: Fix scheduler retries", update.descriptionPreview());
+        assertEquals("Push в main: 1 коммит (9fceb02), Fix scheduler retries", update.descriptionPreview());
 
         Integer processedRows = jdbcTemplate.queryForObject(
                 "select count(*) from processed_ids pi "
