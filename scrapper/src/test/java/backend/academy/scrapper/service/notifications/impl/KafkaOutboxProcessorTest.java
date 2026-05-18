@@ -79,7 +79,7 @@ class KafkaOutboxProcessorTest {
                 "owner",
                 "desc",
                 OffsetDateTime.parse("2026-01-01T00:00:00Z"),
-                List.of(1L)));
+                List.of("alice")));
         when(outboxRepository.findPendingBatch(100))
                 .thenReturn(List.of(new KafkaOutboxMessage(10L, "link-updates", payload)));
         when(kafkaTemplate.send(eq("link-updates"), any())).thenReturn(CompletableFuture.completedFuture(null));
@@ -100,7 +100,7 @@ class KafkaOutboxProcessorTest {
                 "owner",
                 "desc",
                 OffsetDateTime.parse("2026-01-01T00:00:00Z"),
-                List.of(1L)));
+                List.of("alice")));
         when(outboxRepository.findPendingBatch(100))
                 .thenReturn(List.of(new KafkaOutboxMessage(10L, "link-updates", payload)));
         when(kafkaTemplate.send(eq("link-updates"), any()))
@@ -123,7 +123,7 @@ class KafkaOutboxProcessorTest {
                 "owner",
                 "desc",
                 OffsetDateTime.parse("2026-01-01T00:00:00Z"),
-                List.of(1L)));
+                List.of("alice")));
         KafkaOutboxMessage message = new KafkaOutboxMessage(10L, "link-updates", payload);
         when(outboxRepository.findPendingBatch(100)).thenReturn(List.of(message), List.of(message));
         when(kafkaTemplate.send(eq("link-updates"), any()))

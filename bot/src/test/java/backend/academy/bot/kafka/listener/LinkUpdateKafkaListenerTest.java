@@ -39,7 +39,7 @@ class LinkUpdateKafkaListenerTest {
                   "updateOwner": "octocat",
                   "description": "desc",
                   "creationDate": "2026-04-26T00:00:00Z",
-                  "clientsIds": [1, 2]
+                  "clientLogins": ["alice", "bob"]
                 }
                 """;
 

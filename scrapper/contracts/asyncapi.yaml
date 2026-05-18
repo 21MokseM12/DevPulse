@@ -85,7 +85,7 @@ components:
             updateOwner: octocat
             description: Краткое описание обновления
             creationDate: '2026-04-05T10:00:00Z'
-            clientsIds: [1001, 1002]
+            clientLogins: [alice, bob]
 
     ClientCommandMessage:
       name: ClientCommandMessage
@@ -236,7 +236,7 @@ components:
 
     LinkUpdate:
       type: object
-      required: [id, url, title, updateOwner, description, creationDate, clientsIds]
+      required: [id, url, title, updateOwner, description, creationDate, clientLogins]
       properties:
         id:
           type: integer
@@ -253,8 +253,7 @@ components:
         creationDate:
           type: string
           format: date-time
-        clientsIds:
+        clientLogins:
           type: array
           items:
-            type: integer
-            format: int64
+            type: string

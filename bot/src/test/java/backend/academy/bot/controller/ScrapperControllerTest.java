@@ -59,7 +59,7 @@ public class ScrapperControllerTest {
                 "owner",
                 "description",
                 OffsetDateTime.of(LocalDate.of(2025, 3, 27), LocalTime.of(6, 50, 0), ZoneOffset.UTC),
-                List.of(1L, 2L));
+                List.of("u1", "u2"));
 
         mockMvc.perform(post("/updates")
                         .header("X-Internal-Secret", "test-secret")
@@ -102,7 +102,7 @@ public class ScrapperControllerTest {
                 "owner",
                 "description",
                 OffsetDateTime.of(LocalDate.of(2025, 3, 27), LocalTime.of(6, 50, 0), ZoneOffset.UTC),
-                List.of(1L, 2L));
+                List.of("u1", "u2"));
         mockMvc.perform(post("/updates")
                         .header("X-Internal-Secret", "test-secret")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -120,7 +120,7 @@ public class ScrapperControllerTest {
                 "owner",
                 "description",
                 OffsetDateTime.of(LocalDate.of(2025, 3, 27), LocalTime.of(6, 50, 0), ZoneOffset.UTC),
-                List.of(1L, 2L));
+                List.of("u1", "u2"));
 
         mockMvc.perform(post("/updates")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -144,7 +144,7 @@ public class ScrapperControllerTest {
                 "owner",
                 "description",
                 OffsetDateTime.of(LocalDate.of(2025, 3, 27), LocalTime.of(6, 50, 0), ZoneOffset.UTC),
-                List.of(1L, 2L));
+                List.of("u1", "u2"));
 
         mockMvc.perform(post("/updates")
                         .header("X-Internal-Secret", "wrong-secret")

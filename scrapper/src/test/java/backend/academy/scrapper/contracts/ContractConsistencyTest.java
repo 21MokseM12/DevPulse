@@ -30,6 +30,6 @@ class ContractConsistencyTest {
         assertTrue(asyncapi.contains("BotLinkUpdateMessage"));
         assertTrue(asyncapi.contains("sendBotLinkUpdate"));
         assertTrue(asyncapi.contains("LinkUpdate"));
-        assertTrue(asyncapi.contains("clientsIds"));
+        assertTrue(asyncapi.contains("clientLogins"));
     }
 }

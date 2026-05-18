@@ -87,7 +87,7 @@ class InternalUpdatesAuthIntegrationTest {
                 + "\"updateOwner\":\"owner\","
                 + "\"description\":\"description\","
                 + "\"creationDate\":\"" + OffsetDateTime.parse("2026-01-01T00:00:00Z") + "\","
-                + "\"clientsIds\":[101]"
+                + "\"clientLogins\":[\"user-101\"]"
                 + "}";
     }
 }

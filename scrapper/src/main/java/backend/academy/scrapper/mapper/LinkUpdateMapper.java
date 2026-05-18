@@ -16,6 +16,6 @@ public interface LinkUpdateMapper {
     @Mapping(source = "update.updateOwner", target = "updateOwner")
     @Mapping(source = "update.descriptionPreview", target = "description")
     @Mapping(source = "update.creationDate", target = "creationDate")
-    @Mapping(source = "notification.chatIds", target = "clientsIds")
+    @Mapping(source = "notification.clientLogins", target = "clientLogins")
     LinkUpdate toLinkUpdate(LinkUpdateDTO update, NotifyUpdateEntity notification);
 }

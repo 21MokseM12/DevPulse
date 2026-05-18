@@ -3,6 +3,7 @@ package backend.academy.scrapper.db.repository.impl;
 import backend.academy.scrapper.db.model.ClientAuthData;
 import backend.academy.scrapper.db.query.ChatQuery;
 import backend.academy.scrapper.db.repository.ChatRepository;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -53,6 +54,15 @@ public class ChatRepositoryImpl implements ChatRepository {
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
         }
+    }
+
+    @Override
+    public List<String> findLoginsByIds(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        return jdbcTemplate.queryForList(
+                ChatQuery.SELECT_LOGINS_BY_IDS.query(), new MapSqlParameterSource().addValue("ids", ids), String.class);
     }
 
     @Override

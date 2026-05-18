@@ -17,6 +17,6 @@ public class BotNotificationManager {
 
     public void notify(LinkUpdate update) {
         notificationRepository.save(notificationMapper.map(update));
-        log.info("Saved incoming notification for url={} and clients={}", update.url(), update.clientsIds());
+        log.info("Saved incoming notification for url={} and clients={}", update.url(), update.clientLogins());
     }
 }

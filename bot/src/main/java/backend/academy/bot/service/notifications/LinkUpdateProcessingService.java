@@ -17,8 +17,9 @@ public class LinkUpdateProcessingService {
     }
 
     private void validate(LinkUpdate update) throws BadRequestException {
-        if (update.clientsIds() == null
-                || update.clientsIds().isEmpty()
+        if (update.clientLogins() == null
+                || update.clientLogins().isEmpty()
+                || update.clientLogins().stream().anyMatch(login -> login == null || login.isBlank())
                 || update.url() == null
                 || update.title() == null
                 || update.updateOwner() == null

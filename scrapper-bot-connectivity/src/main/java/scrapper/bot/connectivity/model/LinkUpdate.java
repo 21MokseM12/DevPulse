@@ -14,4 +14,4 @@ public record LinkUpdate(
         @NotBlank String updateOwner,
         @NotBlank String description,
         @NotNull OffsetDateTime creationDate,
-        @NotNull List<@NotNull Long> clientsIds) {}
+        @NotNull List<@NotBlank String> clientLogins) {}

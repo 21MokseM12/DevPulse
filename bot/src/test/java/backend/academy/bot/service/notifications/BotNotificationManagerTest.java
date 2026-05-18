@@ -37,7 +37,7 @@ class BotNotificationManagerTest {
                 "octocat",
                 "description",
                 createdAt,
-                List.of(10L, 20L));
+                List.of("alice", "bob"));
         Notification notification = new Notification(
                 100L,
                 "https://github.com/org/repo/pull/123",
@@ -45,7 +45,7 @@ class BotNotificationManagerTest {
                 "octocat",
                 "description",
                 createdAt,
-                List.of(10L, 20L));
+                List.of("alice", "bob"));
         when(notificationMapper.map(update)).thenReturn(notification);
 
         manager.notify(update);

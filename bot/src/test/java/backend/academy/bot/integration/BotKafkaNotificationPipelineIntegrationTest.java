@@ -80,7 +80,7 @@ class BotKafkaNotificationPipelineIntegrationTest {
     @Test
     void kafkaAndHttp_useSamePipelineAndStoreSingleNotification() throws Exception {
         String login = "kafka-user";
-        long clientId = registerClient(login, "1");
+        registerClient(login, "1");
         String payload = objectMapper.writeValueAsString(Map.of(
                 "id", 555,
                 "url", "https://github.com/org/repo/pull/555",
@@ -88,7 +88,7 @@ class BotKafkaNotificationPipelineIntegrationTest {
                 "updateOwner", "octocat",
                 "description", "description",
                 "creationDate", OffsetDateTime.parse("2026-04-26T00:00:00Z"),
-                "clientsIds", List.of(clientId)));
+                "clientLogins", List.of(login)));
 
         mockMvc.perform(post("/updates")
                         .header("X-Internal-Secret", "test-internal-secret")
@@ -119,7 +119,7 @@ class BotKafkaNotificationPipelineIntegrationTest {
     }
 
     @Test
-    void kafkaAndHttp_whenClientIdDoesNotExist_storesNotificationWithoutRecipients() throws Exception {
+    void kafkaAndHttp_whenClientLoginDoesNotExist_storesNotificationWithoutRecipients() throws Exception {
         String payload = objectMapper.writeValueAsString(Map.of(
                 "id", 777,
                 "url", "https://github.com/org/repo/pull/777",
@@ -127,7 +127,7 @@ class BotKafkaNotificationPipelineIntegrationTest {
                 "updateOwner", "octocat",
                 "description", "description",
                 "creationDate", OffsetDateTime.parse("2026-04-26T00:00:00Z"),
-                "clientsIds", List.of(999999L)));
+                "clientLogins", List.of("missing-user")));
 
         mockMvc.perform(post("/updates")
                         .header("X-Internal-Secret", "test-internal-secret")
@@ -147,9 +147,7 @@ class BotKafkaNotificationPipelineIntegrationTest {
         });
     }
 
-    private long registerClient(String login, String password) {
-        Long id = jdbcTemplate.queryForObject(
-                "INSERT INTO clients(login, password_hash) VALUES (?, ?) RETURNING id", Long.class, login, password);
-        return id == null ? -1L : id;
+    private void registerClient(String login, String password) {
+        jdbcTemplate.update("INSERT INTO clients(login, password_hash) VALUES (?, ?)", login, password);
     }
 }

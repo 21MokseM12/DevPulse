@@ -89,7 +89,10 @@ public class LinkUpdateScheduledListener {
                 response.forEach(update -> {
                     List<Long> chatIdsNeededNotify = linkOperationProcessor.findSubscribedChats(link, update);
                     if (!chatIdsNeededNotify.isEmpty()) {
-                        notifyList.add(new NotifyUpdateEntity(link, List.of(update), chatIdsNeededNotify));
+                        List<String> clientLogins = linkOperationProcessor.findClientLogins(chatIdsNeededNotify);
+                        if (!clientLogins.isEmpty()) {
+                            notifyList.add(new NotifyUpdateEntity(link, List.of(update), clientLogins));
+                        }
                     }
                 });
             } catch (Exception ex) {

@@ -15,6 +15,6 @@ public class LinkUpdateNotificationMapper {
                 update.updateOwner(),
                 update.description(),
                 update.creationDate(),
-                update.clientsIds());
+                update.clientLogins());
     }
 }

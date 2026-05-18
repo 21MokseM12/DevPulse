@@ -144,6 +144,11 @@ public class LinkOperationProcessorImpl implements LinkOperationProcessor {
     }
 
     @Override
+    public List<String> findClientLogins(List<Long> chatIds) {
+        return chatService.findLoginsByIds(chatIds);
+    }
+
+    @Override
     @Transactional
     public void markPollingSuccess(URI link, OffsetDateTime checkedAt, Duration forceCheckDelay) {
         linkService.markPollingSuccess(link, checkedAt, checkedAt.plus(forceCheckDelay));

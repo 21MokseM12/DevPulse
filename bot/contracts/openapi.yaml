@@ -373,7 +373,7 @@ components:
 
     LinkUpdate:
       type: object
-      required: [id, url, title, updateOwner, description, creationDate, clientsIds]
+      required: [id, url, title, updateOwner, description, creationDate, clientLogins]
       properties:
         id:
           type: integer
@@ -396,12 +396,11 @@ components:
           type: string
           format: date-time
           example: '2026-04-05T10:00:00Z'
-        clientsIds:
+        clientLogins:
           type: array
           items:
-            type: integer
-            format: int64
-          example: [1001, 1002]
+            type: string
+          example: [alice, bob]
 
     ApiErrorResponse:
       type: object

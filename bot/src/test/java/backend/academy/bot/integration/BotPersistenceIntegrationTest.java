@@ -161,7 +161,6 @@ class BotPersistenceIntegrationTest {
     void postUpdates_savesNotification() throws Exception {
         String login = "client-one";
         registerClient(login, "1");
-        long clientId = findClientIdByLogin(login);
 
         String updatePayload = objectMapper.writeValueAsString(Map.of(
                 "id", 101,
@@ -170,7 +169,7 @@ class BotPersistenceIntegrationTest {
                 "updateOwner", "octocat",
                 "description", "Details",
                 "creationDate", OffsetDateTime.parse("2026-04-26T00:00:00Z"),
-                "clientsIds", List.of(clientId)));
+                "clientLogins", List.of(login)));
 
         postInternalUpdate(updatePayload);
 
@@ -186,7 +185,6 @@ class BotPersistenceIntegrationTest {
     void deleteClient_cascadesRecipientRows() throws Exception {
         String login = "client-delete";
         registerClient(login, "1");
-        long clientId = findClientIdByLogin(login);
 
         String updatePayload = objectMapper.writeValueAsString(Map.of(
                 "id", 202,
@@ -195,7 +193,7 @@ class BotPersistenceIntegrationTest {
                 "updateOwner", "octocat",
                 "description", "Details",
                 "creationDate", OffsetDateTime.parse("2026-04-26T00:00:00Z"),
-                "clientsIds", List.of(clientId)));
+                "clientLogins", List.of(login)));
 
         postInternalUpdate(updatePayload);
 
@@ -228,7 +226,6 @@ class BotPersistenceIntegrationTest {
     void notificationLifecycle_newUnread_thenMarkRead_thenIdempotentRepeat() throws Exception {
         String login = "client-lifecycle";
         registerClient(login, "1");
-        long clientId = findClientIdByLogin(login);
         String first = objectMapper.writeValueAsString(Map.of(
                 "id", 901,
                 "url", "https://github.com/org/repo/issues/901",
@@ -236,7 +233,7 @@ class BotPersistenceIntegrationTest {
                 "updateOwner", "octocat",
                 "description", "Details 901",
                 "creationDate", OffsetDateTime.parse("2026-04-26T00:00:00Z"),
-                "clientsIds", List.of(clientId)));
+                "clientLogins", List.of(login)));
         String second = objectMapper.writeValueAsString(Map.of(
                 "id", 902,
                 "url", "https://github.com/org/repo/issues/902",
@@ -244,7 +241,7 @@ class BotPersistenceIntegrationTest {
                 "updateOwner", "octocat",
                 "description", "Details 902",
                 "creationDate", OffsetDateTime.parse("2026-04-26T00:01:00Z"),
-                "clientsIds", List.of(clientId)));
+                "clientLogins", List.of(login)));
         postInternalUpdate(first);
         postInternalUpdate(second);
 
@@ -283,7 +280,6 @@ class BotPersistenceIntegrationTest {
     void markRead_shouldNotAffectOtherClientNotifications() throws Exception {
         registerClient("client-first", "1");
         registerClient("client-second", "2");
-        long secondClientId = findClientIdByLogin("client-second");
 
         String updateForSecond = objectMapper.writeValueAsString(Map.of(
                 "id", 999,
@@ -292,7 +288,7 @@ class BotPersistenceIntegrationTest {
                 "updateOwner", "octocat",
                 "description", "Details 999",
                 "creationDate", OffsetDateTime.parse("2026-04-26T00:00:00Z"),
-                "clientsIds", List.of(secondClientId)));
+                "clientLogins", List.of("client-second")));
         postInternalUpdate(updateForSecond);
         Long notificationId =
                 jdbcTemplate.queryForObject("SELECT id FROM notifications WHERE link_id = 999", Long.class);
@@ -326,10 +322,5 @@ class BotPersistenceIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(updatePayload))
                 .andExpect(status().isOk());
-    }
-
-    private long findClientIdByLogin(String login) {
-        Long id = jdbcTemplate.queryForObject("SELECT id FROM clients WHERE login = ?", Long.class, login);
-        return id == null ? -1L : id;
     }
 }

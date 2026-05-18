@@ -29,6 +29,8 @@ public interface LinkOperationProcessor {
 
     List<Long> findSubscribedChats(URI link, LinkUpdateDTO update);
 
+    List<String> findClientLogins(List<Long> chatIds);
+
     void markPollingSuccess(URI link, OffsetDateTime checkedAt, Duration forceCheckDelay);
 
     void markPollingFailure(URI link, OffsetDateTime checkedAt, Duration forceCheckDelay, String error);

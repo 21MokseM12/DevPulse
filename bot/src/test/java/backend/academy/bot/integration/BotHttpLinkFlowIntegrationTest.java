@@ -23,7 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -69,9 +68,6 @@ class BotHttpLinkFlowIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
-
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
 
     @BeforeEach
     void resetStub() {
@@ -133,14 +129,13 @@ class BotHttpLinkFlowIntegrationTest {
     @Test
     void notificationsFilterByTags_returnsOnlyMatchingLinks() throws Exception {
         registerClient("1", "1");
-        long clientId = findClientIdByLogin("1");
         getBody.set("["
                 + linkResponseJsonWithTags(1001L, "https://github.com/org/repo/issues/1", "[\"backend\"]", "[]")
                 + ","
                 + linkResponseJsonWithTags(1002L, "https://github.com/org/repo/issues/2", "[\"mobile\"]", "[]")
                 + "]");
-        postInternalUpdate(updatePayload(1001L, "https://github.com/org/repo/issues/1", clientId));
-        postInternalUpdate(updatePayload(1002L, "https://github.com/org/repo/issues/2", clientId));
+        postInternalUpdate(updatePayload(1001L, "https://github.com/org/repo/issues/1", "1"));
+        postInternalUpdate(updatePayload(1002L, "https://github.com/org/repo/issues/2", "1"));
 
         mockMvc.perform(get("/api/v1/notifications").header("Client-Login", "1").param("tags", "backend"))
                 .andExpect(status().isOk())
@@ -271,7 +266,7 @@ class BotHttpLinkFlowIntegrationTest {
                 + "}";
     }
 
-    private String updatePayload(long id, String url, long clientId) {
+    private String updatePayload(long id, String url, String clientLogin) {
         return "{"
                 + "\"id\":"
                 + id
@@ -283,9 +278,9 @@ class BotHttpLinkFlowIntegrationTest {
                 + "\"updateOwner\":\"owner\","
                 + "\"description\":\"description\","
                 + "\"creationDate\":\"2026-04-26T00:00:00Z\","
-                + "\"clientsIds\":["
-                + clientId
-                + "]"
+                + "\"clientLogins\":[\""
+                + clientLogin
+                + "\"]"
                 + "}";
     }
 
@@ -294,11 +289,6 @@ class BotHttpLinkFlowIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(clientPayload(login, password)))
                 .andExpect(status().isOk());
-    }
-
-    private long findClientIdByLogin(String login) {
-        Long id = jdbcTemplate.queryForObject("SELECT id FROM clients WHERE login = ?", Long.class, login);
-        return id == null ? -1L : id;
     }
 
     private String clientPayload(String login, String password) {

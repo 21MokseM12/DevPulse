@@ -10,4 +10,4 @@ public record Notification(
         String updateOwner,
         String description,
         OffsetDateTime creationDate,
-        List<Long> clientsIds) {}
+        List<String> clientLogins) {}

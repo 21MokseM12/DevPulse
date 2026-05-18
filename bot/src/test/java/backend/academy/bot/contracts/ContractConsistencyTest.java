@@ -23,7 +23,7 @@ class ContractConsistencyTest {
         assertTrue(openapi.contains("LinkUpdate"));
         assertTrue(openapi.contains("'401':"));
         assertTrue(openapi.contains("'403':"));
-        assertTrue(openapi.contains("clientsIds"));
+        assertTrue(openapi.contains("clientLogins"));
         assertTrue(openapi.contains("/api/v1/notifications"));
         assertTrue(openapi.contains("/api/v1/notifications/unread-count"));
         assertTrue(openapi.contains("/api/v1/notifications/mark-read"));

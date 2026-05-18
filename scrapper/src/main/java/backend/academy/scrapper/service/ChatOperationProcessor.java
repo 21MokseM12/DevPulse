@@ -14,6 +14,8 @@ public interface ChatOperationProcessor {
 
     Optional<Long> findClientIdByLogin(String login);
 
+    List<String> findLoginsByIds(List<Long> ids);
+
     boolean register(Long id);
 
     boolean unregister(Long id);

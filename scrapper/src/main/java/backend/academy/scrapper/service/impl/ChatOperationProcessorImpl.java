@@ -67,6 +67,11 @@ public class ChatOperationProcessorImpl implements ChatOperationProcessor {
     }
 
     @Override
+    public List<String> findLoginsByIds(List<Long> ids) {
+        return chatRepository.findLoginsByIds(ids);
+    }
+
+    @Override
     @Transactional
     public boolean register(@NonNull Long id) {
         if (!chatRepository.isClient(id)) {

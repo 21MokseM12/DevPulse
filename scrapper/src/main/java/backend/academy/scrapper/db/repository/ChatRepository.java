@@ -1,6 +1,7 @@
 package backend.academy.scrapper.db.repository;
 
 import backend.academy.scrapper.db.model.ClientAuthData;
+import java.util.List;
 import java.util.Optional;
 
 public interface ChatRepository {
@@ -9,6 +10,8 @@ public interface ChatRepository {
     Optional<ClientAuthData> findAuthDataByLogin(String login);
 
     Optional<Long> findIdByLogin(String login);
+
+    List<String> findLoginsByIds(List<Long> ids);
 
     void save(String login, String passwordHash);
 

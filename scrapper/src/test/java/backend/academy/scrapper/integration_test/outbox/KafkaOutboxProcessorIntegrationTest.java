@@ -206,7 +206,7 @@ class KafkaOutboxProcessorIntegrationTest extends TestApplication {
                 "owner",
                 "desc",
                 OffsetDateTime.parse("2026-01-01T00:00:00Z"),
-                List.of(1L));
+                List.of("alice"));
     }
 
     private List<String> pollRecordValues(String topic) {

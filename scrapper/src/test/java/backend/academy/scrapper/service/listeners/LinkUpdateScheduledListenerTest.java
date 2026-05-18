@@ -93,6 +93,34 @@ class LinkUpdateScheduledListenerTest {
                         eq("RuntimeException: upstream 503"));
     }
 
+    @Test
+    void listenUpdates_whenSubscribersResolved_sendsNotificationWithClientLogins() {
+        ScrapperConfig config = buildConfig();
+        LinkUpdateScheduledListener listener = new LinkUpdateScheduledListener(
+                config, databaseProperty, updaterFactory, linkOperationProcessor, notificationManager);
+        listener.init();
+
+        URI link = URI.create("https://github.com/acme/repo");
+        LinkUpdateDTO update = new LinkUpdateDTO(10L, "title", "owner", java.time.OffsetDateTime.now(), "desc");
+        when(databaseProperty.pageSize()).thenReturn(1000);
+        when(linkOperationProcessor.findAllLinksByForceCheckDelay(
+                        config.scheduler().forceCheckDelay(), 0))
+                .thenReturn(Set.of(link));
+        when(linkOperationProcessor.findAllLinksByForceCheckDelay(
+                        config.scheduler().forceCheckDelay(), 1))
+                .thenReturn(Set.of());
+        when(updaterFactory.get(link)).thenReturn(linkUpdater);
+        when(linkUpdater.getUpdates(link)).thenReturn(List.of(update));
+        when(linkOperationProcessor.findSubscribedChats(link, update)).thenReturn(List.of(1L, 2L));
+        when(linkOperationProcessor.findClientLogins(List.of(1L, 2L))).thenReturn(List.of("alice", "bob"));
+
+        listener.listenUpdates();
+
+        verify(notificationManager)
+                .notify(org.mockito.ArgumentMatchers.argThat(notifications -> notifications.size() == 1
+                        && notifications.getFirst().clientLogins().equals(List.of("alice", "bob"))));
+    }
+
     private ScrapperConfig buildConfig() {
         return new ScrapperConfig(
                 new ScrapperConfig.GitHubCredentials("token", "https://api.github.com"),

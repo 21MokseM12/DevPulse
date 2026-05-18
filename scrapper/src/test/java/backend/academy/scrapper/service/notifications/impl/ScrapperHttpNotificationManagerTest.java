@@ -56,8 +56,8 @@ class ScrapperHttpNotificationManagerTest {
                 botClient, mapper, kafkaOutboxRepository, scrapperConfig, new ObjectMapper(), resilienceExecutor);
 
         LinkUpdateDTO update = new LinkUpdateDTO(10L, "title", "owner", OffsetDateTime.now(), "desc");
-        NotifyUpdateEntity entity =
-                new NotifyUpdateEntity(URI.create("https://github.com/acme/repo"), List.of(update), List.of(1L, 2L));
+        NotifyUpdateEntity entity = new NotifyUpdateEntity(
+                URI.create("https://github.com/acme/repo"), List.of(update), List.of("alice", "bob"));
         LinkUpdate payload = new LinkUpdate(
                 10L,
                 URI.create("https://github.com/acme/repo"),
@@ -65,7 +65,7 @@ class ScrapperHttpNotificationManagerTest {
                 "owner",
                 "desc",
                 OffsetDateTime.now(),
-                List.of(1L, 2L));
+                List.of("alice", "bob"));
 
         when(mapper.toLinkUpdate(update, entity)).thenReturn(payload);
         when(resilienceExecutor.execute(eq("bot-api"), any())).thenAnswer(invocation -> {
@@ -93,8 +93,8 @@ class ScrapperHttpNotificationManagerTest {
                 botClient, mapper, kafkaOutboxRepository, scrapperConfig, new ObjectMapper(), resilienceExecutor);
 
         LinkUpdateDTO update = new LinkUpdateDTO(10L, "title", "owner", OffsetDateTime.now(), "desc");
-        NotifyUpdateEntity entity =
-                new NotifyUpdateEntity(URI.create("https://github.com/acme/repo"), List.of(update), List.of(1L, 2L));
+        NotifyUpdateEntity entity = new NotifyUpdateEntity(
+                URI.create("https://github.com/acme/repo"), List.of(update), List.of("alice", "bob"));
         LinkUpdate payload = new LinkUpdate(
                 10L,
                 URI.create("https://github.com/acme/repo"),
@@ -102,7 +102,7 @@ class ScrapperHttpNotificationManagerTest {
                 "owner",
                 "desc",
                 OffsetDateTime.now(),
-                List.of(1L, 2L));
+                List.of("alice", "bob"));
 
         when(mapper.toLinkUpdate(update, entity)).thenReturn(payload);
         when(scrapperConfig.outbox()).thenReturn(outboxCredentials);
