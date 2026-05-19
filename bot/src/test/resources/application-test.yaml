@@ -2,6 +2,16 @@ app:
   scrapper-url: "https://api.github.com"
   shared-secret: test-internal-secret
   internal-header: X-Internal-Secret
+  push:
+    fcm:
+      endpoint: http://localhost:19090/fcm/send
+      server-key: test-key
+    retry:
+      max-attempts: 2
+      initial-delay-ms: 10
+      multiplier: 2.0
+      max-delay-ms: 100
+    token-api-rate-limit-per-minute: 1000
 
 spring:
   datasource:

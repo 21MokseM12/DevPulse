@@ -6,6 +6,7 @@ import static org.mockito.Mockito.when;
 import backend.academy.bot.db.model.Notification;
 import backend.academy.bot.db.repository.NotificationRepository;
 import backend.academy.bot.mapper.LinkUpdateNotificationMapper;
+import backend.academy.bot.service.push.PushDispatchService;
 import java.net.URI;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -23,6 +24,9 @@ class BotNotificationManagerTest {
 
     @MockitoBean
     private LinkUpdateNotificationMapper notificationMapper;
+
+    @MockitoBean
+    private PushDispatchService pushDispatchService;
 
     @Autowired
     private BotNotificationManager manager;
@@ -49,10 +53,12 @@ class BotNotificationManagerTest {
                 createdAt,
                 List.of("alice", "bob"));
         when(notificationMapper.map(update)).thenReturn(notification);
+        when(notificationRepository.save(notification)).thenReturn(321L);
 
         manager.notify(update);
 
         verify(notificationMapper).map(update);
         verify(notificationRepository).save(notification);
+        verify(pushDispatchService).dispatchForUpdate(321L, update);
     }
 }

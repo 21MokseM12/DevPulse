@@ -64,6 +64,7 @@ class BotPersistenceIntegrationTest {
 
     @BeforeEach
     void cleanDatabase() {
+        jdbcTemplate.update("DELETE FROM push_tokens");
         jdbcTemplate.update("DELETE FROM notification_recipients");
         jdbcTemplate.update("DELETE FROM notifications");
         jdbcTemplate.update("DELETE FROM clients");
@@ -306,6 +307,78 @@ class BotPersistenceIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.unreadCount")
                         .value(1));
+    }
+
+    @Test
+    void pushTokenLifecycle_registerUpsertAndDeactivate() throws Exception {
+        registerClient("push-client", "1");
+        String registerPayload = objectMapper.writeValueAsString(Map.of(
+                "platform", "android",
+                "token", "fcm-token-1234567890123456",
+                "appVersion", "1.0.0",
+                "deviceId", "device-1"));
+
+        mockMvc.perform(post("/api/v1/push-tokens")
+                        .header("Client-Login", "push-client")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(registerPayload))
+                .andExpect(status().isOk());
+
+        Integer inserted = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM push_tokens WHERE client_login = 'push-client' AND token = 'fcm-token-1234567890123456'",
+                Integer.class);
+        assertThat(inserted).isEqualTo(1);
+
+        mockMvc.perform(post("/api/v1/push-tokens")
+                        .header("Client-Login", "push-client")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(registerPayload))
+                .andExpect(status().isOk());
+
+        Integer afterUpsert = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM push_tokens WHERE client_login = 'push-client' AND token = 'fcm-token-1234567890123456'",
+                Integer.class);
+        assertThat(afterUpsert).isEqualTo(1);
+
+        String deactivatePayload =
+                objectMapper.writeValueAsString(Map.of("platform", "android", "token", "fcm-token-1234567890123456"));
+        mockMvc.perform(delete("/api/v1/push-tokens/current")
+                        .header("Client-Login", "push-client")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(deactivatePayload))
+                .andExpect(status().isOk());
+
+        String status = jdbcTemplate.queryForObject(
+                "SELECT status FROM push_tokens WHERE client_login = 'push-client' AND token = 'fcm-token-1234567890123456'",
+                String.class);
+        assertThat(status).isEqualTo("inactive");
+    }
+
+    @Test
+    void pushTokenRegister_requiresExistingAuthorizedClient() throws Exception {
+        String registerPayload = objectMapper.writeValueAsString(Map.of(
+                "platform", "android",
+                "token", "fcm-token-1234567890123456"));
+
+        mockMvc.perform(post("/api/v1/push-tokens")
+                        .header("Client-Login", "ghost")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(registerPayload))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void pushTokenRegister_rejectsInvalidPayload() throws Exception {
+        registerClient("push-client-2", "1");
+        String registerPayload = objectMapper.writeValueAsString(Map.of(
+                "platform", "ios",
+                "token", "short"));
+
+        mockMvc.perform(post("/api/v1/push-tokens")
+                        .header("Client-Login", "push-client-2")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(registerPayload))
+                .andExpect(status().isBadRequest());
     }
 
     private void registerClient(String login, String password) throws Exception {

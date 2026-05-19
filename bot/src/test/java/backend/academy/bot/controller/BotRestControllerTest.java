@@ -21,6 +21,8 @@ import backend.academy.bot.model.entity.LinkDTO;
 import backend.academy.bot.service.ClientOperationService;
 import backend.academy.bot.service.ScrapperConnectionService;
 import backend.academy.bot.service.notifications.NotificationQueryService;
+import backend.academy.bot.service.push.PushTokenRateLimiter;
+import backend.academy.bot.service.push.PushTokenService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
 import java.util.List;
@@ -51,6 +53,12 @@ class BotRestControllerTest {
 
     @MockitoBean
     private NotificationQueryService notificationQueryService;
+
+    @MockitoBean
+    private PushTokenService pushTokenService;
+
+    @MockitoBean
+    private PushTokenRateLimiter pushTokenRateLimiter;
 
     @Test
     void registerClient_returnsWelcomeMessage() throws Exception {
@@ -307,5 +315,44 @@ class BotRestControllerTest {
                         .content("{\"ids\":[1,2]}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.updatedCount").value(2));
+    }
+
+    @Test
+    void registerPushToken_returnsOk() throws Exception {
+        var payload =
+                """
+                {
+                  "platform": "android",
+                  "token": "fcm-token-1234567890123456",
+                  "appVersion": "1.0.0",
+                  "deviceId": "device-1"
+                }
+                """;
+        mockMvc.perform(post("/api/v1/push-tokens")
+                        .header("Client-Login", "user")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Push token is active"));
+    }
+
+    @Test
+    void deactivatePushToken_returnsOk() throws Exception {
+        when(pushTokenService.deactivate(eq("user"), any(), eq("fcm-token-1234567890123456")))
+                .thenReturn(true);
+        var payload =
+                """
+                {
+                  "platform": "android",
+                  "token": "fcm-token-1234567890123456"
+                }
+                """;
+
+        mockMvc.perform(delete("/api/v1/push-tokens/current")
+                        .header("Client-Login", "user")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Push token is inactive"));
     }
 }

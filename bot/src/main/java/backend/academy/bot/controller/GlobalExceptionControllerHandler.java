@@ -4,6 +4,7 @@ import backend.academy.bot.exceptions.ChatNotFoundException;
 import backend.academy.bot.exceptions.ClientLifecycleSyncException;
 import backend.academy.bot.exceptions.InvalidInternalAuthSecretException;
 import backend.academy.bot.exceptions.MissingInternalAuthHeaderException;
+import backend.academy.bot.exceptions.RateLimitExceededException;
 import java.util.Arrays;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -66,6 +67,11 @@ public class GlobalExceptionControllerHandler {
             InvalidInternalAuthSecretException e) {
         log.warn("Rejected /updates request: invalid internal auth secret");
         return buildErrorResponse("Forbidden", "403", e, HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(RateLimitExceededException.class)
+    public ResponseEntity<ApiErrorResponse> handleRateLimitExceededException(RateLimitExceededException e) {
+        return buildErrorResponse("Too many requests", "429", e, HttpStatus.TOO_MANY_REQUESTS);
     }
 
     private ResponseEntity<ApiErrorResponse> buildErrorResponse(

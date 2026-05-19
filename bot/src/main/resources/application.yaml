@@ -10,6 +10,16 @@ app:
   scrapper-url: ${BOT_SCRAPPER_URL:${SCRAPPER_URL:http://localhost:8081}}
   shared-secret: ${INTERNAL_SHARED_SECRET:devpulse-internal-secret}
   internal-header: ${INTERNAL_SHARED_HEADER:X-Internal-Secret}
+  push:
+    fcm:
+      endpoint: ${BOT_FCM_ENDPOINT:https://fcm.googleapis.com/fcm/send}
+      server-key: ${BOT_FCM_SERVER_KEY:}
+    retry:
+      max-attempts: ${BOT_PUSH_MAX_ATTEMPTS:3}
+      initial-delay-ms: ${BOT_PUSH_INITIAL_DELAY_MS:1000}
+      multiplier: ${BOT_PUSH_BACKOFF_MULTIPLIER:2.0}
+      max-delay-ms: ${BOT_PUSH_MAX_DELAY_MS:5000}
+    token-api-rate-limit-per-minute: ${BOT_PUSH_TOKEN_RATE_LIMIT_PER_MINUTE:60}
   kafka:
     consumers:
       link-updates:

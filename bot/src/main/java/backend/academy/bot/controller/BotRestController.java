@@ -1,15 +1,20 @@
 package backend.academy.bot.controller;
 
+import backend.academy.bot.db.model.PushPlatform;
 import backend.academy.bot.enums.Messages;
 import backend.academy.bot.model.api.BotApiMessageResponse;
 import backend.academy.bot.model.api.MarkReadRequest;
 import backend.academy.bot.model.api.MarkReadResponse;
 import backend.academy.bot.model.api.NotificationListResponse;
+import backend.academy.bot.model.api.PushTokenDeactivateRequest;
+import backend.academy.bot.model.api.PushTokenUpsertRequest;
 import backend.academy.bot.model.api.UnreadCountResponse;
 import backend.academy.bot.model.entity.LinkDTO;
 import backend.academy.bot.service.ClientOperationService;
 import backend.academy.bot.service.ScrapperConnectionService;
 import backend.academy.bot.service.notifications.NotificationQueryService;
+import backend.academy.bot.service.push.PushTokenRateLimiter;
+import backend.academy.bot.service.push.PushTokenService;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Set;
@@ -39,6 +44,8 @@ public class BotRestController {
     private final ClientOperationService clientOperationService;
     private final ScrapperConnectionService scrapperConnectionService;
     private final NotificationQueryService notificationQueryService;
+    private final PushTokenService pushTokenService;
+    private final PushTokenRateLimiter pushTokenRateLimiter;
 
     @PostMapping("/clients")
     public ResponseEntity<BotApiMessageResponse> registerClient(@Valid @RequestBody ClientCredentialsRequest request)
@@ -115,5 +122,30 @@ public class BotRestController {
             @RequestHeader(name = CLIENT_LOGIN_HEADER) String login, @RequestBody MarkReadRequest request)
             throws BadRequestException {
         return ResponseEntity.ok(notificationQueryService.markRead(login, request));
+    }
+
+    @PostMapping("/push-tokens")
+    public ResponseEntity<BotApiMessageResponse> registerPushToken(
+            @RequestHeader(name = CLIENT_LOGIN_HEADER) String login,
+            @Valid @RequestBody PushTokenUpsertRequest request) {
+        pushTokenRateLimiter.check(login);
+        pushTokenService.registerOrUpdate(
+                login,
+                PushPlatform.valueOf(request.platform().toUpperCase()),
+                request.token(),
+                request.appVersion(),
+                request.deviceId());
+        return ResponseEntity.ok(new BotApiMessageResponse("Push token is active"));
+    }
+
+    @DeleteMapping("/push-tokens/current")
+    public ResponseEntity<BotApiMessageResponse> deactivatePushToken(
+            @RequestHeader(name = CLIENT_LOGIN_HEADER) String login,
+            @Valid @RequestBody PushTokenDeactivateRequest request) {
+        pushTokenRateLimiter.check(login);
+        boolean changed = pushTokenService.deactivate(
+                login, PushPlatform.valueOf(request.platform().toUpperCase()), request.token());
+        String message = changed ? "Push token is inactive" : "Push token was already inactive";
+        return ResponseEntity.ok(new BotApiMessageResponse(message));
     }
 }

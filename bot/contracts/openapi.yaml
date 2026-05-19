@@ -17,6 +17,8 @@ tags:
     description: Входящие уведомления от scrapper
   - name: Notifications
     description: Чтение и управление статусом уведомлений
+  - name: PushTokens
+    description: Регистрация и деактивация FCM device token
 
 paths:
   /api/v1/clients:
@@ -252,6 +254,68 @@ paths:
                 $ref: '#/components/schemas/MarkReadResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
+
+  /api/v1/push-tokens:
+    post:
+      tags: [PushTokens]
+      operationId: registerPushToken
+      summary: Зарегистрировать или обновить FCM token
+      parameters:
+        - $ref: '#/components/parameters/ClientLoginHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PushTokenUpsertRequest'
+      responses:
+        '200':
+          description: Токен активирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BotApiMessageResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          description: Превышен rate limit token API
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+
+  /api/v1/push-tokens/current:
+    delete:
+      tags: [PushTokens]
+      operationId: deactivatePushToken
+      summary: Деактивировать текущий FCM token
+      parameters:
+        - $ref: '#/components/parameters/ClientLoginHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PushTokenDeactivateRequest'
+      responses:
+        '200':
+          description: Токен деактивирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BotApiMessageResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          description: Превышен rate limit token API
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
 
 components:
   parameters:
@@ -522,3 +586,62 @@ components:
           type: integer
           format: int64
           example: 1
+
+    PushTokenUpsertRequest:
+      type: object
+      required: [platform, token]
+      properties:
+        platform:
+          type: string
+          enum: [android]
+          example: android
+        token:
+          type: string
+          minLength: 16
+          maxLength: 4096
+          example: fcm-token-1234567890
+        appVersion:
+          type: string
+          maxLength: 64
+          nullable: true
+          example: 1.4.2
+        deviceId:
+          type: string
+          maxLength: 255
+          nullable: true
+          example: android-emulator-5554
+
+    PushTokenDeactivateRequest:
+      type: object
+      required: [platform, token]
+      properties:
+        platform:
+          type: string
+          enum: [android]
+          example: android
+        token:
+          type: string
+          minLength: 16
+          maxLength: 4096
+          example: fcm-token-1234567890
+
+    PushPayloadContract:
+      type: object
+      required: [event_id, title, content]
+      description: Минимальный server-driven payload, отправляемый в FCM `data`.
+      properties:
+        event_id:
+          type: string
+          description: Уникальный id события в backend
+        title:
+          type: string
+        content:
+          type: string
+        url:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        source:
+          type: string
