@@ -3,6 +3,7 @@ services:
     build:
       context: .
       dockerfile: bot/Dockerfile
+    pull_policy: if_not_present
     environment:
       - BOT_SCRAPPER_URL=http://scrapper:8081
       - BOT_POSTGRES_URL=jdbc:postgresql://bot-db:5432/${BOT_POSTGRES_DB_NAME:-devpulse_bot}
@@ -38,6 +39,7 @@ services:
     build:
       context: .
       dockerfile: scrapper/Dockerfile
+    pull_policy: if_not_present
     environment:
       - SCRAPPER_BOT_URL=http://bot:8080
       - SCRAPPER_POSTGRES_URL=jdbc:postgresql://scrapper-db:5432/${SCRAPPER_POSTGRES_DB_NAME:-devpulse_scrapper}
