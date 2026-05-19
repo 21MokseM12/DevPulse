@@ -6,6 +6,7 @@ import java.util.List;
 public record Notification(
         Long linkId,
         String url,
+        String eventUrl,
         String title,
         String updateOwner,
         String description,

@@ -10,6 +10,7 @@ import scrapper.bot.connectivity.validation.ValidUri;
 public record LinkUpdate(
         @NotNull Long id,
         @NotNull @ValidUri URI url,
+        @ValidUri URI eventUrl,
         @NotBlank String title,
         @NotBlank String updateOwner,
         @NotBlank String description,

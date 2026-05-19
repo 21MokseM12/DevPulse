@@ -61,6 +61,7 @@ class ScrapperHttpNotificationManagerTest {
         LinkUpdate payload = new LinkUpdate(
                 10L,
                 URI.create("https://github.com/acme/repo"),
+                URI.create("https://github.com/acme/repo/pull/10"),
                 "title",
                 "owner",
                 "desc",
@@ -98,6 +99,7 @@ class ScrapperHttpNotificationManagerTest {
         LinkUpdate payload = new LinkUpdate(
                 10L,
                 URI.create("https://github.com/acme/repo"),
+                URI.create("https://github.com/acme/repo/pull/10"),
                 "title",
                 "owner",
                 "desc",

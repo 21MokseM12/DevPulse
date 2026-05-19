@@ -43,7 +43,7 @@ public class StackOverflowAnswerUpdateProcessor implements StackOverflowQuestion
             answers.items().stream()
                     .filter(answer -> !alreadyProcessedAnswersIds.contains(answer.id()))
                     .forEach(answer -> {
-                        resultUpdatesList.add(StackOverflowResponseMapper.mapToAnswer(answer, question));
+                        resultUpdatesList.add(StackOverflowResponseMapper.mapToAnswer(answer, question, questionId));
                         nowProcessedIds.add(new ProcessedIdDTO(answer.id(), ProcessedIdType.STACKOVERFLOW_ANSWER));
                     });
             linkService.saveProcessedIds(link, nowProcessedIds);

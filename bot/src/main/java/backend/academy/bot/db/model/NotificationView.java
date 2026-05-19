@@ -6,6 +6,7 @@ public record NotificationView(
         Long id,
         Long linkId,
         String url,
+        String eventUrl,
         String title,
         String updateOwner,
         String description,

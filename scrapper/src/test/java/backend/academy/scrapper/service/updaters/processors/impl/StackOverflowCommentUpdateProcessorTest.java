@@ -110,7 +110,8 @@ public class StackOverflowCommentUpdateProcessorTest {
                         fixedTime,
                         "comment",
                         UpdateType.STACKOVERFLOW_COMMENT,
-                        Set.of()),
+                        Set.of(),
+                        URI.create("https://stackoverflow.com/questions/1#comment2_1")),
                 new LinkUpdateDTO(
                         4L,
                         question.title(),
@@ -118,7 +119,8 @@ public class StackOverflowCommentUpdateProcessorTest {
                         fixedTime,
                         "comment",
                         UpdateType.STACKOVERFLOW_COMMENT,
-                        Set.of()));
+                        Set.of(),
+                        URI.create("https://stackoverflow.com/questions/1#comment4_1")));
 
         when(resilienceExecutor.execute(eq("stackoverflow-api"), any()))
                 .thenReturn(ResponseEntity.ok().body(response));
@@ -148,7 +150,8 @@ public class StackOverflowCommentUpdateProcessorTest {
                         fixedTime,
                         "comment",
                         UpdateType.STACKOVERFLOW_COMMENT,
-                        Set.of()),
+                        Set.of(),
+                        URI.create("https://stackoverflow.com/questions/1#comment1_1")),
                 new LinkUpdateDTO(
                         2L,
                         question.title(),
@@ -156,7 +159,8 @@ public class StackOverflowCommentUpdateProcessorTest {
                         fixedTime,
                         "comment",
                         UpdateType.STACKOVERFLOW_COMMENT,
-                        Set.of()),
+                        Set.of(),
+                        URI.create("https://stackoverflow.com/questions/1#comment2_1")),
                 new LinkUpdateDTO(
                         3L,
                         question.title(),
@@ -164,7 +168,8 @@ public class StackOverflowCommentUpdateProcessorTest {
                         fixedTime,
                         "comment",
                         UpdateType.STACKOVERFLOW_COMMENT,
-                        Set.of()),
+                        Set.of(),
+                        URI.create("https://stackoverflow.com/questions/1#comment3_1")),
                 new LinkUpdateDTO(
                         4L,
                         question.title(),
@@ -172,7 +177,8 @@ public class StackOverflowCommentUpdateProcessorTest {
                         fixedTime,
                         "comment",
                         UpdateType.STACKOVERFLOW_COMMENT,
-                        Set.of()),
+                        Set.of(),
+                        URI.create("https://stackoverflow.com/questions/1#comment4_1")),
                 new LinkUpdateDTO(
                         5L,
                         question.title(),
@@ -180,7 +186,8 @@ public class StackOverflowCommentUpdateProcessorTest {
                         fixedTime,
                         "comment",
                         UpdateType.STACKOVERFLOW_COMMENT,
-                        Set.of()));
+                        Set.of(),
+                        URI.create("https://stackoverflow.com/questions/1#comment5_1")));
 
         when(resilienceExecutor.execute(eq("stackoverflow-api"), any()))
                 .thenReturn(ResponseEntity.ok().body(response));

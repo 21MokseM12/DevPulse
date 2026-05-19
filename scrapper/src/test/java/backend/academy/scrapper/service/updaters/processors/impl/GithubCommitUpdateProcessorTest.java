@@ -66,7 +66,8 @@ public class GithubCommitUpdateProcessorTest {
                         fixedTime,
                         "Push в main: 1 коммит, Fix NPE in scheduler",
                         UpdateType.GITHUB_COMMIT,
-                        Set.of()),
+                        Set.of(),
+                        link),
                 new LinkUpdateDTO(
                         2L,
                         "Новый коммит в ветке main",
@@ -74,7 +75,8 @@ public class GithubCommitUpdateProcessorTest {
                         fixedTime,
                         "Push в main: 1 коммит, Add retries for github-api",
                         UpdateType.GITHUB_COMMIT,
-                        Set.of()));
+                        Set.of(),
+                        link));
 
         when(linkService.getProcessedCommitIds(link)).thenReturn(List.of());
 
@@ -107,7 +109,8 @@ public class GithubCommitUpdateProcessorTest {
                 fixedTime,
                 "Push в main: 1 коммит, Fix NPE in scheduler",
                 UpdateType.GITHUB_COMMIT,
-                Set.of()));
+                Set.of(),
+                link));
 
         when(linkService.getProcessedCommitIds(link)).thenReturn(List.of());
 
@@ -149,6 +152,7 @@ public class GithubCommitUpdateProcessorTest {
         assertEquals("Push в ветке main", update.title());
         assertEquals("Push в main: HEAD 3f5c1e8 (детали коммитов недоступны)", update.descriptionPreview());
         assertEquals(UpdateType.GITHUB_COMMIT, update.type());
+        assertEquals(URI.create("link/commit/3f5c1e8e2370a49d"), update.eventUrl());
     }
 
     @AfterEach

@@ -110,7 +110,8 @@ public class StackOverflowAnswerUpdateProcessorTest {
                         fixedTime,
                         "answer",
                         UpdateType.STACKOVERFLOW_ANSWER,
-                        Set.of()),
+                        Set.of(),
+                        URI.create("https://stackoverflow.com/questions/1/#answer-2")),
                 new LinkUpdateDTO(
                         4L,
                         question.title(),
@@ -118,7 +119,8 @@ public class StackOverflowAnswerUpdateProcessorTest {
                         fixedTime,
                         "answer",
                         UpdateType.STACKOVERFLOW_ANSWER,
-                        Set.of()));
+                        Set.of(),
+                        URI.create("https://stackoverflow.com/questions/1/#answer-4")));
 
         when(resilienceExecutor.execute(eq("stackoverflow-api"), any()))
                 .thenReturn(ResponseEntity.ok().body(response));
@@ -148,7 +150,8 @@ public class StackOverflowAnswerUpdateProcessorTest {
                         fixedTime,
                         "answer",
                         UpdateType.STACKOVERFLOW_ANSWER,
-                        Set.of()),
+                        Set.of(),
+                        URI.create("https://stackoverflow.com/questions/1/#answer-1")),
                 new LinkUpdateDTO(
                         2L,
                         question.title(),
@@ -156,7 +159,8 @@ public class StackOverflowAnswerUpdateProcessorTest {
                         fixedTime,
                         "answer",
                         UpdateType.STACKOVERFLOW_ANSWER,
-                        Set.of()),
+                        Set.of(),
+                        URI.create("https://stackoverflow.com/questions/1/#answer-2")),
                 new LinkUpdateDTO(
                         3L,
                         question.title(),
@@ -164,7 +168,8 @@ public class StackOverflowAnswerUpdateProcessorTest {
                         fixedTime,
                         "answer",
                         UpdateType.STACKOVERFLOW_ANSWER,
-                        Set.of()),
+                        Set.of(),
+                        URI.create("https://stackoverflow.com/questions/1/#answer-3")),
                 new LinkUpdateDTO(
                         4L,
                         question.title(),
@@ -172,7 +177,8 @@ public class StackOverflowAnswerUpdateProcessorTest {
                         fixedTime,
                         "answer",
                         UpdateType.STACKOVERFLOW_ANSWER,
-                        Set.of()),
+                        Set.of(),
+                        URI.create("https://stackoverflow.com/questions/1/#answer-4")),
                 new LinkUpdateDTO(
                         5L,
                         question.title(),
@@ -180,7 +186,8 @@ public class StackOverflowAnswerUpdateProcessorTest {
                         fixedTime,
                         "answer",
                         UpdateType.STACKOVERFLOW_ANSWER,
-                        Set.of()));
+                        Set.of(),
+                        URI.create("https://stackoverflow.com/questions/1/#answer-5")));
 
         when(resilienceExecutor.execute(eq("stackoverflow-api"), any()))
                 .thenReturn(ResponseEntity.ok().body(response));

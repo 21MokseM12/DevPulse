@@ -43,6 +43,7 @@ class NotificationQueryServiceTest {
                 1L,
                 10L,
                 "https://github.com/org/repo/issues/1",
+                "https://github.com/org/repo/issues/1",
                 "title",
                 "owner",
                 "description",

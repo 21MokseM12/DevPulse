@@ -23,6 +23,7 @@ public class NotificationRepositoryImpl implements NotificationRepository {
 
     private static final String LINK_ID = "link_id";
     private static final String URL = "url";
+    private static final String EVENT_URL = "event_url";
     private static final String TITLE = "title";
     private static final String UPDATE_OWNER = "update_owner";
     private static final String DESCRIPTION = "description";
@@ -38,8 +39,8 @@ public class NotificationRepositoryImpl implements NotificationRepository {
 
     private static final String INSERT =
             """
-            INSERT INTO notifications(link_id, url, title, update_owner, description, creation_date)
-            VALUES(:link_id, :url, :title, :update_owner, :description, :creation_date)
+            INSERT INTO notifications(link_id, url, event_url, title, update_owner, description, creation_date)
+            VALUES(:link_id, :url, :event_url, :title, :update_owner, :description, :creation_date)
             ON CONFLICT (link_id, creation_date, update_owner, title) DO NOTHING
             RETURNING id
             """;
@@ -62,7 +63,7 @@ public class NotificationRepositoryImpl implements NotificationRepository {
             """;
     private static final String SELECT_BY_CLIENT =
             """
-            SELECT n.id, n.link_id, n.url, n.title, n.update_owner, n.description, n.creation_date, n.received_at, nr.read_at
+            SELECT n.id, n.link_id, n.url, n.event_url, n.title, n.update_owner, n.description, n.creation_date, n.received_at, nr.read_at
             FROM notifications n
             JOIN notification_recipients nr ON nr.notification_id = n.id
             WHERE nr.client_login = :client_login
@@ -71,7 +72,7 @@ public class NotificationRepositoryImpl implements NotificationRepository {
             """;
     private static final String SELECT_BY_CLIENT_AND_URLS =
             """
-            SELECT n.id, n.link_id, n.url, n.title, n.update_owner, n.description, n.creation_date, n.received_at, nr.read_at
+            SELECT n.id, n.link_id, n.url, n.event_url, n.title, n.update_owner, n.description, n.creation_date, n.received_at, nr.read_at
             FROM notifications n
             JOIN notification_recipients nr ON nr.notification_id = n.id
             WHERE nr.client_login = :client_login
@@ -106,6 +107,7 @@ public class NotificationRepositoryImpl implements NotificationRepository {
                     rs.getLong("id"),
                     rs.getLong(LINK_ID),
                     rs.getString(URL),
+                    rs.getString(EVENT_URL),
                     rs.getString(TITLE),
                     rs.getString(UPDATE_OWNER),
                     rs.getString(DESCRIPTION),
@@ -120,6 +122,7 @@ public class NotificationRepositoryImpl implements NotificationRepository {
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue(LINK_ID, notification.linkId())
                 .addValue(URL, notification.url())
+                .addValue(EVENT_URL, notification.eventUrl())
                 .addValue(TITLE, notification.title())
                 .addValue(UPDATE_OWNER, notification.updateOwner())
                 .addValue(DESCRIPTION, notification.description())

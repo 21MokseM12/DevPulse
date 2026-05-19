@@ -11,6 +11,7 @@ public class LinkUpdateNotificationMapper {
         return new Notification(
                 update.id(),
                 update.url().toString(),
+                update.eventUrl() == null ? null : update.eventUrl().toString(),
                 update.title(),
                 update.updateOwner(),
                 update.description(),

@@ -2,6 +2,7 @@ CREATE TABLE IF NOT EXISTS notifications (
     id BIGSERIAL PRIMARY KEY,
     link_id BIGINT NOT NULL,
     url TEXT NOT NULL,
+    event_url TEXT,
     title TEXT NOT NULL,
     update_owner TEXT NOT NULL,
     description TEXT NOT NULL,

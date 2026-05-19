@@ -81,6 +81,7 @@ components:
           payload:
             id: 101
             url: https://github.com/spring-projects/spring-framework/issues/1
+            eventUrl: https://github.com/spring-projects/spring-framework/issues/1
             title: New issue created
             updateOwner: octocat
             description: Краткое описание обновления
@@ -244,6 +245,10 @@ components:
         url:
           type: string
           format: uri
+        eventUrl:
+          type: string
+          format: uri
+          nullable: true
         title:
           type: string
         updateOwner:

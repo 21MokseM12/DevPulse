@@ -43,7 +43,7 @@ public class StackOverflowCommentUpdateProcessor implements StackOverflowQuestio
             comments.items().stream()
                     .filter(comment -> !alreadyProcessedCommentsIds.contains(comment.id()))
                     .forEach(comment -> {
-                        resultUpdatesList.add(StackOverflowResponseMapper.mapToComment(comment, question));
+                        resultUpdatesList.add(StackOverflowResponseMapper.mapToComment(comment, question, questionId));
                         nowProcessedIds.add(new ProcessedIdDTO(comment.id(), ProcessedIdType.STACKOVERFLOW_COMMENT));
                     });
             linkService.saveProcessedIds(link, nowProcessedIds);

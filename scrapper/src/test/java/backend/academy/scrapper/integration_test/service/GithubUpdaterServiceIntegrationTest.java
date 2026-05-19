@@ -141,6 +141,7 @@ class GithubUpdaterServiceIntegrationTest extends TestContainersConfiguration {
         assertEquals(
                 "Push в main: 2 коммита (3f5c1e8), Fix retry logic; Add cache invalidation",
                 update.descriptionPreview());
+        assertEquals(URI.create(link + "/compare/7f9ab17cc840f2b1...3f5c1e8e2370a49d"), update.eventUrl());
 
         Integer processedRows = jdbcTemplate.queryForObject(
                 "select count(*) from processed_ids pi "
@@ -180,6 +181,7 @@ class GithubUpdaterServiceIntegrationTest extends TestContainersConfiguration {
         assertEquals(UpdateType.GITHUB_COMMIT, update.type());
         assertEquals("Новый коммит в ветке main", update.title());
         assertEquals("Push в main: 1 коммит (9fceb02), Fix scheduler retries", update.descriptionPreview());
+        assertEquals(link, update.eventUrl());
 
         Integer processedRows = jdbcTemplate.queryForObject(
                 "select count(*) from processed_ids pi "
@@ -213,5 +215,6 @@ class GithubUpdaterServiceIntegrationTest extends TestContainersConfiguration {
         LinkUpdateDTO update = updates.getFirst();
         assertEquals(UpdateType.GITHUB_ISSUE, update.type());
         assertEquals("x".repeat(200) + "...", update.descriptionPreview());
+        assertEquals(link, update.eventUrl());
     }
 }

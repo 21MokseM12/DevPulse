@@ -383,6 +383,11 @@ components:
           type: string
           format: uri
           example: https://github.com/spring-projects/spring-framework/pull/1
+        eventUrl:
+          type: string
+          format: uri
+          nullable: true
+          example: https://github.com/spring-projects/spring-framework/pull/1
         title:
           type: string
           example: New issue created
@@ -443,6 +448,11 @@ components:
         url:
           type: string
           format: uri
+          example: https://github.com/org/repo/issues/1
+        eventUrl:
+          type: string
+          format: uri
+          nullable: true
           example: https://github.com/org/repo/issues/1
         title:
           type: string

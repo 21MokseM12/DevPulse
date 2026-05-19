@@ -267,6 +267,7 @@ class BotRestControllerTest {
                 1L,
                 100L,
                 "https://github.com/u/r/issues/1",
+                "https://github.com/u/r/issues/1",
                 "Issue updated",
                 "octocat",
                 "description",

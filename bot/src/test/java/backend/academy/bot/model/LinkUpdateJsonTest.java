@@ -25,6 +25,7 @@ class LinkUpdateJsonTest {
         LinkUpdate original = new LinkUpdate(
                 1L,
                 URI.create("https://example.com/a"),
+                URI.create("https://example.com/a/event"),
                 "t",
                 "o",
                 "d",

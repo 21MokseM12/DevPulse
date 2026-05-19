@@ -12,6 +12,7 @@ public interface LinkUpdateMapper {
 
     @Mapping(source = "update.id", target = "id")
     @Mapping(source = "notification.link", target = "url")
+    @Mapping(source = "update.eventUrl", target = "eventUrl")
     @Mapping(source = "update.title", target = "title")
     @Mapping(source = "update.updateOwner", target = "updateOwner")
     @Mapping(source = "update.descriptionPreview", target = "description")

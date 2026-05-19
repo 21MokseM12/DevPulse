@@ -75,6 +75,7 @@ class KafkaOutboxProcessorTest {
         String payload = objectMapper.writeValueAsString(new LinkUpdate(
                 1L,
                 URI.create("https://github.com/acme/repo"),
+                URI.create("https://github.com/acme/repo/commit/1"),
                 "title",
                 "owner",
                 "desc",
@@ -96,6 +97,7 @@ class KafkaOutboxProcessorTest {
         String payload = objectMapper.writeValueAsString(new LinkUpdate(
                 1L,
                 URI.create("https://github.com/acme/repo"),
+                URI.create("https://github.com/acme/repo/commit/1"),
                 "title",
                 "owner",
                 "desc",
@@ -119,6 +121,7 @@ class KafkaOutboxProcessorTest {
         String payload = objectMapper.writeValueAsString(new LinkUpdate(
                 1L,
                 URI.create("https://github.com/acme/repo"),
+                URI.create("https://github.com/acme/repo/commit/1"),
                 "title",
                 "owner",
                 "desc",

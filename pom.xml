@@ -23,7 +23,7 @@
     </modules>
 
     <properties>
-        <revision>1.35.0</revision>
+        <revision>1.36.0</revision>
 
         <!-- java, kotlin and maven versions -->
         <maven.version>3.8.8</maven.version>

@@ -26,7 +26,7 @@ public class GithubIssueUpdateProcessor implements GithubRepoUpdateProcessor {
                 .filter(event -> event.type().equals(GithubActionType.ISSUE_EVENT.type()))
                 .filter(event -> event.payload().action().equals("opened"))
                 .filter(event -> !processedIds.contains(event.id()))
-                .map(GithubResponseMapper::mapToIssue)
+                .map(event -> GithubResponseMapper.mapToIssue(event, link))
                 .toList();
         githubLinkService.saveProcessedIds(
                 link,

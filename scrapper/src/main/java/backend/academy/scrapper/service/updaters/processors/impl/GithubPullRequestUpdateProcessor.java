@@ -26,7 +26,7 @@ public class GithubPullRequestUpdateProcessor implements GithubRepoUpdateProcess
                 .filter(event -> event.type().equals(GithubActionType.PULL_REQUEST_EVENT.type()))
                 .filter(event -> event.payload().action().equals("opened"))
                 .filter(event -> !processedIds.contains(event.id()))
-                .map(GithubResponseMapper::mapToPullRequest)
+                .map(event -> GithubResponseMapper.mapToPullRequest(event, link))
                 .toList();
         githubLinkService.saveProcessedIds(
                 link,

@@ -55,6 +55,7 @@ public class ScrapperControllerTest {
         LinkUpdate linkUpdate = new LinkUpdate(
                 1L,
                 URI.create("https://example.com/resource"),
+                URI.create("https://example.com/resource/event"),
                 "title",
                 "owner",
                 "description",
@@ -75,6 +76,7 @@ public class ScrapperControllerTest {
         LinkUpdate linkUpdate = new LinkUpdate(
                 1L,
                 URI.create("https://example.com/resource"),
+                URI.create("https://example.com/resource/event"),
                 "title",
                 "owner",
                 "description",
@@ -98,6 +100,7 @@ public class ScrapperControllerTest {
         LinkUpdate linkUpdate = new LinkUpdate(
                 1L,
                 null,
+                null,
                 "title",
                 "owner",
                 "description",
@@ -116,6 +119,7 @@ public class ScrapperControllerTest {
         LinkUpdate linkUpdate = new LinkUpdate(
                 1L,
                 URI.create("https://example.com/resource"),
+                URI.create("https://example.com/resource/event"),
                 "title",
                 "owner",
                 "description",
@@ -140,6 +144,7 @@ public class ScrapperControllerTest {
         LinkUpdate linkUpdate = new LinkUpdate(
                 1L,
                 URI.create("https://example.com/resource"),
+                URI.create("https://example.com/resource/event"),
                 "title",
                 "owner",
                 "description",

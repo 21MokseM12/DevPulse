@@ -33,6 +33,7 @@ class BotNotificationManagerTest {
         LinkUpdate update = new LinkUpdate(
                 100L,
                 URI.create("https://github.com/org/repo/pull/123"),
+                URI.create("https://github.com/org/repo/pull/123"),
                 "PR updated",
                 "octocat",
                 "description",
@@ -40,6 +41,7 @@ class BotNotificationManagerTest {
                 List.of("alice", "bob"));
         Notification notification = new Notification(
                 100L,
+                "https://github.com/org/repo/pull/123",
                 "https://github.com/org/repo/pull/123",
                 "PR updated",
                 "octocat",

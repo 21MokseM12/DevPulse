@@ -37,7 +37,7 @@ public class GithubCommitUpdateProcessor implements GithubRepoUpdateProcessor {
                                 link);
                     }
                 })
-                .map(GithubResponseMapper::mapToCommit)
+                .map(event -> GithubResponseMapper.mapToCommit(event, link))
                 .toList();
         githubLinkService.saveProcessedIds(
                 link,

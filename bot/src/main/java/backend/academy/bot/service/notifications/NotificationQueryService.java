@@ -99,6 +99,7 @@ public class NotificationQueryService {
                 row.id(),
                 row.linkId(),
                 row.url(),
+                row.eventUrl(),
                 row.title(),
                 row.updateOwner(),
                 row.description(),

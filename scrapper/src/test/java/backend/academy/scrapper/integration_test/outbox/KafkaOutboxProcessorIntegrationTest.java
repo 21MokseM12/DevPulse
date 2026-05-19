@@ -202,6 +202,7 @@ class KafkaOutboxProcessorIntegrationTest extends TestApplication {
         return new LinkUpdate(
                 id,
                 URI.create("https://github.com/acme/repo/" + id),
+                URI.create("https://github.com/acme/repo/commit/" + id),
                 "title-" + id,
                 "owner",
                 "desc",

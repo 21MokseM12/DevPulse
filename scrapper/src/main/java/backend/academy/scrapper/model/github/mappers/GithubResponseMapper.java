@@ -5,6 +5,7 @@ import backend.academy.scrapper.model.UpdateType;
 import backend.academy.scrapper.model.github.GithubCommit;
 import backend.academy.scrapper.model.github.GithubLabel;
 import backend.academy.scrapper.model.github.GithubResponse;
+import java.net.URI;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -13,8 +14,9 @@ public class GithubResponseMapper {
 
     private static final int bodyLength = 200;
 
-    public static LinkUpdateDTO mapToPullRequest(GithubResponse response) {
+    public static LinkUpdateDTO mapToPullRequest(GithubResponse response, URI repoLink) {
         String bodyPreview = truncatePreview(response.payload().pullRequest().body());
+        URI eventUrl = extractUri(response.payload().pullRequest().htmlUrl(), repoLink);
         return new LinkUpdateDTO(
                 response.id(),
                 response.payload().pullRequest().title(),
@@ -22,11 +24,13 @@ public class GithubResponseMapper {
                 response.creationDate(),
                 bodyPreview,
                 UpdateType.GITHUB_PULL_REQUEST,
-                extractLabels(response.payload().pullRequest().labels()));
+                extractLabels(response.payload().pullRequest().labels()),
+                eventUrl);
     }
 
-    public static LinkUpdateDTO mapToIssue(GithubResponse response) {
+    public static LinkUpdateDTO mapToIssue(GithubResponse response, URI repoLink) {
         String bodyPreview = truncatePreview(response.payload().issue().body());
+        URI eventUrl = extractUri(response.payload().issue().htmlUrl(), repoLink);
         return new LinkUpdateDTO(
                 response.id(),
                 response.payload().issue().title(),
@@ -34,10 +38,11 @@ public class GithubResponseMapper {
                 response.creationDate(),
                 bodyPreview,
                 UpdateType.GITHUB_ISSUE,
-                extractLabels(response.payload().issue().labels()));
+                extractLabels(response.payload().issue().labels()),
+                eventUrl);
     }
 
-    public static LinkUpdateDTO mapToCommit(GithubResponse response) {
+    public static LinkUpdateDTO mapToCommit(GithubResponse response, URI repoLink) {
         List<GithubCommit> commits = response.payload().commits() == null
                 ? List.of()
                 : response.payload().commits();
@@ -57,7 +62,11 @@ public class GithubResponseMapper {
                 response.creationDate(),
                 description,
                 UpdateType.GITHUB_COMMIT,
-                Set.of());
+                Set.of(),
+                buildPushEventUrl(
+                        repoLink,
+                        response.payload().before(),
+                        response.payload().head()));
     }
 
     private static String buildCommitDescription(String branchName, String head, List<GithubCommit> commits) {
@@ -135,6 +144,42 @@ public class GithubResponseMapper {
     }
 
     private static String truncatePreview(String body) {
+        if (body == null) {
+            return "";
+        }
         return body.length() > bodyLength ? body.substring(0, bodyLength).concat("...") : body;
+    }
+
+    private static URI buildPushEventUrl(URI repoLink, String before, String head) {
+        if (repoLink == null) {
+            return null;
+        }
+        String base = normalizeRepoUrl(repoLink.toString());
+        if (isPresent(before) && isPresent(head) && !isZeroSha(before) && !isZeroSha(head) && !before.equals(head)) {
+            return URI.create(base + "/compare/" + before + "..." + head);
+        }
+        if (isPresent(head) && !isZeroSha(head)) {
+            return URI.create(base + "/commit/" + head);
+        }
+        return repoLink;
+    }
+
+    private static URI extractUri(String rawUrl, URI fallback) {
+        if (!isPresent(rawUrl)) {
+            return fallback;
+        }
+        return URI.create(rawUrl);
+    }
+
+    private static String normalizeRepoUrl(String url) {
+        return url.endsWith("/") ? url.substring(0, url.length() - 1) : url;
+    }
+
+    private static boolean isPresent(String value) {
+        return value != null && !value.isBlank();
+    }
+
+    private static boolean isZeroSha(String value) {
+        return "0000000000000000000000000000000000000000".equals(value);
     }
 }
