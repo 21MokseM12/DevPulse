@@ -3,7 +3,9 @@ services:
     build:
       context: .
       dockerfile: bot/Dockerfile
-    pull_policy: if_not_present
+      no_cache: true
+      pull: true
+    pull_policy: build
     environment:
       - BOT_SCRAPPER_URL=http://scrapper:8081
       - BOT_POSTGRES_URL=jdbc:postgresql://bot-db:5432/${BOT_POSTGRES_DB_NAME:-devpulse_bot}
@@ -14,7 +16,12 @@ services:
       - BOT_REDIS_HOST=redis
       - BOT_REDIS_PORT=6379
       - BOT_REDIS_DATABASE=${BOT_REDIS_DATABASE:-1}
+      - BOT_FCM_PROJECT_ID=${BOT_FCM_PROJECT_ID:-}
+      - BOT_FCM_CREDENTIALS_PATH=/run/secrets/bot-fcm-service-account.json
+      - BOT_FCM_ENDPOINT_TEMPLATE=${BOT_FCM_ENDPOINT_TEMPLATE:-https://fcm.googleapis.com/v1/projects/%s/messages:send}
       - INTERNAL_SHARED_SECRET=${INTERNAL_SHARED_SECRET:-devpulse-internal-secret}
+    volumes:
+      - ./firebase-service-account.json:/run/secrets/bot-fcm-service-account.json:ro
     ports:
       - "8080:8080"
       - "25000:5005"
@@ -39,7 +46,9 @@ services:
     build:
       context: .
       dockerfile: scrapper/Dockerfile
-    pull_policy: if_not_present
+      no_cache: true
+      pull: true
+    pull_policy: build
     environment:
       - SCRAPPER_BOT_URL=http://bot:8080
       - SCRAPPER_POSTGRES_URL=jdbc:postgresql://scrapper-db:5432/${SCRAPPER_POSTGRES_DB_NAME:-devpulse_scrapper}
