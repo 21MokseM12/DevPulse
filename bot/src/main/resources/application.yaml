@@ -12,8 +12,9 @@ app:
   internal-header: ${INTERNAL_SHARED_HEADER:X-Internal-Secret}
   push:
     fcm:
-      endpoint: ${BOT_FCM_ENDPOINT:https://fcm.googleapis.com/fcm/send}
-      server-key: ${BOT_FCM_SERVER_KEY:}
+      project-id: ${BOT_FCM_PROJECT_ID:}
+      credentials-path: ${BOT_FCM_CREDENTIALS_PATH:}
+      endpoint-template: ${BOT_FCM_ENDPOINT_TEMPLATE:https://fcm.googleapis.com/v1/projects/%s/messages:send}
     retry:
       max-attempts: ${BOT_PUSH_MAX_ATTEMPTS:3}
       initial-delay-ms: ${BOT_PUSH_INITIAL_DELAY_MS:1000}

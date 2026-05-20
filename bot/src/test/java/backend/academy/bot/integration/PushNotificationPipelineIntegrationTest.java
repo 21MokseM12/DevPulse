@@ -2,19 +2,21 @@ package backend.academy.bot.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import backend.academy.bot.client.ChatClient;
-import backend.academy.bot.service.push.PushDeliveryResult;
-import backend.academy.bot.service.push.PushSender;
+import backend.academy.bot.service.push.FcmAccessTokenProvider;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sun.net.httpserver.HttpServer;
+import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import org.awaitility.Awaitility;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +39,9 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @ActiveProfiles("test")
 @Testcontainers
 class PushNotificationPipelineIntegrationTest {
+    private static final HttpServer FCM_SERVER = createFcmServer();
+    private static final String FCM_ENDPOINT_TEMPLATE = "http://localhost:%d/v1/projects/%%s/messages:send"
+            .formatted(FCM_SERVER.getAddress().getPort());
 
     @Container
     static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16")
@@ -50,6 +55,8 @@ class PushNotificationPipelineIntegrationTest {
         registry.add("spring.datasource.username", POSTGRES::getUsername);
         registry.add("spring.datasource.password", POSTGRES::getPassword);
         registry.add("app.scrapper-url", () -> "http://localhost:9999");
+        registry.add("app.push.fcm.project-id", () -> "integration-project");
+        registry.add("app.push.fcm.endpoint-template", () -> FCM_ENDPOINT_TEMPLATE);
     }
 
     @Autowired
@@ -65,7 +72,7 @@ class PushNotificationPipelineIntegrationTest {
     private ChatClient chatClient;
 
     @MockitoBean
-    private PushSender pushSender;
+    private FcmAccessTokenProvider accessTokenProvider;
 
     @BeforeEach
     void cleanDatabase() {
@@ -75,15 +82,18 @@ class PushNotificationPipelineIntegrationTest {
         jdbcTemplate.update("DELETE FROM clients");
         when(chatClient.registerChat(any())).thenReturn(ResponseEntity.ok().build());
         when(chatClient.unregisterChat(any())).thenReturn(ResponseEntity.ok().build());
+        when(accessTokenProvider.getAccessToken()).thenReturn("integration-token");
+    }
+
+    @AfterAll
+    static void stopFcmServer() {
+        FCM_SERVER.stop(0);
     }
 
     @Test
     void updates_sendPushAndInvalidateTokenOnUnregisteredResponse() throws Exception {
         registerClient("push-user");
         registerPushToken("push-user", "fcm-token-1111222233334444");
-
-        when(pushSender.send(eq("fcm-token-1111222233334444"), any()))
-                .thenReturn(PushDeliveryResult.invalidToken("UNREGISTERED"));
 
         String updatePayload = objectMapper.writeValueAsString(Map.of(
                 "id", 3001,
@@ -116,5 +126,25 @@ class PushNotificationPipelineIntegrationTest {
                 "INSERT INTO push_tokens(client_login, platform, token, status) VALUES (?, 'android', ?, 'active')",
                 login,
                 token);
+    }
+
+    private static HttpServer createFcmServer() {
+        try {
+            HttpServer server = HttpServer.create(new InetSocketAddress(0), 0);
+            server.createContext("/v1/projects/integration-project/messages:send", exchange -> {
+                String body =
+                        """
+                        {"error":{"code":404,"message":"Requested entity was not found.","status":"NOT_FOUND","details":[{"@type":"type.googleapis.com/google.firebase.fcm.v1.FcmError","errorCode":"UNREGISTERED"}]}}
+                        """;
+                byte[] response = body.getBytes(StandardCharsets.UTF_8);
+                exchange.sendResponseHeaders(404, response.length);
+                exchange.getResponseBody().write(response);
+                exchange.close();
+            });
+            server.start();
+            return server;
+        } catch (Exception ex) {
+            throw new IllegalStateException("Failed to initialize test FCM server", ex);
+        }
     }
 }

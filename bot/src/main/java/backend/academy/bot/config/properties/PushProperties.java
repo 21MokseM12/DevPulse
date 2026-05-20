@@ -14,7 +14,7 @@ public record PushProperties(
         @NotNull @Valid RetryProperties retry,
         @Min(1) int tokenApiRateLimitPerMinute) {
 
-    public record FcmProperties(String endpoint, String serverKey) {}
+    public record FcmProperties(String projectId, String credentialsPath, String endpointTemplate) {}
 
     public record RetryProperties(
             @Min(1) int maxAttempts,

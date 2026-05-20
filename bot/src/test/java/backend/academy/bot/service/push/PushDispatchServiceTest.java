@@ -29,7 +29,8 @@ class PushDispatchServiceTest {
         pushSender = Mockito.mock(PushSender.class);
         payloadBuilder = Mockito.mock(PushPayloadBuilder.class);
         PushProperties properties = new PushProperties(
-                new PushProperties.FcmProperties("http://localhost:9999/fcm", "test-key"),
+                new PushProperties.FcmProperties(
+                        "test-project", "", "http://localhost:9999/v1/projects/%s/messages:send"),
                 new PushProperties.RetryProperties(3, 1, 2.0, 10),
                 60);
         service = new PushDispatchService(

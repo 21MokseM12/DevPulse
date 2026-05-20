@@ -4,8 +4,9 @@ app:
   internal-header: X-Internal-Secret
   push:
     fcm:
-      endpoint: http://localhost:19090/fcm/send
-      server-key: test-key
+      project-id: test-project
+      credentials-path: ""
+      endpoint-template: http://localhost:19090/v1/projects/%s/messages:send
     retry:
       max-attempts: 2
       initial-delay-ms: 10
