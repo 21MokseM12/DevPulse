@@ -1,11 +1,9 @@
 package backend.academy.scrapper.service.updaters.processors.impl;
 
 import backend.academy.scrapper.enums.GithubActionType;
-import backend.academy.scrapper.enums.ProcessedIdType;
 import backend.academy.scrapper.model.LinkUpdateDTO;
 import backend.academy.scrapper.model.github.GithubResponse;
 import backend.academy.scrapper.model.github.mappers.GithubResponseMapper;
-import backend.academy.scrapper.model.stackoverflow.ProcessedIdDTO;
 import backend.academy.scrapper.service.updaters.links.wrappers.impl.GithubLinkService;
 import backend.academy.scrapper.service.updaters.processors.GithubRepoUpdateProcessor;
 import java.net.URI;
@@ -28,11 +26,6 @@ public class GithubPullRequestUpdateProcessor implements GithubRepoUpdateProcess
                 .filter(event -> !processedIds.contains(event.id()))
                 .map(event -> GithubResponseMapper.mapToPullRequest(event, link))
                 .toList();
-        githubLinkService.saveProcessedIds(
-                link,
-                processedUpdates.stream()
-                        .map(update -> new ProcessedIdDTO(update.id(), ProcessedIdType.GITHUB_PULL_REQUEST))
-                        .toList());
         return processedUpdates;
     }
 }

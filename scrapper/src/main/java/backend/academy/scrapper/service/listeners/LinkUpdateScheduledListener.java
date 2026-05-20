@@ -2,9 +2,12 @@ package backend.academy.scrapper.service.listeners;
 
 import backend.academy.scrapper.config.ScrapperConfig;
 import backend.academy.scrapper.config.properties.DatabaseProperty;
+import backend.academy.scrapper.enums.ProcessedIdType;
 import backend.academy.scrapper.factory.LinkUpdaterServiceFactory;
 import backend.academy.scrapper.model.LinkUpdateDTO;
 import backend.academy.scrapper.model.NotifyUpdateEntity;
+import backend.academy.scrapper.model.UpdateType;
+import backend.academy.scrapper.model.stackoverflow.ProcessedIdDTO;
 import backend.academy.scrapper.service.LinkOperationProcessor;
 import backend.academy.scrapper.service.notifications.NotificationManager;
 import jakarta.annotation.PostConstruct;
@@ -13,11 +16,13 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +36,8 @@ import org.springframework.stereotype.Service;
 @EnableScheduling
 @RequiredArgsConstructor
 public class LinkUpdateScheduledListener {
+
+    private static final long LINK_BATCH_TIMEOUT_SECONDS = 60L;
 
     private final ScrapperConfig scrapperConfig;
     private final DatabaseProperty databaseProperty;
@@ -58,21 +65,45 @@ public class LinkUpdateScheduledListener {
             List<CompletableFuture<List<NotifyUpdateEntity>>> futures = new ArrayList<>();
             ListUtils.partition(new ArrayList<>(batch), batchSize).forEach(part -> {
                 futures.add(CompletableFuture.supplyAsync(() -> processLink(part), executor)
-                        .completeOnTimeout(Collections.emptyList(), 10, TimeUnit.SECONDS)
                         .exceptionally(ex -> {
-                            log.error("Error processing batch", ex);
+                            Throwable cause = ex.getCause() == null ? ex : ex.getCause();
+                            if (cause instanceof TimeoutException) {
+                                log.warn(
+                                        "Timeout processing links batch ({} item(s)) after {}s, retrying on next scheduler tick",
+                                        part.size(),
+                                        LINK_BATCH_TIMEOUT_SECONDS);
+                            } else {
+                                log.error("Error processing batch", ex);
+                            }
                             return Collections.emptyList();
                         }));
             });
 
-            CompletableFuture<Void> allFutures = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+            CompletableFuture<Void> allFutures = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                    .orTimeout(LINK_BATCH_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                    .exceptionally(ex -> {
+                        Throwable cause = ex.getCause() == null ? ex : ex.getCause();
+                        if (cause instanceof TimeoutException) {
+                            log.warn(
+                                    "Global links polling timeout after {}s; partial results may be deferred to next tick",
+                                    LINK_BATCH_TIMEOUT_SECONDS);
+                        } else {
+                            log.error("Error waiting for links polling batch", ex);
+                        }
+                        return null;
+                    });
 
             List<NotifyUpdateEntity> notifyList = allFutures
                     .thenApply(v -> futures.stream()
                             .flatMap(future -> future.join().stream())
                             .collect(Collectors.toList()))
                     .join();
-            notificationManager.notify(notifyList);
+            if (!notifyList.isEmpty()) {
+                List<NotifyUpdateEntity> deliveredNotifications = Optional.ofNullable(
+                                notificationManager.notify(notifyList))
+                        .orElseGet(List::of);
+                markUpdatesAsProcessed(deliveredNotifications);
+            }
 
             pageNum++;
         } while (!batch.isEmpty());
@@ -103,5 +134,34 @@ public class LinkUpdateScheduledListener {
             }
         });
         return notifyList;
+    }
+
+    private void markUpdatesAsProcessed(List<NotifyUpdateEntity> deliveredNotifications) {
+        deliveredNotifications.forEach(notification -> {
+            List<ProcessedIdDTO> processedIds = notification.updates().stream()
+                    .map(this::toProcessedId)
+                    .flatMap(Optional::stream)
+                    .toList();
+            if (!processedIds.isEmpty()) {
+                linkOperationProcessor.saveProcessedIds(notification.link(), processedIds);
+            }
+        });
+    }
+
+    private Optional<ProcessedIdDTO> toProcessedId(LinkUpdateDTO update) {
+        if (update.type() == null || update.id() == null) {
+            return Optional.empty();
+        }
+        return Optional.of(new ProcessedIdDTO(update.id(), mapProcessedIdType(update.type())));
+    }
+
+    private ProcessedIdType mapProcessedIdType(UpdateType type) {
+        return switch (type) {
+            case GITHUB_ISSUE -> ProcessedIdType.GITHUB_ISSUE;
+            case GITHUB_PULL_REQUEST -> ProcessedIdType.GITHUB_PULL_REQUEST;
+            case GITHUB_COMMIT -> ProcessedIdType.GITHUB_COMMIT;
+            case STACKOVERFLOW_ANSWER -> ProcessedIdType.STACKOVERFLOW_ANSWER;
+            case STACKOVERFLOW_COMMENT -> ProcessedIdType.STACKOVERFLOW_COMMENT;
+        };
     }
 }

@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -101,8 +102,8 @@ public class GithubUpdaterServiceTest {
         assertFalse(updates.isEmpty());
         assertEquals(List.of(updateDTO), updates);
         verify(resilienceExecutor).execute(eq("github-api"), any());
-        verify(dbLinkService).updateEtag(link, "\"new-etag\"");
-        verify(dbLinkService).updateLastModified(link, OffsetDateTime.parse("2026-01-02T03:04:05Z"));
+        verify(dbLinkService, never()).updateEtag(link, "\"new-etag\"");
+        verify(dbLinkService, never()).updateLastModified(link, OffsetDateTime.parse("2026-01-02T03:04:05Z"));
     }
 
     @Test

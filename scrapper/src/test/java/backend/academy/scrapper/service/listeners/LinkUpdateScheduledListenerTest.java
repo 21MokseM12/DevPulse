@@ -10,11 +10,14 @@ import backend.academy.scrapper.config.ScrapperConfig;
 import backend.academy.scrapper.config.properties.DatabaseProperty;
 import backend.academy.scrapper.factory.LinkUpdaterServiceFactory;
 import backend.academy.scrapper.model.LinkUpdateDTO;
+import backend.academy.scrapper.model.NotifyUpdateEntity;
+import backend.academy.scrapper.model.UpdateType;
 import backend.academy.scrapper.service.LinkOperationProcessor;
 import backend.academy.scrapper.service.notifications.NotificationManager;
 import backend.academy.scrapper.service.updaters.LinkUpdater;
 import java.net.URI;
 import java.time.Duration;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
@@ -101,7 +104,8 @@ class LinkUpdateScheduledListenerTest {
         listener.init();
 
         URI link = URI.create("https://github.com/acme/repo");
-        LinkUpdateDTO update = new LinkUpdateDTO(10L, "title", "owner", java.time.OffsetDateTime.now(), "desc");
+        LinkUpdateDTO update = new LinkUpdateDTO(
+                10L, "title", "owner", OffsetDateTime.now(), "desc", UpdateType.GITHUB_COMMIT, Set.of());
         when(databaseProperty.pageSize()).thenReturn(1000);
         when(linkOperationProcessor.findAllLinksByForceCheckDelay(
                         config.scheduler().forceCheckDelay(), 0))
@@ -113,12 +117,16 @@ class LinkUpdateScheduledListenerTest {
         when(linkUpdater.getUpdates(link)).thenReturn(List.of(update));
         when(linkOperationProcessor.findSubscribedChats(link, update)).thenReturn(List.of(1L, 2L));
         when(linkOperationProcessor.findClientLogins(List.of(1L, 2L))).thenReturn(List.of("alice", "bob"));
+        when(notificationManager.notify(any()))
+                .thenReturn(List.of(new NotifyUpdateEntity(link, List.of(update), List.of("alice", "bob"))));
 
         listener.listenUpdates();
 
         verify(notificationManager)
                 .notify(org.mockito.ArgumentMatchers.argThat(notifications -> notifications.size() == 1
                         && notifications.getFirst().clientLogins().equals(List.of("alice", "bob"))));
+        verify(linkOperationProcessor, times(1))
+                .saveProcessedIds(eq(link), org.mockito.ArgumentMatchers.argThat(ids -> ids.size() == 1));
     }
 
     private ScrapperConfig buildConfig() {

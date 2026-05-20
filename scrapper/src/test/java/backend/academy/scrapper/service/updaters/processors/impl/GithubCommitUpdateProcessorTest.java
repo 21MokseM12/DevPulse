@@ -4,9 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import backend.academy.scrapper.enums.GithubActionType;
@@ -26,7 +23,6 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Set;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -153,11 +149,6 @@ public class GithubCommitUpdateProcessorTest {
         assertEquals("Push в main: HEAD 3f5c1e8 (детали коммитов недоступны)", update.descriptionPreview());
         assertEquals(UpdateType.GITHUB_COMMIT, update.type());
         assertEquals(URI.create("link/commit/3f5c1e8e2370a49d"), update.eventUrl());
-    }
-
-    @AfterEach
-    public void checkIfSaveMethodWasInvoked() {
-        verify(linkService).saveProcessedIds(eq(link), anyList());
     }
 
     private GithubResponse buildPushEvent(Long id, String ref, String sha, String message) {

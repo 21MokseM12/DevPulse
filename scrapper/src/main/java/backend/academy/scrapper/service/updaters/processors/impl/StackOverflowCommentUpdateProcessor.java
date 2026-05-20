@@ -1,9 +1,7 @@
 package backend.academy.scrapper.service.updaters.processors.impl;
 
 import backend.academy.scrapper.client.StackOverflowClient;
-import backend.academy.scrapper.enums.ProcessedIdType;
 import backend.academy.scrapper.model.LinkUpdateDTO;
-import backend.academy.scrapper.model.stackoverflow.ProcessedIdDTO;
 import backend.academy.scrapper.model.stackoverflow.StackOverflowCommentItem;
 import backend.academy.scrapper.model.stackoverflow.StackOverflowQuestionItem;
 import backend.academy.scrapper.model.stackoverflow.StackOverflowResponse;
@@ -32,7 +30,6 @@ public class StackOverflowCommentUpdateProcessor implements StackOverflowQuestio
     public List<LinkUpdateDTO> processUpdates(
             URI link, Long questionId, StackOverflowQuestionItem question, Long fromDate) {
         List<LinkUpdateDTO> resultUpdatesList = new ArrayList<>();
-        List<ProcessedIdDTO> nowProcessedIds = new ArrayList<>();
 
         List<Long> alreadyProcessedCommentsIds = linkService.getProcessedCommentsIds(link);
         ResponseEntity<StackOverflowResponse<StackOverflowCommentItem>> commentsResponse = resilienceExecutor.execute(
@@ -42,11 +39,8 @@ public class StackOverflowCommentUpdateProcessor implements StackOverflowQuestio
             var comments = Objects.requireNonNull(commentsResponse.getBody());
             comments.items().stream()
                     .filter(comment -> !alreadyProcessedCommentsIds.contains(comment.id()))
-                    .forEach(comment -> {
-                        resultUpdatesList.add(StackOverflowResponseMapper.mapToComment(comment, question, questionId));
-                        nowProcessedIds.add(new ProcessedIdDTO(comment.id(), ProcessedIdType.STACKOVERFLOW_COMMENT));
-                    });
-            linkService.saveProcessedIds(link, nowProcessedIds);
+                    .forEach(comment -> resultUpdatesList.add(
+                            StackOverflowResponseMapper.mapToComment(comment, question, questionId)));
         }
 
         return resultUpdatesList;

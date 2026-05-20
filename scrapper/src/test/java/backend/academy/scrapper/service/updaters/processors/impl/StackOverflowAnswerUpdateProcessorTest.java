@@ -90,7 +90,7 @@ public class StackOverflowAnswerUpdateProcessorTest {
         List<LinkUpdateDTO> linkUpdateDTOS = processor.processUpdates(link, questionId, question, null);
         assertNotNull(linkUpdateDTOS);
         assertTrue(linkUpdateDTOS.isEmpty());
-        verify(linkService).saveProcessedIds(eq(link), anyList());
+        verify(linkService, never()).saveProcessedIds(eq(link), anyList());
     }
 
     @Test
@@ -130,7 +130,7 @@ public class StackOverflowAnswerUpdateProcessorTest {
         assertNotNull(linkUpdateDTOS);
         assertFalse(linkUpdateDTOS.isEmpty());
         assertEquals(expected, linkUpdateDTOS);
-        verify(linkService).saveProcessedIds(eq(link), anyList());
+        verify(linkService, never()).saveProcessedIds(eq(link), anyList());
     }
 
     @Test
@@ -197,6 +197,6 @@ public class StackOverflowAnswerUpdateProcessorTest {
         assertNotNull(linkUpdateDTOS);
         assertFalse(linkUpdateDTOS.isEmpty());
         assertEquals(expected, linkUpdateDTOS);
-        verify(linkService).saveProcessedIds(eq(link), anyList());
+        verify(linkService, never()).saveProcessedIds(eq(link), anyList());
     }
 }

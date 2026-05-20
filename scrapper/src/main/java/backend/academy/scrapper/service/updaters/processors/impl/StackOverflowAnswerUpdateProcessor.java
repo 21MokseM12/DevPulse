@@ -1,9 +1,7 @@
 package backend.academy.scrapper.service.updaters.processors.impl;
 
 import backend.academy.scrapper.client.StackOverflowClient;
-import backend.academy.scrapper.enums.ProcessedIdType;
 import backend.academy.scrapper.model.LinkUpdateDTO;
-import backend.academy.scrapper.model.stackoverflow.ProcessedIdDTO;
 import backend.academy.scrapper.model.stackoverflow.StackOverflowAnswerItem;
 import backend.academy.scrapper.model.stackoverflow.StackOverflowQuestionItem;
 import backend.academy.scrapper.model.stackoverflow.StackOverflowResponse;
@@ -32,7 +30,6 @@ public class StackOverflowAnswerUpdateProcessor implements StackOverflowQuestion
     public List<LinkUpdateDTO> processUpdates(
             URI link, Long questionId, StackOverflowQuestionItem question, Long fromDate) {
         List<LinkUpdateDTO> resultUpdatesList = new ArrayList<>();
-        List<ProcessedIdDTO> nowProcessedIds = new ArrayList<>();
 
         ResponseEntity<StackOverflowResponse<StackOverflowAnswerItem>> answersResponse = resilienceExecutor.execute(
                 "stackoverflow-api",
@@ -42,11 +39,8 @@ public class StackOverflowAnswerUpdateProcessor implements StackOverflowQuestion
             var answers = Objects.requireNonNull(answersResponse.getBody());
             answers.items().stream()
                     .filter(answer -> !alreadyProcessedAnswersIds.contains(answer.id()))
-                    .forEach(answer -> {
-                        resultUpdatesList.add(StackOverflowResponseMapper.mapToAnswer(answer, question, questionId));
-                        nowProcessedIds.add(new ProcessedIdDTO(answer.id(), ProcessedIdType.STACKOVERFLOW_ANSWER));
-                    });
-            linkService.saveProcessedIds(link, nowProcessedIds);
+                    .forEach(answer -> resultUpdatesList.add(
+                            StackOverflowResponseMapper.mapToAnswer(answer, question, questionId)));
         }
 
         return resultUpdatesList;

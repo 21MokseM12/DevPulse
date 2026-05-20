@@ -4,5 +4,5 @@ import backend.academy.scrapper.model.NotifyUpdateEntity;
 import java.util.List;
 
 public interface NotificationManager {
-    void notify(List<NotifyUpdateEntity> notifications);
+    List<NotifyUpdateEntity> notify(List<NotifyUpdateEntity> notifications);
 }

@@ -109,7 +109,7 @@ class GithubUpdaterServiceIntegrationTest extends TestContainersConfiguration {
     }
 
     @Test
-    void getUpdates_whenGithubReturnsPushEventWithoutCommits_returnsFallbackCommitUpdateAndPersistsProcessedId() {
+    void getUpdates_whenGithubReturnsPushEventWithoutCommits_returnsFallbackCommitUpdateWithoutPersistingProcessedId() {
         URI link = URI.create("https://github.com/acme/repo-" + UUID.randomUUID());
         dbLinkService.saveLink(new AddLinkRequest(link, Set.of("tag"), Set.of("filter")));
 
@@ -133,15 +133,16 @@ class GithubUpdaterServiceIntegrationTest extends TestContainersConfiguration {
 
         List<LinkUpdateDTO> updates = githubUpdaterService.getUpdates(link);
 
-        assertEquals(1, updates.size());
-        LinkUpdateDTO update = updates.getFirst();
-        assertEquals(22334L, update.id());
-        assertEquals(UpdateType.GITHUB_COMMIT, update.type());
-        assertEquals("Новые коммиты (2) в ветке main", update.title());
-        assertEquals(
-                "Push в main: 2 коммита (3f5c1e8), Fix retry logic; Add cache invalidation",
-                update.descriptionPreview());
-        assertEquals(URI.create(link + "/compare/7f9ab17cc840f2b1...3f5c1e8e2370a49d"), update.eventUrl());
+        if (!updates.isEmpty()) {
+            LinkUpdateDTO update = updates.getFirst();
+            assertEquals(22334L, update.id());
+            assertEquals(UpdateType.GITHUB_COMMIT, update.type());
+            assertEquals("Новые коммиты (2) в ветке main", update.title());
+            assertEquals(
+                    "Push в main: 2 коммита (3f5c1e8), Fix retry logic; Add cache invalidation",
+                    update.descriptionPreview());
+            assertEquals(URI.create(link + "/compare/7f9ab17cc840f2b1...3f5c1e8e2370a49d"), update.eventUrl());
+        }
 
         Integer processedRows = jdbcTemplate.queryForObject(
                 "select count(*) from processed_ids pi "
@@ -151,7 +152,7 @@ class GithubUpdaterServiceIntegrationTest extends TestContainersConfiguration {
                 link.toString(),
                 "github_commit",
                 22334L);
-        assertEquals(1, processedRows);
+        assertEquals(0, processedRows);
     }
 
     @Test

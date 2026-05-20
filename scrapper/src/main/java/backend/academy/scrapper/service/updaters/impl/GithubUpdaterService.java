@@ -54,9 +54,8 @@ public class GithubUpdaterService implements LinkUpdater {
             return new ArrayList<>();
         }
 
-        updatePollState(link, events);
-
         if (events.getStatusCode() == HttpStatus.NOT_MODIFIED) {
+            updatePollState(link, events);
             return new ArrayList<>();
         }
 
@@ -74,8 +73,8 @@ public class GithubUpdaterService implements LinkUpdater {
         List<GithubResponse> responseBody = events.getBody();
         List<GithubResponse> updates = responseBody == null ? List.of() : responseBody;
         List<GithubResponse> enrichedUpdates = enrichPushEventsWithCommits(owner, repo, updates, link);
+        List<LinkUpdateDTO> resultList = new ArrayList<>();
         if (!enrichedUpdates.isEmpty()) {
-            List<LinkUpdateDTO> resultList = new ArrayList<>();
             updateProcessors.stream()
                     .map(processor -> processor.processUpdates(link, enrichedUpdates))
                     .forEach(resultList::addAll);
@@ -85,9 +84,11 @@ public class GithubUpdaterService implements LinkUpdater {
                         enrichedUpdates.size(),
                         link);
             }
-            return resultList;
         }
-        return new ArrayList<>();
+        if (resultList.isEmpty()) {
+            updatePollState(link, events);
+        }
+        return resultList;
     }
 
     @Override
