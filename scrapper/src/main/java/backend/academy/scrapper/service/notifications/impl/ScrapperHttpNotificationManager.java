@@ -33,9 +33,18 @@ public class ScrapperHttpNotificationManager implements NotificationManager {
 
     @Override
     public List<NotifyUpdateEntity> notify(List<NotifyUpdateEntity> notifications) {
+        log.info("Начинается отправка уведомлений: ссылок={}", notifications.size());
         List<NotifyUpdateEntity> delivered = new ArrayList<>();
         for (NotifyUpdateEntity notification : notifications) {
             List<LinkUpdateDTO> deliveredUpdates = new ArrayList<>();
+            int recipientsCount = notification.clientLogins() == null
+                    ? 0
+                    : notification.clientLogins().size();
+            log.info(
+                    "Начинается отправка уведомлений по ссылке: {} (получатели={}, обновления={})",
+                    notification.link(),
+                    recipientsCount,
+                    notification.updates().size());
             notification.updates().forEach(update -> {
                 var linkUpdate = mapper.toLinkUpdate(update, notification);
                 if (scrapperConfig.delivery().mode() == DeliveryMode.KAFKA) {
@@ -68,8 +77,18 @@ public class ScrapperHttpNotificationManager implements NotificationManager {
             if (!deliveredUpdates.isEmpty()) {
                 delivered.add(new NotifyUpdateEntity(
                         notification.link(), deliveredUpdates, List.copyOf(notification.clientLogins())));
+                log.info(
+                        "Уведомления отправлены успешно по ссылке: {} (отправлено={})",
+                        notification.link(),
+                        deliveredUpdates.size());
+            } else {
+                log.warn("По ссылке {} не удалось доставить ни одного уведомления", notification.link());
             }
         }
+        int deliveredUpdatesTotal = delivered.stream()
+                .mapToInt(notification -> notification.updates().size())
+                .sum();
+        log.info("Отправка уведомлений завершена: доставлено={}", deliveredUpdatesTotal);
         return delivered;
     }
 }

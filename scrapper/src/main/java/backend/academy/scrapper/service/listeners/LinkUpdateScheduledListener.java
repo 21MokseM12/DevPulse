@@ -18,12 +18,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
@@ -54,17 +54,32 @@ public class LinkUpdateScheduledListener {
 
     @Scheduled(fixedDelayString = "#{ @scheduler.interval() }")
     public void listenUpdates() {
+        String cycleId = UUID.randomUUID().toString();
+        long cycleStartNanos = System.nanoTime();
+        PollingCycleStats stats = new PollingCycleStats();
         Set<URI> batch;
         int pageNum = 0,
                 batchSize =
                         databaseProperty.pageSize() / scrapperConfig.scheduler().threadPoolSize();
+        log.info(
+                "Начинается цикл опроса ссылок (cycleId={}, interval={}, forceCheckDelay={}, размер_пакета={})",
+                cycleId,
+                scrapperConfig.scheduler().interval(),
+                scrapperConfig.scheduler().forceCheckDelay(),
+                batchSize);
 
         do {
             batch = linkOperationProcessor.findAllLinksByForceCheckDelay(
                     scrapperConfig.scheduler().forceCheckDelay(), pageNum);
-            List<CompletableFuture<List<NotifyUpdateEntity>>> futures = new ArrayList<>();
+            stats.totalLinks += batch.size();
+            log.info(
+                    "Получен пакет ссылок для опроса: {} шт. (cycleId={}, страница={})",
+                    batch.size(),
+                    cycleId,
+                    pageNum);
+            List<CompletableFuture<LinkBatchProcessingResult>> futures = new ArrayList<>();
             ListUtils.partition(new ArrayList<>(batch), batchSize).forEach(part -> {
-                futures.add(CompletableFuture.supplyAsync(() -> processLink(part), executor)
+                futures.add(CompletableFuture.supplyAsync(() -> processLink(part, cycleId), executor)
                         .exceptionally(ex -> {
                             Throwable cause = ex.getCause() == null ? ex : ex.getCause();
                             if (cause instanceof TimeoutException) {
@@ -75,7 +90,7 @@ public class LinkUpdateScheduledListener {
                             } else {
                                 log.error("Error processing batch", ex);
                             }
-                            return Collections.emptyList();
+                            return LinkBatchProcessingResult.empty();
                         }));
             });
 
@@ -93,30 +108,78 @@ public class LinkUpdateScheduledListener {
                         return null;
                     });
 
-            List<NotifyUpdateEntity> notifyList = allFutures
+            LinkBatchProcessingResult batchResult = allFutures
                     .thenApply(v -> futures.stream()
-                            .flatMap(future -> future.join().stream())
-                            .collect(Collectors.toList()))
+                            .map(CompletableFuture::join)
+                            .reduce(LinkBatchProcessingResult.empty(), LinkBatchProcessingResult::merge))
                     .join();
-            if (!notifyList.isEmpty()) {
+            stats.successLinks += batchResult.successCount();
+            stats.failedLinks += batchResult.failedCount();
+            stats.noUpdatesLinks += batchResult.noUpdatesCount();
+            stats.updatesFound += batchResult.updatesFound();
+
+            if (!batchResult.notifications().isEmpty()) {
+                int plannedNotifications = batchResult.notifications().stream()
+                        .mapToInt(notification -> notification.updates().size())
+                        .sum();
+                log.info(
+                        "Начинается отправка уведомлений (cycleId={}, ссылок={}, обновлений={})",
+                        cycleId,
+                        batchResult.notifications().size(),
+                        plannedNotifications);
                 List<NotifyUpdateEntity> deliveredNotifications = Optional.ofNullable(
-                                notificationManager.notify(notifyList))
+                                notificationManager.notify(batchResult.notifications()))
                         .orElseGet(List::of);
                 markUpdatesAsProcessed(deliveredNotifications);
+                int deliveredUpdates = deliveredNotifications.stream()
+                        .mapToInt(notification -> notification.updates().size())
+                        .sum();
+                stats.notificationsSent += deliveredUpdates;
+                log.info("Уведомления отправлены (cycleId={}, доставлено_обновлений={})", cycleId, deliveredUpdates);
             }
 
             pageNum++;
         } while (!batch.isEmpty());
+        long cycleDurationMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - cycleStartNanos);
+        log.info(
+                "Цикл опроса завершен: всего={}, успешно={}, без_изменений={}, с_ошибкой={}, новых_событий={}, уведомлений_отправлено={}, длительность={}мс (cycleId={})",
+                stats.totalLinks,
+                stats.successLinks,
+                stats.noUpdatesLinks,
+                stats.failedLinks,
+                stats.updatesFound,
+                stats.notificationsSent,
+                cycleDurationMs,
+                cycleId);
     }
 
-    private List<NotifyUpdateEntity> processLink(List<URI> links) {
+    private LinkBatchProcessingResult processLink(List<URI> links, String cycleId) {
         List<NotifyUpdateEntity> notifyList = new ArrayList<>();
-        links.forEach(link -> {
+        int successCount = 0;
+        int failedCount = 0;
+        int noUpdatesCount = 0;
+        int updatesFound = 0;
+        for (URI link : links) {
+            long linkStartNanos = System.nanoTime();
+            String result = "success";
             OffsetDateTime checkedAt = OffsetDateTime.now();
             try {
-                List<LinkUpdateDTO> response = updaterFactory.get(link).getUpdates(link);
+                log.info("Начинается просмотр по ссылке: {} (cycleId={})", link, cycleId);
+                var updater = updaterFactory.get(link);
+                String provider = updater.getType().name();
+                List<LinkUpdateDTO> response = updater.getUpdates(link);
                 linkOperationProcessor.markPollingSuccess(
                         link, checkedAt, scrapperConfig.scheduler().forceCheckDelay());
+                log.info("Ответ от {} получен успешно по ссылке: {} (cycleId={})", provider, link, cycleId);
+                log.info("Просмотр успешен - все события получены по ссылке: {} (cycleId={})", link, cycleId);
+                if (response.isEmpty()) {
+                    noUpdatesCount++;
+                    result = "no_updates";
+                    log.info("Новых событий не обнаружено по ссылке: {} (cycleId={})", link, cycleId);
+                } else {
+                    updatesFound += response.size();
+                    log.info("Найдены новые события: {} по ссылке {} (cycleId={})", response.size(), link, cycleId);
+                }
                 response.forEach(update -> {
                     List<Long> chatIdsNeededNotify = linkOperationProcessor.findSubscribedChats(link, update);
                     if (!chatIdsNeededNotify.isEmpty()) {
@@ -126,14 +189,30 @@ public class LinkUpdateScheduledListener {
                         }
                     }
                 });
+                successCount++;
             } catch (Exception ex) {
                 String failureMessage = ex.getClass().getSimpleName() + ": " + ex.getMessage();
-                log.warn("Ошибка опроса ссылки {}: {}", link, failureMessage, ex);
+                result = "failed";
+                failedCount++;
+                log.warn(
+                        "Просмотр по ссылке завершился с ошибкой: {}. Причина: {} (cycleId={})",
+                        link,
+                        failureMessage,
+                        cycleId,
+                        ex);
                 linkOperationProcessor.markPollingFailure(
                         link, checkedAt, scrapperConfig.scheduler().forceCheckDelay(), failureMessage);
+            } finally {
+                long durationMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - linkStartNanos);
+                log.info(
+                        "Просмотр завершен по ссылке: {} (результат={}, длительность={}мс, cycleId={})",
+                        link,
+                        result,
+                        durationMs,
+                        cycleId);
             }
-        });
-        return notifyList;
+        }
+        return new LinkBatchProcessingResult(notifyList, successCount, failedCount, noUpdatesCount, updatesFound);
     }
 
     private void markUpdatesAsProcessed(List<NotifyUpdateEntity> deliveredNotifications) {
@@ -163,5 +242,37 @@ public class LinkUpdateScheduledListener {
             case STACKOVERFLOW_ANSWER -> ProcessedIdType.STACKOVERFLOW_ANSWER;
             case STACKOVERFLOW_COMMENT -> ProcessedIdType.STACKOVERFLOW_COMMENT;
         };
+    }
+
+    private static final class PollingCycleStats {
+        private int totalLinks;
+        private int successLinks;
+        private int failedLinks;
+        private int noUpdatesLinks;
+        private int updatesFound;
+        private int notificationsSent;
+    }
+
+    private record LinkBatchProcessingResult(
+            List<NotifyUpdateEntity> notifications,
+            int successCount,
+            int failedCount,
+            int noUpdatesCount,
+            int updatesFound) {
+
+        private static LinkBatchProcessingResult empty() {
+            return new LinkBatchProcessingResult(Collections.emptyList(), 0, 0, 0, 0);
+        }
+
+        private LinkBatchProcessingResult merge(LinkBatchProcessingResult other) {
+            List<NotifyUpdateEntity> mergedNotifications = new ArrayList<>(notifications);
+            mergedNotifications.addAll(other.notifications);
+            return new LinkBatchProcessingResult(
+                    mergedNotifications,
+                    successCount + other.successCount,
+                    failedCount + other.failedCount,
+                    noUpdatesCount + other.noUpdatesCount,
+                    updatesFound + other.updatesFound);
+        }
     }
 }
