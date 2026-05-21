@@ -181,6 +181,7 @@ public class LinkUpdateScheduledListener {
                     log.info("Найдены новые события: {} по ссылке {} (cycleId={})", response.size(), link, cycleId);
                 }
                 response.forEach(update -> {
+                    logDetectedUpdate(link, update, cycleId);
                     List<Long> chatIdsNeededNotify = linkOperationProcessor.findSubscribedChats(link, update);
                     if (!chatIdsNeededNotify.isEmpty()) {
                         List<String> clientLogins = linkOperationProcessor.findClientLogins(chatIdsNeededNotify);
@@ -213,6 +214,21 @@ public class LinkUpdateScheduledListener {
             }
         }
         return new LinkBatchProcessingResult(notifyList, successCount, failedCount, noUpdatesCount, updatesFound);
+    }
+
+    private void logDetectedUpdate(URI link, LinkUpdateDTO update, String cycleId) {
+        log.info(
+                "Обнаружено обновление по ссылке {}: id={}, тип={}, заголовок={}, автор={}, дата={}, eventUrl={}, labels={}, preview={} (cycleId={})",
+                link,
+                update.id(),
+                update.type(),
+                update.title(),
+                update.updateOwner(),
+                update.creationDate(),
+                update.eventUrl(),
+                update.labels(),
+                update.descriptionPreview(),
+                cycleId);
     }
 
     private void markUpdatesAsProcessed(List<NotifyUpdateEntity> deliveredNotifications) {

@@ -113,7 +113,14 @@ class LinkUpdateScheduledListenerTest {
 
         URI link = URI.create("https://github.com/acme/repo");
         LinkUpdateDTO update = new LinkUpdateDTO(
-                10L, "title", "owner", OffsetDateTime.now(), "desc", UpdateType.GITHUB_COMMIT, Set.of());
+                10L,
+                "title",
+                "owner",
+                OffsetDateTime.now(),
+                "desc",
+                UpdateType.GITHUB_COMMIT,
+                Set.of("bug"),
+                URI.create("https://github.com/acme/repo/pull/10"));
         when(databaseProperty.pageSize()).thenReturn(1000);
         when(linkOperationProcessor.findAllLinksByForceCheckDelay(
                         config.scheduler().forceCheckDelay(), 0))
@@ -181,6 +188,8 @@ class LinkUpdateScheduledListenerTest {
                 .anyMatch(message -> message.contains("Начинается просмотр по ссылке: " + link))
                 .anyMatch(message -> message.contains("Просмотр успешен - все события получены по ссылке: " + link))
                 .anyMatch(message -> message.contains("Найдены новые события: 1 по ссылке " + link))
+                .anyMatch(message ->
+                        message.contains("Обнаружено обновление по ссылке " + link + ": id=10, тип=GITHUB_COMMIT"))
                 .anyMatch(message -> message.contains("Цикл опроса завершен:"));
     }
 
