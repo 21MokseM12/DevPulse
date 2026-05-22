@@ -217,18 +217,31 @@ public class LinkUpdateScheduledListener {
     }
 
     private void logDetectedUpdate(URI link, LinkUpdateDTO update, String cycleId) {
-        log.info(
-                "Обнаружено обновление по ссылке {}: id={}, тип={}, заголовок={}, автор={}, дата={}, eventUrl={}, labels={}, preview={} (cycleId={})",
-                link,
-                update.id(),
-                update.type(),
-                update.title(),
-                update.updateOwner(),
-                update.creationDate(),
-                update.eventUrl(),
-                update.labels(),
-                update.descriptionPreview(),
-                cycleId);
+        String message = buildReceivedMessage(update);
+        log.info("Сообщение получено: \"{}\" (ссылка={}, cycleId={})", message, link, cycleId);
+    }
+
+    private String buildReceivedMessage(LinkUpdateDTO update) {
+        String title = normalizeText(update.title());
+        String preview = normalizeText(update.descriptionPreview());
+        if (!title.isEmpty() && !preview.isEmpty()) {
+            return escapeQuotes(title + " - " + preview);
+        }
+        if (!title.isEmpty()) {
+            return escapeQuotes(title);
+        }
+        if (!preview.isEmpty()) {
+            return escapeQuotes(preview);
+        }
+        return "Обновление по отслеживаемой ссылке";
+    }
+
+    private String normalizeText(String value) {
+        return value == null ? "" : value.trim();
+    }
+
+    private String escapeQuotes(String value) {
+        return value.replace("\"", "'");
     }
 
     private void markUpdatesAsProcessed(List<NotifyUpdateEntity> deliveredNotifications) {

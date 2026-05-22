@@ -115,10 +115,9 @@ class LinkUpdateScheduledListenerLoggingIntegrationTest {
                 appender.list.stream().map(ILoggingEvent::getFormattedMessage).toList();
         assertThat(messages)
                 .anyMatch(message -> message.contains(
-                        "Обнаружено обновление по ссылке " + link + ": id=777, тип=GITHUB_PULL_REQUEST"))
-                .anyMatch(message -> message.contains("заголовок=Fix race condition"))
-                .anyMatch(message -> message.contains("автор=alice"))
-                .anyMatch(message -> message.contains("eventUrl=https://github.com/acme/repo/pull/777"));
+                        "Сообщение получено: \"Fix race condition - Описание обновления\" (ссылка=" + link))
+                .noneMatch(message -> message.contains("Обнаружено обновление по ссылке"))
+                .noneMatch(message -> message.contains("id=777, тип=GITHUB_PULL_REQUEST"));
     }
 
     @Configuration
