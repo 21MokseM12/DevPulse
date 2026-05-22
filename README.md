@@ -58,7 +58,9 @@ curl --fail --silent http://localhost:8081/actuator/health
 2. Открыть Swagger:
    - `http://localhost:8080/swagger-ui`
    - `http://localhost:8081/swagger-ui`
-3. Проверить, что контейнеры `bot`, `scrapper`, `bot-db`, `scrapper-db`, `kafka`, `redis` в состоянии `healthy`.
+3. Открыть Kafka UI:
+   - `http://localhost:8082`
+4. Проверить, что контейнеры `bot`, `scrapper`, `bot-db`, `scrapper-db`, `kafka`, `redis` в состоянии `healthy`.
 
 ## Конфигурация окружений
 
@@ -66,6 +68,7 @@ curl --fail --silent http://localhost:8081/actuator/health
 
 - Используются значения из `.env` (или дефолты в `docker-compose.yaml`).
 - Поднимаются сервисы приложения, БД и брокер сообщений.
+- Kafka UI доступен локально по адресу `http://localhost:8082`.
 - Для Kafka создаются топики через `kafka-init`.
 
 ### Kubernetes (`staging` / `production`)
