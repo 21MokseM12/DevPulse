@@ -121,10 +121,6 @@ public class LinkOperationProcessorTest {
         when(chatService.isClient(id)).thenReturn(true);
         when(dbLinkService.findByLink(addLinkRequest.link().toString())).thenReturn(Optional.empty());
         when(dbLinkService.saveLink(addLinkRequest)).thenReturn(link);
-        when(mapper.toLinkResponse(any())).thenAnswer(invocation -> {
-            Link argument = invocation.getArgument(0);
-            return new LinkResponse(argument.id(), argument.url(), argument.tags(), argument.filters());
-        });
 
         Optional<LinkResponse> linkResponse = linkOperationProcessor.subscribe(id, addLinkRequest);
         assertTrue(linkResponse.isPresent());
@@ -145,10 +141,6 @@ public class LinkOperationProcessorTest {
 
         when(chatService.isClient(id)).thenReturn(true);
         when(dbLinkService.findByLink(addLinkRequest.link().toString())).thenReturn(Optional.of(link));
-        when(mapper.toLinkResponse(any())).thenAnswer(invocation -> {
-            Link argument = invocation.getArgument(0);
-            return new LinkResponse(argument.id(), argument.url(), argument.tags(), argument.filters());
-        });
 
         Optional<LinkResponse> linkResponse = linkOperationProcessor.subscribe(id, addLinkRequest);
         assertTrue(linkResponse.isPresent());
@@ -169,10 +161,6 @@ public class LinkOperationProcessorTest {
 
         when(chatService.isClient(id)).thenReturn(true);
         when(dbLinkService.findByLink(addLinkRequest.link().toString())).thenReturn(Optional.of(link));
-        when(mapper.toLinkResponse(any())).thenAnswer(invocation -> {
-            Link argument = invocation.getArgument(0);
-            return new LinkResponse(argument.id(), argument.url(), argument.tags(), argument.filters());
-        });
 
         Optional<LinkResponse> first = linkOperationProcessor.subscribe(id, addLinkRequest);
         Optional<LinkResponse> second = linkOperationProcessor.subscribe(id, addLinkRequest);
@@ -183,6 +171,30 @@ public class LinkOperationProcessorTest {
         assertEquals(expected, second.orElseThrow());
         verify(chatService, times(2))
                 .subscribeChatOnLink(id, link.id(), addLinkRequest.tags(), addLinkRequest.filters());
+    }
+
+    @Test
+    public void whenAnotherUserAlreadyHasMetadata_thenSubscribeResponseUsesCurrentRequestMetadata() {
+        Long id = 123L;
+        AddLinkRequest addLinkRequest =
+                new AddLinkRequest(URI.create("https://repeat.example/shared"), Set.of(), Set.of());
+        Link existingLink = new Link(
+                1L,
+                URI.create("https://repeat.example/shared"),
+                Set.of("legacy-tag"),
+                Set.of("legacy-filter"),
+                OffsetDateTime.now());
+
+        when(chatService.isClient(id)).thenReturn(true);
+        when(dbLinkService.findByLink(addLinkRequest.link().toString())).thenReturn(Optional.of(existingLink));
+
+        Optional<LinkResponse> linkResponse = linkOperationProcessor.subscribe(id, addLinkRequest);
+
+        assertTrue(linkResponse.isPresent());
+        assertEquals(
+                new LinkResponse(existingLink.id(), existingLink.url(), Set.of(), Set.of()),
+                linkResponse.orElseThrow());
+        verify(chatService).subscribeChatOnLink(id, existingLink.id(), addLinkRequest.tags(), addLinkRequest.filters());
     }
 
     @Test

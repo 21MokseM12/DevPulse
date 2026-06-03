@@ -71,7 +71,8 @@ public class LinkOperationProcessorImpl implements LinkOperationProcessor {
             }
             chatService.subscribeChatOnLink(chatId, link.id(), linkRequest.tags(), linkRequest.filters());
             log.info("Пользователь с id {} подписан на ссылку {}", chatId, link.url());
-            return Optional.of(mapper.toLinkResponse(link));
+            return Optional.of(new LinkResponse(
+                    link.id(), link.url(), safeSet(linkRequest.tags()), safeSet(linkRequest.filters())));
         } catch (Exception e) {
             log.error(
                     "Произошла ошибка при подписке на ссылку с клиентом по id {} по запросу: {}", chatId, linkRequest);
@@ -160,5 +161,9 @@ public class LinkOperationProcessorImpl implements LinkOperationProcessor {
         long baseBackoffSeconds = Math.max(1L, forceCheckDelay.toSeconds());
         long maxBackoffSeconds = Math.max(baseBackoffSeconds, baseBackoffSeconds * 32L);
         linkService.markPollingFailure(link, checkedAt, error, baseBackoffSeconds, maxBackoffSeconds);
+    }
+
+    private Set<String> safeSet(Set<String> values) {
+        return values == null ? Set.of() : Set.copyOf(values);
     }
 }
