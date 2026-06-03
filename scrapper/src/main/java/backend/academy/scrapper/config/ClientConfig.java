@@ -3,17 +3,23 @@ package backend.academy.scrapper.config;
 import backend.academy.scrapper.client.BotClient;
 import backend.academy.scrapper.client.GithubClient;
 import backend.academy.scrapper.client.StackOverflowClient;
+import backend.academy.scrapper.config.ScrapperConfig.StackOverflowCredentials;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
+import java.net.URI;
 import java.time.Duration;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpRequest;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ReactorClientHttpRequestFactory;
+import org.springframework.http.client.support.HttpRequestWrapper;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.support.RestClientAdapter;
 import org.springframework.web.service.invoker.HttpServiceProxyFactory;
+import org.springframework.web.util.UriComponentsBuilder;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
 
@@ -52,15 +58,37 @@ public class ClientConfig {
     @Bean
     public StackOverflowClient stackOverflowClient(
             RestClient.Builder builder, ReactorClientHttpRequestFactory externalApiRequestFactory) {
-        RestClient restClient = builder.baseUrl(
-                        scrapperConfig.stackOverflow().url() == null
-                                ? BASE_STACKOVERFLOW_URL
-                                : scrapperConfig.stackOverflow().url())
+        StackOverflowCredentials credentials = scrapperConfig.stackOverflow();
+        RestClient restClient = builder.baseUrl(credentials.url() == null ? BASE_STACKOVERFLOW_URL : credentials.url())
                 .requestFactory(externalApiRequestFactory)
+                .requestInterceptor(stackOverflowAuthInterceptor(credentials))
                 .build();
         return HttpServiceProxyFactory.builderFor(RestClientAdapter.create(restClient))
                 .build()
                 .createClient(StackOverflowClient.class);
+    }
+
+    /**
+     * StackExchange аутентифицируется через query-параметры: {@code key} поднимает суточную квоту до 10 000 запросов,
+     * {@code access_token} (опционален) добавляется только для методов, требующих авторизации пользователя. Параметры
+     * дописываются здесь, чтобы не протекать в сигнатуры клиента и бизнес-логику.
+     */
+    private ClientHttpRequestInterceptor stackOverflowAuthInterceptor(StackOverflowCredentials credentials) {
+        return (request, body, execution) -> {
+            UriComponentsBuilder uriBuilder =
+                    UriComponentsBuilder.fromUri(request.getURI()).queryParam("key", credentials.key());
+            if (credentials.accessToken() != null && !credentials.accessToken().isBlank()) {
+                uriBuilder.queryParam("access_token", credentials.accessToken());
+            }
+            URI authenticatedUri = uriBuilder.build(true).toUri();
+            HttpRequest authenticatedRequest = new HttpRequestWrapper(request) {
+                @Override
+                public URI getURI() {
+                    return authenticatedUri;
+                }
+            };
+            return execution.execute(authenticatedRequest, body);
+        };
     }
 
     @Bean

@@ -27,7 +27,7 @@ public record ScrapperConfig(
 
     public record GitHubCredentials(@NotEmpty String token, @NotEmpty String url) {}
 
-    public record StackOverflowCredentials(@NotEmpty String url, @NotEmpty String key, @NotEmpty String accessToken) {}
+    public record StackOverflowCredentials(@NotEmpty String url, @NotEmpty String key, String accessToken) {}
 
     public record OutboxCredentials(
             @NotEmpty String topic, @NotEmpty Duration interval, @NotEmpty @Min(1) @Max(10_000) int batchSize) {}
