@@ -2,6 +2,7 @@ package backend.academy.scrapper.integration_test.controller;
 
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasItem;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -58,6 +59,20 @@ class LinkSubscriptionIsolationIntegrationTest extends TestContainersConfigurati
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.tags", empty()))
                 .andExpect(jsonPath("$.filters", empty()));
+
+        mockMvc.perform(get("/links")
+                        .header("Client-Login", firstLogin)
+                        .header(INTERNAL_SECRET_HEADER, INTERNAL_SECRET))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].tags", hasItem("first-tag")))
+                .andExpect(jsonPath("$[0].filters", hasItem("author:first")));
+
+        mockMvc.perform(get("/links")
+                        .header("Client-Login", secondLogin)
+                        .header(INTERNAL_SECRET_HEADER, INTERNAL_SECRET))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].tags", empty()))
+                .andExpect(jsonPath("$[0].filters", empty()));
     }
 
     private void createClient(String login) {

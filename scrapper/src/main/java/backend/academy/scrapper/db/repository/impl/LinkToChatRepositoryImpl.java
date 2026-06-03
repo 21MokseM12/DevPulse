@@ -1,5 +1,6 @@
 package backend.academy.scrapper.db.repository.impl;
 
+import backend.academy.scrapper.db.model.Link;
 import backend.academy.scrapper.db.model.LinkSubscription;
 import backend.academy.scrapper.db.query.LinkToChatQuery;
 import backend.academy.scrapper.db.repository.LinkToChatRepository;
@@ -11,6 +12,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -28,6 +30,7 @@ public class LinkToChatRepositoryImpl implements LinkToChatRepository {
     private static final String CREATED_AT = "createdAt";
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
+    private final RowMapper<Link> rowMapper;
 
     @Transactional(propagation = Propagation.MANDATORY)
     public boolean subscribeChatOnLink(
@@ -75,6 +78,15 @@ public class LinkToChatRepositoryImpl implements LinkToChatRepository {
                 LinkToChatQuery.SELECT_LINKS_BY_CHAT_ID.query(),
                 new MapSqlParameterSource().addValue(CHAT_ID, chatId),
                 Long.class);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Link> findAllLinksWithMetadataByChatId(Long chatId) {
+        return jdbcTemplate.query(
+                LinkToChatQuery.SELECT_LINKS_WITH_METADATA_BY_CHAT_ID.query(),
+                new MapSqlParameterSource().addValue(CHAT_ID, chatId),
+                rowMapper);
     }
 
     @Transactional(readOnly = true)

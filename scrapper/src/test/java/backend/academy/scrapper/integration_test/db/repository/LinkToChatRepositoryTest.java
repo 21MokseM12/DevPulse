@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import backend.academy.scrapper.db.repository.LinkToChatRepository;
 import backend.academy.scrapper.db.repository.impl.LinkToChatRepositoryImpl;
 import backend.academy.scrapper.integration_test.config.TestContainersConfiguration;
+import backend.academy.scrapper.mapper.LinkRowMapper;
 import java.sql.Timestamp;
 import java.time.OffsetDateTime;
 import java.util.HashSet;
@@ -26,7 +27,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @JdbcTest
 @Testcontainers
 @ActiveProfiles("test")
-@Import(LinkToChatRepositoryImpl.class)
+@Import({LinkToChatRepositoryImpl.class, LinkRowMapper.class})
 public class LinkToChatRepositoryTest extends TestContainersConfiguration {
 
     @Autowired

@@ -1,5 +1,6 @@
 package backend.academy.scrapper.service.impl;
 
+import backend.academy.scrapper.db.model.Link;
 import backend.academy.scrapper.db.model.LinkSubscription;
 import backend.academy.scrapper.db.repository.ChatRepository;
 import backend.academy.scrapper.db.repository.LinkToChatRepository;
@@ -111,6 +112,11 @@ public class ChatOperationProcessorImpl implements ChatOperationProcessor {
     @Override
     public List<Long> findAllByLinkId(Long linkId) {
         return linkToChatRepository.findAllByLinkId(linkId);
+    }
+
+    @Override
+    public List<Link> findAllLinksWithMetadataByChatId(Long chatId) {
+        return linkToChatRepository.findAllLinksWithMetadataByChatId(chatId);
     }
 
     @Override

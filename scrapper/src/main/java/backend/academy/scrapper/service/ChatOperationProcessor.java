@@ -1,5 +1,6 @@
 package backend.academy.scrapper.service;
 
+import backend.academy.scrapper.db.model.Link;
 import backend.academy.scrapper.db.model.LinkSubscription;
 import java.util.List;
 import java.util.Optional;
@@ -23,6 +24,8 @@ public interface ChatOperationProcessor {
     boolean isClient(Long id);
 
     List<Long> findAllByLinkId(Long linkId);
+
+    List<Link> findAllLinksWithMetadataByChatId(Long chatId);
 
     List<LinkSubscription> findSubscriptionsByLinkId(Long linkId);
 

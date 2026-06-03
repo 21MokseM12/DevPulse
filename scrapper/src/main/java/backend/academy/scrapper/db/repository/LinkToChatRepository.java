@@ -1,5 +1,6 @@
 package backend.academy.scrapper.db.repository;
 
+import backend.academy.scrapper.db.model.Link;
 import backend.academy.scrapper.db.model.LinkSubscription;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
@@ -21,6 +22,8 @@ public interface LinkToChatRepository {
     void unsubscribeAll(Long chatId);
 
     List<Long> findAllIdByChatId(Long chatId);
+
+    List<Link> findAllLinksWithMetadataByChatId(Long chatId);
 
     List<Long> findAllByLinkId(Long linkId);
 

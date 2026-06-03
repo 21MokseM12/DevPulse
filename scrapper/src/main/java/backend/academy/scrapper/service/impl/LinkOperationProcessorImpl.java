@@ -48,8 +48,7 @@ public class LinkOperationProcessorImpl implements LinkOperationProcessor {
         if (!chatService.isClient(chatId)) {
             return new ArrayList<>();
         }
-        List<Long> linkIds = commonService.findAllLinkIdsByChatId(chatId);
-        List<Link> links = linkService.findAllLinks(linkIds);
+        List<Link> links = chatService.findAllLinksWithMetadataByChatId(chatId);
         return links.stream().map(mapper::toLinkResponse).toList();
     }
 

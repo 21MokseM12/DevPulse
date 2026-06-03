@@ -78,8 +78,7 @@ public class LinkOperationProcessorTest {
         List<LinkResponse> expectedResponse =
                 List.of(new LinkResponse(1L, URI.create("uri"), Set.of("tag"), Set.of("filter")));
         when(chatService.isClient(id)).thenReturn(true);
-        when(commonService.findAllLinkIdsByChatId(id)).thenReturn(List.of(id));
-        when(dbLinkService.findAllLinks(List.of(id))).thenReturn(links);
+        when(chatService.findAllLinksWithMetadataByChatId(id)).thenReturn(links);
         when(mapper.toLinkResponse(any())).thenAnswer(invocation -> {
             Link argument = invocation.getArgument(0);
             return new LinkResponse(argument.id(), argument.url(), argument.tags(), argument.filters());
@@ -90,25 +89,21 @@ public class LinkOperationProcessorTest {
         assertThat(!byChatId.isEmpty()).isTrue();
         assertThat(byChatId.size()).isEqualTo(links.size());
         assertThat(byChatId.getFirst()).isEqualTo(expectedResponse.getFirst());
-        verify(dbLinkService).findAllLinks(List.of(id));
+        verify(chatService).findAllLinksWithMetadataByChatId(id);
         verify(chatService).isClient(id);
-        verify(commonService).findAllLinkIdsByChatId(id);
     }
 
     @Test
     public void testGetAllLinksFailure() {
         Long id = 1L;
-        List<Long> list = List.of(id);
-        when(commonService.findAllLinkIdsByChatId(id)).thenReturn(list);
-        when(dbLinkService.findAllLinks(list)).thenReturn(List.of());
+        when(chatService.findAllLinksWithMetadataByChatId(id)).thenReturn(List.of());
         when(chatService.isClient(id)).thenReturn(true);
 
         List<LinkResponse> byChatId = linkOperationProcessor.findAllByChatId(id);
 
         assertThat(byChatId.isEmpty()).isTrue();
-        verify(dbLinkService).findAllLinks(list);
+        verify(chatService).findAllLinksWithMetadataByChatId(id);
         verify(chatService).isClient(id);
-        verify(commonService).findAllLinkIdsByChatId(id);
     }
 
     @Test
